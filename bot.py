@@ -148,10 +148,12 @@ async def welcome_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE
 async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     now = get_current_time()
     if night_mode_active:
-        if not update.message.from_user.is_admin:
-            logger.info(f"Deleting message from user {update.message.from_user.id} due to night mode.")
-            await update.message.reply_text("❌ Sorry, solange der NACHTMODUS aktiviert ist, kannst du von 00:00 Uhr bis 07:00 Uhr keine Mitteilungen in der Gruppe senden.")
+        is_admin = update.message.from_user.is_admin
+        if not is_admin:
+            logger.info(f"Deleting message from non-admin user {update.message.from_user.id} due to night mode.")
+            await update.message.reply_text("❌ Sorry, solange der NACHTMODUS aktiviert ist (00:00 - 07:00 Uhr), kannst du keine Mitteilungen in der Gruppe oder in den Topics senden.")
             await context.bot.delete_message(chat_id=update.message.chat_id, message_id=update.message.message_id)
+
 
 # Background task to check and switch night mode
 async def night_mode_checker(context):
