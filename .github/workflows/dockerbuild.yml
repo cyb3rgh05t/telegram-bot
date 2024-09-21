@@ -61,7 +61,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}  # GitHub username
-          password: ${{ secrets.CR_PAT }}  # GitHub token
+          password: ${{ secrets.TOKEN }}  # GitHub token
 
       - name: Build and push GHRC.io
         id: docker_build
