@@ -12,14 +12,6 @@ import pytz
 # Apply nest_asyncio to handle running loops
 nest_asyncio.apply()
 
-# Configure logging
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
-
-logger = logging.getLogger(__name__)
-
 # Load bot configuration from config/config.json
 CONFIG_DIR = "config"
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'config.json')
@@ -31,6 +23,15 @@ TOKEN = config.get("TOKEN")
 TIMEZONE = config.get("TIMEZONE", "Europe/Berlin")  # Default to 'Europe/Berlin' if not specified
 IMAGE_URL = config.get("IMAGE_URL")
 BUTTON_URL = config.get("BUTTON_URL")
+LOG_LEVEL = config.get("LOG_LEVEL", "INFO").upper()  # Default to INFO if not specified
+
+# Configure logging based on the log level from config
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=getattr(logging, LOG_LEVEL, logging.INFO)  # Fallback to INFO if invalid level
+)
+
+logger = logging.getLogger(__name__)
 
 # Log the successful retrieval of the token with only first 6 characters visible
 if TOKEN:
@@ -211,5 +212,3 @@ if __name__ == '__main__':
         asyncio.run(main())
     except KeyboardInterrupt:
         logger.info("Bot stopped gracefully.")
-
-
