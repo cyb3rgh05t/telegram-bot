@@ -3,6 +3,7 @@ import nest_asyncio
 import datetime
 import json
 import os
+import sqlite3
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
@@ -14,15 +15,22 @@ nest_asyncio.apply()
 # Configure logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO  # Set to DEBUG for more detailed logs
+    level=logging.INFO
 )
 
 logger = logging.getLogger(__name__)
 
 # Load bot configuration from config/config.json
-with open('config/config.json', 'r') as config_file:
+CONFIG_DIR = "config"
+CONFIG_FILE = os.path.join(CONFIG_DIR, 'config.json')
+
+with open(CONFIG_FILE, 'r') as config_file:
     config = json.load(config_file)
+
 TOKEN = config.get("TOKEN")
+TIMEZONE = config.get("TIMEZONE", "Europe/Berlin")  # Default to 'Europe/Berlin' if not specified
+IMAGE_URL = config.get("IMAGE_URL")
+BUTTON_URL = config.get("BUTTON_URL")
 
 # Log the successful retrieval of the token with only first 6 characters visible
 if TOKEN:
@@ -31,27 +39,57 @@ if TOKEN:
 else:
     logger.error("Failed to retrieve bot token from config.")
 
-
 # Constants
-IMAGE_URL = "https://github.com/cyb3rgh05t/brands-logos/blob/master/StreamNet/tv/streamnet_brands.jpg?raw=true"
-BUTTON_URL = "https://t.me/c/1696089108/9291/13417"
-STORAGE_FILE = "group_storage.json"
-TIMEZONE = pytz.timezone('Europe/Berlin')  # UTC+2 timezone (Berlin is UTC+2 during daylight saving time)
+if not IMAGE_URL or not BUTTON_URL:
+    logger.error("IMAGE_URL or BUTTON_URL not found in the config file.")
+    exit(1)
 
-# Load group chat ID from file or initialize
+# Ensure the config directory exists
+if not os.path.exists(CONFIG_DIR):
+    os.makedirs(CONFIG_DIR)
+
+# Path for SQLite database file in the config folder
+DATABASE_FILE = os.path.join(CONFIG_DIR, "group_data.db")
+
+# Timezone configuration
+try:
+    TIMEZONE_OBJ = pytz.timezone(TIMEZONE)
+except pytz.UnknownTimeZoneError:
+    logger.error(f"Invalid timezone '{TIMEZONE}' in config.json. Defaulting to 'Europe/Berlin'.")
+    TIMEZONE_OBJ = pytz.timezone("Europe/Berlin")
+
+# Initialize SQLite connection and create table for storing group ID
+def init_db():
+    conn = sqlite3.connect(DATABASE_FILE)
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS group_data (
+                        id INTEGER PRIMARY KEY,
+                        group_chat_id INTEGER
+                      )''')
+    conn.commit()
+    conn.close()
+
+# Load group chat ID from database
 def load_group_id():
-    if os.path.exists(STORAGE_FILE):
-        with open(STORAGE_FILE, "r") as f:
-            data = json.load(f)
-            return data.get("group_chat_id", None)
+    conn = sqlite3.connect(DATABASE_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT group_chat_id FROM group_data WHERE id=1")
+    row = cursor.fetchone()
+    conn.close()
+    if row:
+        return row[0]
     return None
 
-# Save group chat ID to file
+# Save group chat ID to database
 def save_group_id(group_chat_id):
-    with open(STORAGE_FILE, "w") as f:
-        json.dump({"group_chat_id": group_chat_id}, f)
+    conn = sqlite3.connect(DATABASE_FILE)
+    cursor = conn.cursor()
+    cursor.execute("INSERT OR REPLACE INTO group_data (id, group_chat_id) VALUES (1, ?)", (group_chat_id,))
+    conn.commit()
+    conn.close()
 
 # Initialize the group chat ID
+init_db()  # Ensure the database and table are set up
 GROUP_CHAT_ID = load_group_id()
 if GROUP_CHAT_ID is None:
     logger.info("Group chat ID not set. Please set it using /set_group_id.")
@@ -61,7 +99,7 @@ night_mode_active = False
 
 # Get the current time in the desired timezone
 def get_current_time():
-    return datetime.datetime.now(TIMEZONE)
+    return datetime.datetime.now(TIMEZONE_OBJ)
 
 # Define a command handler function
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -115,7 +153,7 @@ async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE
 async def night_mode_checker(context):
     global night_mode_active
     while True:
-        now = get_current_time()  # Get the current time in UTC+2
+        now = get_current_time()  # Get the current time in the specified timezone
         if now.hour == 0 and not night_mode_active:
             night_mode_active = True
             logger.info("Night mode activated.")
