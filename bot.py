@@ -20,15 +20,15 @@ with open(CONFIG_FILE, 'r') as config_file:
     config = json.load(config_file)
 
 TOKEN = config.get("TOKEN")
-TIMEZONE = config.get("TIMEZONE", "Europe/Berlin")  # Default to 'Europe/Berlin' if not specified
+TIMEZONE = config.get("TIMEZONE", "Europe/Berlin")
 IMAGE_URL = config.get("IMAGE_URL")
 BUTTON_URL = config.get("BUTTON_URL")
-LOG_LEVEL = config.get("LOG_LEVEL", "INFO").upper()  # Default to INFO if not specified
+LOG_LEVEL = config.get("LOG_LEVEL", "INFO").upper()
 
 # Configure logging based on the log level from config
 logging.basicConfig(
-    format='%(levelname)s - %(message)s',
-    level=getattr(logging, LOG_LEVEL, logging.INFO)  # Fallback to INFO if invalid level
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=getattr(logging, LOG_LEVEL, logging.INFO)
 )
 
 logger = logging.getLogger(__name__)
@@ -39,11 +39,6 @@ if TOKEN:
     logger.info(f"Token retrieved successfully: {redacted_token}")
 else:
     logger.error("Failed to retrieve bot token from config.")
-
-# Constants
-if not IMAGE_URL or not BUTTON_URL:
-    logger.error("IMAGE_URL or BUTTON_URL not found in the config file.")
-    exit(1)
 
 # Ensure the config directory exists
 if not os.path.exists(CONFIG_DIR):
@@ -151,14 +146,14 @@ async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE
         is_admin = update.message.from_user.is_admin
         if not is_admin:
             logger.info(f"Deleting message from non-admin user {update.message.from_user.id} due to night mode.")
-            await update.message.reply_text("❌ Sorry, solange der NACHTMODUS aktiviert ist (00:00 - 07:00 Uhr), kannst du keine Mitteilungen in der Gruppe oder in den Topics senden.")
+            await update.message.reply_text("❌ Sorry, solange der NACHTMODUS aktiviert ist, kannst du von 00:00 Uhr bis 07:00 Uhr keine Mitteilungen in der Gruppe oder in den Topics senden.")
             await context.bot.delete_message(chat_id=update.message.chat_id, message_id=update.message.message_id)
-
 
 # Background task to check and switch night mode
 async def night_mode_checker(context):
     global night_mode_active
     while True:
+        logger.info("Night mode checker started.")
         now = get_current_time()  # Get the current time in the specified timezone
         if now.hour == 0 and not night_mode_active:
             night_mode_active = True
@@ -168,6 +163,7 @@ async def night_mode_checker(context):
             night_mode_active = False
             logger.info("Night mode deactivated.")
             await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
+        logger.info("Night mode checker finished.")
         await asyncio.sleep(300)  # Check every 5 minutes
 
 # Command to enable night mode
@@ -201,8 +197,8 @@ async def main() -> None:
     # Register the message handler for general messages (to restrict during night mode)
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, restrict_night_mode))
 
-    # Start the night mode checker task
-    application.job_queue.run_repeating(night_mode_checker, interval=300, first=0)
+    # Start the night mode checker task with max_instances set to 1
+    application.job_queue.run_repeating(night_mode_checker, interval=300, first=0, max_instances=1)
 
     # Start the Bot
     logger.info("Bot started polling.")
