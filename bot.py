@@ -10,8 +10,8 @@ import pytz
 # Apply nest_asyncio to handle running loops
 nest_asyncio.apply()
 
-# Load bot configuration from config.json
-with open('config.json', 'r') as config_file:
+# Load bot configuration from config/config.json
+with open('config/config.json', 'r') as config_file:
     config = json.load(config_file)
 TOKEN = config.get("TOKEN")
 
