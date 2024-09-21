@@ -66,7 +66,6 @@ async def welcome_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE
         now = get_current_time()
         date_time = now.strftime("%d.%m.%Y %H:%M:%S")
         username = f"@{member.username}" if member.username else "N/A"
-        surname = member.last_name if member.last_name else "N/A"
 
         welcome_message = (
             "\n"
