@@ -198,7 +198,7 @@ async def main() -> None:
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, restrict_night_mode))
 
     # Start the night mode checker task with max_instances set to 1
-    application.job_queue.run_repeating(night_mode_checker, interval=300, first=0, max_instances=1)
+    application.job_queue.run_repeating(night_mode_checker, interval=300, first=0)
 
     # Start the Bot
     logger.info("Bot started polling.")
