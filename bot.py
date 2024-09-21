@@ -27,7 +27,7 @@ LOG_LEVEL = config.get("LOG_LEVEL", "INFO").upper()
 
 # Configure logging based on the log level from config
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format='%(levelname)s - %(message)s',
     level=getattr(logging, LOG_LEVEL, logging.INFO)
 )
 
