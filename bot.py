@@ -65,7 +65,7 @@ async def welcome_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE
         
         now = get_current_time()
         date_time = now.strftime("%d.%m.%Y %H:%M:%S")
-        username = f"@{member.username}" if member.username else "N/A"
+        username = f"@{member.username}" if member.username else member.full_name
 
         welcome_message = (
             "\n"
@@ -135,7 +135,7 @@ async def main() -> None:
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, restrict_night_mode))
 
     # Start the night mode checker task
-    application.job_queue.run_repeating(night_mode_checker, interval=60, first=0)
+    application.job_queue.run_repeating(night_mode_checker, interval=300, first=0)
 
     # Start the Bot
     await application.run_polling()
