@@ -3,6 +3,7 @@ import nest_asyncio
 import datetime
 import json
 import os
+import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 import pytz
@@ -10,10 +11,26 @@ import pytz
 # Apply nest_asyncio to handle running loops
 nest_asyncio.apply()
 
+# Configure logging
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO  # Set to DEBUG for more detailed logs
+)
+
+logger = logging.getLogger(__name__)
+
 # Load bot configuration from config/config.json
 with open('config/config.json', 'r') as config_file:
     config = json.load(config_file)
 TOKEN = config.get("TOKEN")
+
+# Log the successful retrieval of the token with only first 6 characters visible
+if TOKEN:
+    redacted_token = TOKEN[:6] + '*' * (len(TOKEN) - 6)
+    logger.info(f"Token retrieved successfully: {redacted_token}")
+else:
+    logger.error("Failed to retrieve bot token from config.")
+
 
 # Constants
 IMAGE_URL = "https://github.com/cyb3rgh05t/brands-logos/blob/master/StreamNet/tv/streamnet_brands.jpg?raw=true"
@@ -37,7 +54,7 @@ def save_group_id(group_chat_id):
 # Initialize the group chat ID
 GROUP_CHAT_ID = load_group_id()
 if GROUP_CHAT_ID is None:
-    print("Group chat ID not set. Please set it using /set_group_id.")
+    logger.info("Group chat ID not set. Please set it using /set_group_id.")
 
 # Global variable to track if night mode is active
 night_mode_active = False
@@ -48,6 +65,7 @@ def get_current_time():
 
 # Define a command handler function
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logger.info(f"User {update.message.from_user.id} used /start")
     await update.message.reply_text('Hello! I am your bot. How can I help you?')
 
 # Command to set the group ID
@@ -55,11 +73,13 @@ async def set_group_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     global GROUP_CHAT_ID
     GROUP_CHAT_ID = update.message.chat_id
     save_group_id(GROUP_CHAT_ID)
+    logger.info(f"Group chat ID set to: {GROUP_CHAT_ID} by user {update.message.from_user.id}")
     await update.message.reply_text(f"Group chat ID set to: {GROUP_CHAT_ID}")
 
 # Define a function to welcome new members
 async def welcome_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     for member in update.message.new_chat_members:
+        logger.info(f"New member {member.full_name} joined the group.")
         button = InlineKeyboardButton("StreamNet TV Store", url=BUTTON_URL)
         keyboard = InlineKeyboardMarkup([[button]])
         
@@ -68,14 +88,12 @@ async def welcome_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE
         username = f"@{member.username}" if member.username else member.full_name
 
         welcome_message = (
-            "\n"
-            f"🎉 Howdy, {member.full_name}!\n\n"
+            f"\n🎉 Howdy, {member.full_name}!\n\n"
             "Vielen Dank, dass du diesen Service ausgewählt hast ❤️.\n\n"
             f"Username: {username}\n"
             f"Beitritt: {date_time}\n\n"
             "Wir hoffen, du hast eine gute Unterhaltung mit StreamNet TV.\n\n"
-            "Bei Fragen oder sonstiges einfach in die verschiedenen Topics reinschreiben. "
-            "Je nachdem, um welche Frage es sich handelt, werden wir dir so gut wie möglich helfen."
+            "Bei Fragen oder sonstiges einfach in die verschiedenen Topics reinschreiben."
         )
 
         await update.message.chat.send_photo(
@@ -89,6 +107,7 @@ async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE
     now = get_current_time()
     if night_mode_active:
         if not update.message.from_user.is_admin:
+            logger.info(f"Deleting message from user {update.message.from_user.id} due to night mode.")
             await update.message.reply_text("❌ Sorry, solange der NACHTMODUS aktiviert ist, kannst du von 00:00 Uhr bis 07:00 Uhr keine Mitteilungen in der Gruppe senden.")
             await context.bot.delete_message(chat_id=update.message.chat_id, message_id=update.message.message_id)
 
@@ -99,9 +118,11 @@ async def night_mode_checker(context):
         now = get_current_time()  # Get the current time in UTC+2
         if now.hour == 0 and not night_mode_active:
             night_mode_active = True
-            await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff braucht auch mal eine Pause.\n\nVon 00:00 Uhr bis 07:00 Uhr kannst du keine Mitteilungen in der Gruppe oder in den Topics senden.")
+            logger.info("Night mode activated.")
+            await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff braucht auch mal eine Pause.")
         elif now.hour == 7 and night_mode_active:
             night_mode_active = False
+            logger.info("Night mode deactivated.")
             await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
         await asyncio.sleep(300)  # Check every 5 minutes
 
@@ -110,13 +131,15 @@ async def enable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     global night_mode_active
     if not night_mode_active:
         night_mode_active = True
-        await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff braucht auch mal eine Pause.\n\nVon 00:00 Uhr bis 07:00 Uhr kannst du keine Mitteilungen in der Gruppe oder in den Topics senden.")
+        logger.info(f"Night mode enabled by user {update.message.from_user.id}.")
+        await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff braucht auch mal eine Pause.")
 
 # Command to disable night mode
 async def disable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     global night_mode_active
     if night_mode_active:
         night_mode_active = False
+        logger.info(f"Night mode disabled by user {update.message.from_user.id}.")
         await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
 
 async def main() -> None:
@@ -138,10 +161,13 @@ async def main() -> None:
     application.job_queue.run_repeating(night_mode_checker, interval=300, first=0)
 
     # Start the Bot
+    logger.info("Bot started polling.")
     await application.run_polling()
 
 if __name__ == '__main__':
     try:
+        logger.info("Starting the bot...")
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("Bot stopped gracefully.")
+        logger.info("Bot stopped gracefully.")
+
