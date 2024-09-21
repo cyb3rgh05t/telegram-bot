@@ -14,7 +14,7 @@ nest_asyncio.apply()
 
 # Configure logging
 logging.basicConfig(
-    format='%(asctime)s - %(levelname)s - %(message)s',
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 
@@ -77,6 +77,7 @@ def load_group_id():
     row = cursor.fetchone()
     conn.close()
     if row:
+        logger.info(f"Loaded existing group chat ID: {row[0]}")
         return row[0]
     return None
 
@@ -93,6 +94,8 @@ init_db()  # Ensure the database and table are set up
 GROUP_CHAT_ID = load_group_id()
 if GROUP_CHAT_ID is None:
     logger.info("Group chat ID not set. Please set it using /set_group_id.")
+else:
+    logger.info(f"Group chat ID is already set to: {GROUP_CHAT_ID}")
 
 # Global variable to track if night mode is active
 night_mode_active = False
@@ -208,4 +211,5 @@ if __name__ == '__main__':
         asyncio.run(main())
     except KeyboardInterrupt:
         logger.info("Bot stopped gracefully.")
+
 
