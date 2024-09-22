@@ -130,7 +130,7 @@ async def add_series_to_sonarr(series_name):
         "tvdbId": 12345  # Example ID, replace as needed
     }
 
-    response = requests.post(f"{SONARR_URL}/api/series", json=data, params={"apikey": SONARR_API_KEY})
+    response = requests.post(f"{SONARR_URL}/api/v3/series", json=data, params={"apikey": SONARR_API_KEY})
     response.raise_for_status()
     logger.info(f"Series '{series_name}' added to Sonarr.")
 
@@ -169,7 +169,7 @@ async def add_movie_to_radarr(movie_name):
         "isAvailable": True
     }
 
-    response = requests.post(f"{RADARR_URL}/api/movie", json=data, params={"apikey": RADARR_API_KEY})
+    response = requests.post(f"{RADARR_URL}/api/v3/movie", json=data, params={"apikey": RADARR_API_KEY})
     response.raise_for_status()
     logger.info(f"Movie '{movie_name}' added to Radarr.")
 
