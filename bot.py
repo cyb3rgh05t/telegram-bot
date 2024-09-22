@@ -292,8 +292,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
 
     # Prepare the message with media details and star rating
     message = (
-        f"🎬 *Title*: {media_title}\n"
-        f"📅 *Release Year*: {release_year_detailed}\n"
+        f"🎬 *{media_title}* ({release_year_detailed}) \n\n"
         f"{star_rating} - {rating}/10\n"
         f"\n{media_details.get('overview', 'No summary available.')}"
     )
@@ -594,6 +593,7 @@ async def set_group_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 # Background task to check and switch night mode
 async def night_mode_checker(context):
+    start_time = time.time()
     async with night_mode_lock:
         logger.info("Night mode checker started.")
         now = get_current_time()
@@ -607,7 +607,7 @@ async def night_mode_checker(context):
             logger.info("Night mode deactivated.")
             await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
 
-        logger.info("Night mode checker finished.")
+        logger.info(f"Night mode checker finished in {time.time() - start_time:.2f} seconds.")
         await asyncio.sleep(300)  # Sleep for 5 minutes before next run
 
 # Command to enable night mode
