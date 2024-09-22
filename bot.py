@@ -249,20 +249,31 @@ async def welcome_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE
 async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         if not context.args:
-            await update.message.reply_text("Please provide a title.")
+            await update.message.reply_text("Please provide a title to search.")
             return
 
         title = " ".join(context.args)
         logger.info(f"Searching for media: {title}")
         
         url = f"https://api.themoviedb.org/3/search/multi?api_key={TMDB_API_KEY}&query={title}&language={LANGUAGE}"
+        
+        # Make the API request
         response = requests.get(url)
+        
+        # Check if the API key is invalid
+        if response.status_code == 401:
+            logger.error("Invalid TMDB API key.")
+            await update.message.reply_text("❌ Invalid TMDB API key. Please contact the administrator.")
+            return
+
+        # Handle any other HTTP error
         response.raise_for_status()
         
         media_data = response.json()
 
+        # Check if results are empty
         if not media_data['results']:
-            await update.message.reply_text("No results found for that title.")
+            await update.message.reply_text(f"No results found for the title '{title}'. Please try another title.")
             return
 
         # Get the first result
@@ -273,37 +284,58 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
         media_type = media['media_type']
         message = (
-            f"🎬**Title:** {media['title'] if media_type == 'movie' else media['name']}\n"
-            f"📅**Release Date:** {media['release_date'] if media_type == 'movie' else media['first_air_date']}\n"
-            f"⭐**Rating:** {stars} ({rating}/10)´\n"
-            f"📝**Summary:** {media['overview']}\n"
+            f"🎬**Title:** {media['title'] if media_type == 'movie' else media['name']}\n\n"
+            f"📅**Release Date:** {media['release_date'] if media_type == 'movie' else media['first_air_date']}\n\n"
+            f"⭐**Rating:** {stars} ({rating}/10)\n\n"
+            f"📝**Summary:** {media['overview']}"
         )
 
         # Truncate the message if it exceeds the maximum length
         if len(message) > 1024:
             message = message[:1021] + '...'
 
+        # Send the result with a poster image if available
         if poster_url:
             await update.message.reply_photo(photo=poster_url, caption=message, parse_mode="Markdown")
         else:
             await update.message.reply_text(message)
 
-        # Add to Sonarr or Radarr based on media type
+        # Ask if the user wants to add the media to Sonarr or Radarr
         if media_type in ['tv', 'movie']:
-           await update.message.reply_text(
-        f"Do you want to add this {'TV show' if media_type == 'tv' else 'movie'} to Sonarr or Radarr? Reply with 'Sonarr' or 'Radarr'."
-        )
-        context.user_data['media_info'] = {
-        'title': media['title'] if media_type == 'movie' else media['name'],
-        'media_type': media_type
-    }
+            await update.message.reply_text(
+                f"Do you want to add this {'TV show' if media_type == 'tv' else 'movie'} to Sonarr or Radarr? Reply with 'Sonarr' or 'Radarr'."
+            )
+            context.user_data['media_info'] = {
+                'title': media['title'] if media_type == 'movie' else media['name'],
+                'media_type': media_type
+            }
 
     except requests.exceptions.HTTPError as http_err:
+        # Handle specific HTTP errors (e.g., 403 Forbidden, 404 Not Found)
         logger.error(f"HTTP error occurred: {http_err}")
-        await update.message.reply_text("❌ There was an error fetching data from TMDb. Please try again later.")
-    except Exception as e:
+        if response.status_code == 404:
+            await update.message.reply_text("❌ The requested resource was not found. Please try again with a different title.")
+        elif response.status_code == 403:
+            await update.message.reply_text("❌ Access denied to the requested resource. Please check your API permissions.")
+        else:
+            await update.message.reply_text("❌ An HTTP error occurred while fetching data from TMDb. Please try again later.")
+    except requests.exceptions.ConnectionError:
+        # Handle network errors
+        logger.error("A connection error occurred while contacting TMDb.")
+        await update.message.reply_text("❌ A network error occurred. Please check your internet connection and try again.")
+    except requests.exceptions.Timeout:
+        # Handle timeout errors
+        logger.error("The request to TMDb timed out.")
+        await update.message.reply_text("❌ The request to TMDb timed out. Please try again later.")
+    except requests.exceptions.RequestException as e:
+        # Handle any other errors (generic requests error)
         logger.error(f"An error occurred: {e}")
+        await update.message.reply_text("❌ An error occurred while fetching data. Please try again later.")
+    except Exception as e:
+        # Catch any other general errors
+        logger.error(f"An unexpected error occurred: {e}")
         await update.message.reply_text("❌ An unexpected error occurred. Please try again later.")
+
 
 # Define a message handler to restrict messages during night mode
 async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
