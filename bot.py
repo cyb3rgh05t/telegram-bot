@@ -5,6 +5,7 @@ from datetime import timedelta
 import json
 import os
 import sqlite3
+import re
 import logging
 import requests
 import time
@@ -70,6 +71,14 @@ def init_db():
                             language TEXT DEFAULT 'en'
                           )''')
         conn.commit()
+
+def extract_year_from_input(selected_title):
+    """Extract the year from the user's input (if present)."""
+    match = re.search(r'\((\d{4})', selected_title)
+    if match:
+        return selected_title[:match.end()]  # Extract everything up to and including the year
+    return selected_title  # If no year is found, return the original title
+
 
 # Load group chat ID and language from database
 def load_group_id():
@@ -208,7 +217,8 @@ def rating_to_stars(rating):
 
 # Handle the user's media selection and display media details before confirming
 async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    selected_title = update.message.text.strip().lower()
+    # Get the user's selected title and normalize it by extracting the year
+    selected_title = extract_year_from_input(update.message.text.strip().lower())
     logger.info(f"User selected title: {selected_title}")
 
     media_options = context.user_data.get('media_options', None)
@@ -252,6 +262,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         await update.message.reply_text("Invalid selection. Please search again.")
         logger.error("Media selection did not match any option.")
         return
+
 
     # Clear the media options after selection
     context.user_data.pop('media_options', None)
