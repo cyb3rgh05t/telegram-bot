@@ -279,6 +279,15 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
         if night_mode_active or night_mode_checker():
             await restrict_night_mode(update, context)
 
+# Define the start function to handle the /start command
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # This function will be called when the user sends /start
+    user = update.effective_user
+    await update.message.reply_html(
+        rf"Hi {user.mention_html()}! Welcome to the bot. Use /search to find a movie or TV show.",
+        reply_markup=ReplyKeyboardRemove()
+    )
+
 # Function to add a series to Sonarr
 async def add_series_to_sonarr(series_name):
     quality_profile_id = await get_quality_profile_id(SONARR_URL, SONARR_API_KEY, SONARR_QUALITY_PROFILE_NAME)
@@ -474,6 +483,8 @@ async def main() -> None:
 
     # Register the message handler for new members
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_members))
+
+    application.job_queue.run_repeating(night_mode_checker, interval=300, first=0)
 
     # Register the message handler for user confirmation and general messages
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
