@@ -1,9 +1,28 @@
 {
-    "TOKEN": "",
-    "TIMEZONE": "Europe/Berlin",
-    "IMAGE_URL": "",
-    "BUTTON_URL": "https://t.me/c/1696089108/9291/13417",
-    "LOG_LEVEL": "INFO",
-    "TMDB_API_KEY": "",
-    "DEFAULT_LANGUAGE": "de"
+    "bot": {
+        "TOKEN": "YOUR_TELEGRAM_BOT_TOKEN",
+        "TIMEZONE": "Europe/Berlin",
+        "LOG_LEVEL": "INFO"
+    },
+    "welcome": {
+        "IMAGE_URL": "URL_TO_YOUR_WELCOME_IMAGE",
+        "BUTTON_URL": "URL_TO_YOUR_BUTTON"
+    },
+    "tmdb": {
+        "API_KEY": "YOUR_TMDB_API_KEY"
+		"DEFAULT_LANGUAGE": "en"
+    },
+    "sonarr": {
+        "URL": "http://localhost:8989",
+        "API_KEY": "YOUR_SONARR_API_KEY",
+        "QUALITY_PROFILE_NAME": "HD-720p/1080p",
+        "ROOT_FOLDER_PATH": "/tv"
+    },
+    "radarr": {
+        "URL": "http://localhost:7878",
+        "API_KEY": "YOUR_RADARR_API_KEY",
+        "QUALITY_PROFILE_NAME": "HD-720p/1080p",
+        "ROOT_FOLDER_PATH": "/movies"
+    }
 }
+
