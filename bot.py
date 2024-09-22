@@ -107,7 +107,7 @@ def get_current_time():
 
 # Function to get quality profile ID by name from Sonarr
 async def get_quality_profile_id(sonarr_url, api_key, profile_name):
-    response = requests.get(f"{sonarr_url}/api/qualityProfile", params={"apikey": api_key})
+    response = requests.get(f"{sonarr_url}/api/v3/qualityprofile", params={"apikey": api_key})
     response.raise_for_status()
     profiles = response.json()
     for profile in profiles:
@@ -134,11 +134,32 @@ async def add_series_to_sonarr(series_name):
     response.raise_for_status()
     logger.info(f"Series '{series_name}' added to Sonarr.")
 
+# Function to get quality profile ID by name from Radarr
+async def get_radarr_quality_profile_id(radarr_url, api_key, profile_name):
+    try:
+        response = requests.get(f"{radarr_url}/api/v3/qualityprofile", params={"apikey": api_key})
+        response.raise_for_status()  # Raise an error for bad responses
+        profiles = response.json()
+        
+        for profile in profiles:
+            if profile['name'] == profile_name:
+                return profile['id']
+                
+        logger.warning(f"Quality profile '{profile_name}' not found in Radarr.")
+        return None
+        
+    except requests.exceptions.HTTPError as http_err:
+        logger.error(f"HTTP error occurred while fetching quality profiles: {http_err}")
+        return None
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
+        return None
+
 # Function to add a movie to Radarr
 async def add_movie_to_radarr(movie_name):
-    quality_profile_id = await get_quality_profile_id(RADARR_URL, RADARR_API_KEY, RADARR_QUALITY_PROFILE_NAME)
+    quality_profile_id = await get_radarr_quality_profile_id(RADARR_URL, RADARR_API_KEY, RADARR_QUALITY_PROFILE_NAME)
     if quality_profile_id is None:
-        logger.error("Quality profile not found.")
+        logger.error("Quality profile not found for Radarr.")
         return
 
     data = {
@@ -151,6 +172,7 @@ async def add_movie_to_radarr(movie_name):
     response = requests.post(f"{RADARR_URL}/api/movie", json=data, params={"apikey": RADARR_API_KEY})
     response.raise_for_status()
     logger.info(f"Movie '{movie_name}' added to Radarr.")
+
 
 # Define a command handler function
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
