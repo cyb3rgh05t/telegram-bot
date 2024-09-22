@@ -1,71 +1,176 @@
-# <p align="center">Mr.StreamNet</p>
-  
-A multifunctional and fully customisable Telegram Bot.
+# StreamNet TV Bot
 
+This is a Telegram bot built using `python-telegram-bot` to interact with Sonarr and Radarr for managing TV shows and movies. The bot allows users to search for media, check if it's already in Sonarr/Radarr, and add new series or movies as needed. It also features a "night mode" to restrict non-admin users from sending messages during specific hours.
 
-## 🧐 Key Features:  
+## Features
 
-1. **Database Handling** 
+- **Media Search**: Search for TV shows and movies via the TMDB API.
+- **Sonarr/Radarr Integration**: Add movies or TV series directly to Sonarr or Radarr with a quality profile and root folder path.
+- **Night Mode**: Automatically restricts non-admin messages in the group during night hours (00:00 - 07:00) or can be enabled/disabled manually.
+- **User Interaction**: Welcomes new members and handles media confirmation requests.
+- **Language Support**: Supports different languages for TMDB searches.
+- **Group Settings**: Saves group chat ID and language preferences in an SQLite database.
 
-    - Stores group chat ID and language preference.
+## Table of Contents
 
-1. **Tmdb Integration**
+- [Getting Started](#getting-started)
+- [Configuration](#configuration)
+- [Commands](#commands)
+- [Dependencies](#dependencies)
+- [Running the Bot](#running-the-bot)
+- [Contributing](#contributing)
+- [License](#license)
 
-    - Fetches movie/show details and artwork based on user queries.
+## Getting Started
 
-2. **Language Support**
+### Prerequisites
 
-    - Allows changing language for TMDb responses.
+Before running the bot, ensure that you have the following:
+- Python 3.8+
+- Telegram bot token from [BotFather](https://core.telegram.org/bots#botfather)
+- Sonarr and Radarr APIs set up
+- TMDB API key from [The Movie Database](https://www.themoviedb.org/)
 
-3. **Night Mode**
+### Installation
 
-   - Restricts messages during specified hours with admin exceptions.
+1. Clone the repository:
 
-4. **Welcome User Message** 
+    ```bash
+    git clone https://github.com/your-username/streamnet-tv-bot.git
+    cd streamnet-tv-bot
+    ```
 
-   - Sends a welcome message when a user joins the group/channel.
+2. Install the required dependencies:
 
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-## 🧑🏻‍💻 Commands
+3. Create a `config.json` file in the `config/` directory:
 
-| Commands | Usage | Description |
-| -------- | -------- | -------- |
-| Set Group ID   | `/set_group_id`    | Sets the Telegram Group ID    |
-| Set Language    | `/set_language`    | Sets language (e.g.` /set_language de`)   |
-| Search Movies/Shows    | `/search_movie` or  `/search_tv_show`    | Search for movie or show `/search_movie <movie_name>` or `/search_tv_show <show_name>`    |
-|    |    |    |
-|     |     |   |
-        
+    ```json
+    {
+      "bot": {
+        "TOKEN": "<your-telegram-bot-token>",
+        "TIMEZONE": "Europe/Berlin",
+        "LOG_LEVEL": "INFO"
+      },
+      "welcome": {
+        "IMAGE_URL": "<welcome-image-url>",
+        "BUTTON_URL": "<button-url>"
+      },
+      "tmdb": {
+        "API_KEY": "<your-tmdb-api-key>",
+        "DEFAULT_LANGUAGE": "en"
+      },
+      "sonarr": {
+        "URL": "<your-sonarr-url>",
+        "API_KEY": "<your-sonarr-api-key>",
+        "QUALITY_PROFILE_NAME": "<sonarr-quality-profile-name>",
+        "ROOT_FOLDER_PATH": "<sonarr-root-folder-path>"
+      },
+      "radarr": {
+        "URL": "<your-radarr-url>",
+        "API_KEY": "<your-radarr-api-key>",
+        "QUALITY_PROFILE_NAME": "<radarr-quality-profile-name>",
+        "ROOT_FOLDER_PATH": "<radarr-root-folder-path>"
+      }
+    }
+    ```
 
+4. Initialize the SQLite database (automatically done on first run):
 
-## 🧑🏻‍💻 Config
+    ```bash
+    python bot.py
+    ```
+
+## Configuration
+
+The bot requires a `config.json` file in the `config/` directory. This file contains the API tokens, URLs, and preferences for the bot.
+
+Example configuration:
+
 ```json
 {
-    "TOKEN": "7482615128:AAGJXub995gswG4GfQW4567fGHJLKGFDD23457",
+  "bot": {
+    "TOKEN": "<your-telegram-bot-token>",
     "TIMEZONE": "Europe/Berlin",
-    "IMAGE_URL": "",
-    "BUTTON_URL": "",
-    "LOG_LEVEL": "INFO",
-    "TMDB_API_KEY": "e7d2628727fa893e3853958fjefjjkk56",
-    "DEFAULT_LANGUAGE": "de"
+    "LOG_LEVEL": "INFO"
+  },
+  "welcome": {
+    "IMAGE_URL": "<welcome-image-url>",
+    "BUTTON_URL": "<button-url>"
+  },
+  "tmdb": {
+    "API_KEY": "<your-tmdb-api-key>",
+    "DEFAULT_LANGUAGE": "en"
+  },
+  "sonarr": {
+    "URL": "<your-sonarr-url>",
+    "API_KEY": "<your-sonarr-api-key>",
+    "QUALITY_PROFILE_NAME": "<sonarr-quality-profile-name>",
+    "ROOT_FOLDER_PATH": "<sonarr-root-folder-path>"
+  },
+  "radarr": {
+    "URL": "<your-radarr-url>",
+    "API_KEY": "<your-radarr-api-key>",
+    "QUALITY_PROFILE_NAME": "<radarr-quality-profile-name>",
+    "ROOT_FOLDER_PATH": "<radarr-root-folder-path>"
+  }
 }
 ```
 
-### Explanation of Fields
+## Commands
 
-`TOKEN` - Your Telegram bot token.
+The following commands are available:
 
-`TMDB_API_KEY` - Your TMDb API key to fetch movie/show data.
+- **`/start`**: Initializes the bot and welcomes the user.
+- **`/search <title>`**: Searches for a movie or TV show using the TMDB API.
+- **`/set_group_id`**: Sets the group chat ID.
+- **`/set_language <code>`**: Sets the preferred language for TMDB searches.
+- **`/enable_night_mode`**: Enables night mode (00:00 - 07:00).
+- **`/disable_night_mode`**: Disables night mode.
 
-`TIMEZONE` - The timezone your bot should use (e.g., "Europe/Berlin").
+### Media Management Commands
 
-`DEFAULT_LANGUAGE` - The default language for TMDb responses (e.g., "en" for English, "de" for German).
+- **Search**: Use `/search <title>` to find a TV show or movie.
+- **Add Series**: Once a TV series is found, users can add it to Sonarr by confirming with `yes`.
+- **Add Movie**: Once a movie is found, users can add it to Radarr by confirming with `yes`.
 
-`IMAGE_URL` - A default image URL to use in welcome messages.
+## Dependencies
 
-`BUTTON_URL`  - A URL for a button in welcome messages (e.g., a store link).
+- **`python-telegram-bot`**: For handling Telegram API.
+- **`requests`**: For making API requests to Sonarr, Radarr, and TMDB.
+- **`nest_asyncio`**: To handle event loops.
+- **`pytz`**: For handling timezone conversions.
+- **`SQLite3`**: For storing group ID and language settings.
 
-`LOG_LEVEL` - The logging level (e.g., "INFO", "DEBUG").
+Install dependencies via:
 
+```bash
+pip install -r requirements.txt
+```
+## Running the Bot
+
+To run the bot:
+
+```bash
+python bot.py
+```
+The bot will start polling and waiting for commands on Telegram.
+
+## Contributing
+
+If you wish to contribute to the project, feel free to fork the repository, make your changes, and submit a pull request. Contributions, issues, and feature requests are welcome!
+
+1. Fork the repository.
+2. Create your feature branch (`git checkout -b feature/new-feature`).
+3. Commit your changes (`git commit -am 'Add new feature'`).
+4. Push to the branch (`git push origin feature/new-feature`).
+5. Open a pull request.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
         
