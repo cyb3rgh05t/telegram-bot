@@ -42,6 +42,8 @@ logging.basicConfig(
     level=getattr(logging, LOG_LEVEL, logging.INFO)
 )
 
+logger = logging.getLogger(__name__)
+
 # Ensure the config directory exists
 if not os.path.exists(CONFIG_DIR):
     os.makedirs(CONFIG_DIR)
