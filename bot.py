@@ -61,6 +61,7 @@ except pytz.UnknownTimeZoneError:
 def init_db():
     conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
+    cursor.execute("DROP TABLE IF EXISTS group_data")  # This line drops the table if it exists
     cursor.execute('''CREATE TABLE IF NOT EXISTS group_data (
                         id INTEGER PRIMARY KEY,
                         group_chat_id INTEGER,
@@ -68,6 +69,7 @@ def init_db():
                       )''')
     conn.commit()
     conn.close()
+
 
 # Load group chat ID from database
 def load_group_id():
