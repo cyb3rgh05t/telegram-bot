@@ -1,7 +1,7 @@
 import asyncio
 import nest_asyncio
-import datetime
-from datetime import timedelta
+from datetime import datetime
+from zoneinfo import ZoneInfo
 import json
 import os
 import sqlite3
@@ -9,7 +9,6 @@ import re
 import logging
 import requests
 import time
-from zoneinfo import ZoneInfo
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 import pytz
@@ -65,6 +64,7 @@ DATABASE_FILE = os.path.join(CONFIG_DIR, "group_data.db")
 # Timezone configuration
 try:
     TIMEZONE_OBJ = pytz.timezone(TIMEZONE)
+    logger.info(f"Timezone is set to 'Europe/Berlin'.")
 except pytz.UnknownTimeZoneError:
     logger.error(f"Invalid timezone '{TIMEZONE}' in config.json. Defaulting to 'Europe/Berlin'.")
     TIMEZONE_OBJ = pytz.timezone("Europe/Berlin")
@@ -499,17 +499,29 @@ async def add_series_to_sonarr(series_name, update: Update, context: ContextType
         "tvdbId": tvdb_id,
         "monitored": True,
         "addOptions": {
-            "searchForMissingEpisodes": True
+            "searchForMissingEpisodes": True  # Even if this fails, manual search will be triggered
         }
     }
 
     response = requests.post(f"{SONARR_URL}/api/v3/series", json=data, params={"apikey": SONARR_API_KEY})
     if response.status_code == 201:
         logger.info(f"Series '{series_name}' added to Sonarr successfully.")
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"✅ Series '{series_name}' added to Sonarr successfully.")
+
+        # Manually trigger a search for the series
+        series_id = response.json().get('id')
+        search_data = {"name": "SeriesSearch", "seriesId": series_id}
+        search_response = requests.post(f"{SONARR_URL}/api/v3/command", json=search_data, params={"apikey": SONARR_API_KEY})
+
+        if search_response.status_code == 201:
+            logger.info(f"Search for series '{series_name}' started.")
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"✅ Series '{series_name}' added to Sonarr and search started.")
+        else:
+            logger.error(f"Failed to start search for series '{series_name}'. Status code: {search_response.status_code}, Response: {search_response.text}")
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ Failed to start search for series '{series_name}'.")
     else:
         logger.error(f"Failed to add series '{series_name}' to Sonarr. Status code: {response.status_code}, Response: {response.text}")
         await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ Failed to add series '{series_name}' to Sonarr. Status code: {response.status_code}")
+
 
 
 # Function to get quality profile ID by name from Radarr
@@ -558,7 +570,7 @@ async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.
     # Proceed with adding the movie if it's not found in Radarr
     quality_profile_id = await get_radarr_quality_profile_id(RADARR_URL, RADARR_API_KEY, RADARR_QUALITY_PROFILE_NAME)
     if quality_profile_id is None:
-        logger.error("Quality profile not found for Radarr.")
+        logger.error("Quality profile not found in Radarr.")
         await context.bot.send_message(chat_id=update.effective_chat.id, text="❌ Quality profile not found in Radarr.")
         return
 
@@ -569,14 +581,25 @@ async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.
         "tmdbId": movie_tmdb_id,
         "monitored": True,
         "addOptions": {
-            "searchForMovie": True
+            "searchForMovie": True  # Even if this fails, manual search will be triggered
         }
     }
 
     response = requests.post(f"{RADARR_URL}/api/v3/movie", json=data, params={"apikey": RADARR_API_KEY})
     if response.status_code == 201:
         logger.info(f"Movie '{movie_name}' added to Radarr successfully.")
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"✅ Movie '{movie_name}' added to Radarr successfully.")
+
+        # Manually trigger a search for the movie
+        movie_id = response.json().get('id')
+        search_data = {"name": "MoviesSearch", "movieIds": [movie_id]}
+        search_response = requests.post(f"{RADARR_URL}/api/v3/command", json=search_data, params={"apikey": RADARR_API_KEY})
+
+        if search_response.status_code == 201:
+            logger.info(f"Search for movie '{movie_name}' started.")
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"✅ Movie '{movie_name}' added to Radarr and search started.")
+        else:
+            logger.error(f"Failed to start search for movie '{movie_name}'. Status code: {search_response.status_code}, Response: {search_response.text}")
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ Failed to start search for movie '{movie_name}'.")
     else:
         logger.error(f"Failed to add movie '{movie_name}' to Radarr. Status code: {response.status_code}, Response: {response.text}")
         await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ Failed to add movie '{movie_name}' to Radarr. Status code: {response.status_code}")
@@ -602,15 +625,12 @@ async def set_group_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 # Background task to check and switch night mode
 # Async function to check and switch night mode
 async def night_mode_checker(context):
-    global night_mode_active  # Access global state
+    global night_mode_active
 
-    start_time = time.time()
-    logger.info("Night mode checker started.")
-    
     # Get the current time in UTC+2
-    now = datetime.now(ZoneInfo("Etc/GMT-2"))
-    
-    # Check if it's midnight (00:00) and night mode is not active
+    now = datetime.now(ZoneInfo("Etc/GMT-2"))  # This should work fine with correct import
+
+    # Logic for activating or deactivating night mode
     if now.hour == 0 and not night_mode_active:
         night_mode_active = True
         logger.info("Night mode activated.")
