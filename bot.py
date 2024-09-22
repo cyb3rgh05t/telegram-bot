@@ -601,21 +601,20 @@ async def set_group_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 # Background task to check and switch night mode
 async def night_mode_checker(context):
     start_time = time.time()
-    async with night_mode_lock:
-        logger.info("Night mode checker started.")
-        now = get_current_time()
+    #async with night_mode_lock:
+    logger.info("Night mode checker started.")
+    now = get_current_time()
 
-        if now.hour == 0 and not night_mode_active:
+    if now.hour == 0 and not night_mode_active:
             night_mode_active = True
             logger.info("Night mode activated.")
             await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff braucht auch mal eine Pause.")
-        elif now.hour == 7 and night_mode_active:
+    elif now.hour == 7 and night_mode_active:
             night_mode_active = False
             logger.info("Night mode deactivated.")
             await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
 
-        logger.info(f"Night mode checker finished in {time.time() - start_time:.2f} seconds.")
-        await asyncio.sleep(300)  # Sleep for 5 minutes before next run
+    logger.info(f"Night mode checker finished in {time.time() - start_time:.2f} seconds.")
 
 # Command to enable night mode
 async def enable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
