@@ -6,6 +6,7 @@ import os
 import sqlite3
 import logging
 import requests
+import time
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 import pytz
@@ -60,23 +61,21 @@ except pytz.UnknownTimeZoneError:
 
 # Initialize SQLite connection and create table for storing group ID and language
 def init_db():
-    conn = sqlite3.connect(DATABASE_FILE)
-    cursor = conn.cursor()
-    cursor.execute('''CREATE TABLE IF NOT EXISTS group_data (
-                        id INTEGER PRIMARY KEY,
-                        group_chat_id INTEGER,
-                        language TEXT DEFAULT 'en'
-                      )''')
-    conn.commit()
-    conn.close()
+    with sqlite3.connect(DATABASE_FILE) as conn:
+        cursor = conn.cursor()
+        cursor.execute('''CREATE TABLE IF NOT EXISTS group_data (
+                            id INTEGER PRIMARY KEY,
+                            group_chat_id INTEGER,
+                            language TEXT DEFAULT 'en'
+                          )''')
+        conn.commit()
 
 # Load group chat ID and language from database
 def load_group_id():
-    conn = sqlite3.connect(DATABASE_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT group_chat_id, language FROM group_data WHERE id=1")
-    row = cursor.fetchone()
-    conn.close()
+    with sqlite3.connect(DATABASE_FILE) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT group_chat_id, language FROM group_data WHERE id=1")
+        row = cursor.fetchone()
     if row:
         logger.info(f"Loaded existing group chat ID: {row[0]}, language: {row[1]}")
         return row[0], row[1]
@@ -84,11 +83,10 @@ def load_group_id():
 
 # Save group chat ID and language to database
 def save_group_id(group_chat_id, language):
-    conn = sqlite3.connect(DATABASE_FILE)
-    cursor = conn.cursor()
-    cursor.execute("INSERT OR REPLACE INTO group_data (id, group_chat_id, language) VALUES (1, ?, ?)", (group_chat_id, language))
-    conn.commit()
-    conn.close()
+    with sqlite3.connect(DATABASE_FILE) as conn:
+        cursor = conn.cursor()
+        cursor.execute("INSERT OR REPLACE INTO group_data (id, group_chat_id, language) VALUES (1, ?, ?)", (group_chat_id, language))
+        conn.commit()
 
 # Initialize the group chat ID and language
 init_db()  # Ensure the database and table are set up
@@ -120,7 +118,7 @@ async def add_media_response(update: Update, context: ContextTypes.DEFAULT_TYPE)
             await update.message.reply_text(f"'{title}' has been added to Radarr.")
         else:
             await update.message.reply_text("Please reply with 'Sonarr' or 'Radarr'.")
-
+        
         # Clear the media_info after processing
         context.user_data.pop('media_info', None)
     else:
@@ -194,7 +192,6 @@ async def add_movie_to_radarr(movie_name):
     response.raise_for_status()
     logger.info(f"Movie '{movie_name}' added to Radarr.")
 
-
 # Define a command handler function
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info(f"User {update.message.from_user.id} used /start")
@@ -245,7 +242,7 @@ async def welcome_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE
             reply_markup=keyboard
         )
 
-# Search for a movie or TV show using TMDB API
+# Search for a movie or TV show using TMDB API and prompt for Sonarr or Radarr
 async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         if not context.args:
@@ -257,21 +254,16 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         
         url = f"https://api.themoviedb.org/3/search/multi?api_key={TMDB_API_KEY}&query={title}&language={LANGUAGE}"
         
-        # Make the API request
         response = requests.get(url)
+        if response.status_code == 429:
+            retry_after = int(response.headers.get("Retry-After", 1))
+            logger.warning(f"Rate limited by TMDb. Retrying after {retry_after} seconds.")
+            time.sleep(retry_after)
+            response = requests.get(url)
         
-        # Check if the API key is invalid
-        if response.status_code == 401:
-            logger.error("Invalid TMDB API key.")
-            await update.message.reply_text("❌ Invalid TMDB API key. Please contact the administrator.")
-            return
-
-        # Handle any other HTTP error
         response.raise_for_status()
-        
         media_data = response.json()
 
-        # Check if results are empty
         if not media_data['results']:
             await update.message.reply_text(f"No results found for the title '{title}'. Please try another title.")
             return
@@ -283,18 +275,17 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         stars = '⭐' * int(rating) + '☆' * (5 - int(rating))
 
         media_type = media['media_type']
+        media_title = media['title'] if media_type == 'movie' else media['name']
         message = (
-            f"🎬**Title:** {media['title'] if media_type == 'movie' else media['name']}\n\n"
+            f"🎬**Title:** {media_title}\n\n"
             f"📅**Release Date:** {media['release_date'] if media_type == 'movie' else media['first_air_date']}\n\n"
             f"⭐**Rating:** {stars} ({rating}/10)\n\n"
             f"📝**Summary:** {media['overview']}"
         )
 
-        # Truncate the message if it exceeds the maximum length
         if len(message) > 1024:
             message = message[:1021] + '...'
 
-        # Send the result with a poster image if available
         if poster_url:
             await update.message.reply_photo(photo=poster_url, caption=message, parse_mode="Markdown")
         else:
@@ -305,13 +296,13 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             await update.message.reply_text(
                 f"Do you want to add this {'TV show' if media_type == 'tv' else 'movie'} to Sonarr or Radarr? Reply with 'Sonarr' or 'Radarr'."
             )
+            # Store media info in context.user_data to track the conversation state
             context.user_data['media_info'] = {
-                'title': media['title'] if media_type == 'movie' else media['name'],
+                'title': media_title,
                 'media_type': media_type
             }
 
     except requests.exceptions.HTTPError as http_err:
-        # Handle specific HTTP errors (e.g., 403 Forbidden, 404 Not Found)
         logger.error(f"HTTP error occurred: {http_err}")
         if response.status_code == 404:
             await update.message.reply_text("❌ The requested resource was not found. Please try again with a different title.")
@@ -320,24 +311,31 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         else:
             await update.message.reply_text("❌ An HTTP error occurred while fetching data from TMDb. Please try again later.")
     except requests.exceptions.ConnectionError:
-        # Handle network errors
         logger.error("A connection error occurred while contacting TMDb.")
         await update.message.reply_text("❌ A network error occurred. Please check your internet connection and try again.")
     except requests.exceptions.Timeout:
-        # Handle timeout errors
         logger.error("The request to TMDb timed out.")
         await update.message.reply_text("❌ The request to TMDb timed out. Please try again later.")
     except requests.exceptions.RequestException as e:
-        # Handle any other errors (generic requests error)
         logger.error(f"An error occurred: {e}")
         await update.message.reply_text("❌ An error occurred while fetching data. Please try again later.")
     except Exception as e:
-        # Catch any other general errors
         logger.error(f"An unexpected error occurred: {e}")
         await update.message.reply_text("❌ An unexpected error occurred. Please try again later.")
 
+# Message handler for general text
+async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if context.user_data.get('media_info'):
+        # If media info is stored, handle adding to Sonarr or Radarr
+        await add_media_response(update, context)
+    else:
+        # Handle other general messages or night mode checks
+        if night_mode_active:
+            await restrict_night_mode(update, context)
+        else:
+            # Handle any general messages outside of this context
+            pass
 
-# Define a message handler to restrict messages during night mode
 async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     now = get_current_time()
     if night_mode_active:
@@ -346,30 +344,6 @@ async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE
             logger.info(f"Deleting message from non-admin user {update.message.from_user.id} due to night mode.")
             await update.message.reply_text("❌ Sorry, solange der NACHTMODUS aktiviert ist, kannst du von 00:00 Uhr bis 07:00 Uhr keine Mitteilungen in der Gruppe oder in den Topics senden.")
             await context.bot.delete_message(chat_id=update.message.chat_id, message_id=update.message.message_id)
-
-# Background task to check and switch night mode
-is_night_mode_checking = False  # Flag to track if the job is already running
-
-async def night_mode_checker(context):
-    global night_mode_active
-
-    logger.info("Night mode checker running...")
-    
-    now = get_current_time()  # Get the current time in the specified timezone
-
-    # Check for night mode activation
-    if now.hour == 0 and not night_mode_active:
-        night_mode_active = True
-        logger.info("Night mode activated.")
-        await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff braucht auch mal eine Pause.")
-        
-    # Check for night mode deactivation
-    elif now.hour == 7 and night_mode_active:
-        night_mode_active = False
-        logger.info("Night mode deactivated.")
-        await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
-
-
 
 # Command to enable night mode
 async def enable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -401,15 +375,8 @@ async def main() -> None:
     # Register the message handler for new members
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_members))
 
-    # Register the message handler for general messages (to restrict during night mode)
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, restrict_night_mode))
-
-    # Register the message handler for user responses to add media
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, add_media_response))
-
-
-    # Start the night mode checker task with max_instances set to 1
-    application.job_queue.run_repeating(night_mode_checker, interval=300, first=0)
+    # Register the message handler for general messages
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
 
     # Start the Bot
     logger.info("Bot started polling.")
