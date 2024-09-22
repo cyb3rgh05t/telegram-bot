@@ -101,6 +101,9 @@ else:
 # Global variable to track if night mode is active
 night_mode_active = False
 
+# Define a global lock to prevent overlapping runs
+night_mode_lock = asyncio.Lock()
+
 # Mutex lock to prevent overlapping long-running operations
 task_lock = asyncio.Lock()
 
@@ -189,6 +192,20 @@ async def fetch_media_details(media_type, media_id):
         logger.error(f"Error fetching media details: {e}")
         raise
 
+def rating_to_stars(rating):
+    """Convert a TMDb rating (out of 10) to a 5-star emoji string."""
+    # Convert the rating to a 5-star scale
+    stars = (rating / 10) * 10
+
+    # Determine the number of full stars, half stars, and empty stars
+    full_stars = int(stars)  # Full stars
+    half_star = 1 if stars - full_stars >= 0.5 else 0  # Half star
+    empty_stars = 10 - full_stars - half_star  # Empty stars
+
+    # Build the star emoji string
+    star_display = "⭐" * full_stars + "✨" * half_star + "★" * empty_stars
+    return star_display
+
 # Handle the user's media selection and display media details before confirming
 async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     selected_title = update.message.text.strip().lower()
@@ -205,12 +222,15 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
     for option in media_options:
         media_type = option['media_type']
         media_title = option.get('title') if media_type == 'movie' else option.get('name')
+        
+        # Extract the year from release_date or first_air_date
         release_date = option.get('release_date', option.get('first_air_date', 'N/A'))
+        release_year = release_date[:4] if release_date != 'N/A' else 'N/A'  # Extract only the year
 
-        # Loose matching for title
-        if selected_title in f"{media_title} ({release_date})".lower():
+        # Loose matching for title (include release year in the search string)
+        if selected_title in f"{media_title} ({release_year})".lower():
             media = option
-            logger.info(f"Selected media found: {media_title} ({release_date})")
+            logger.info(f"Selected media found: {media_title} ({release_year})")
             break
 
     if not media:
@@ -234,12 +254,20 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         logger.error(f"Failed to fetch media details: {e}")
         return
 
-    # Prepare the message with media details
+    # Convert rating to stars using the helper function
+    rating = media_details.get('vote_average', 0)
+    star_rating = rating_to_stars(rating)
+
+    # Extract the year from the release date for the detailed message as well
+    full_release_date = media_details.get('release_date', media_details.get('first_air_date', 'N/A'))
+    release_year_detailed = full_release_date[:4] if full_release_date != 'N/A' else 'N/A'
+
+    # Prepare the message with media details and star rating
     message = (
         f"🎬 *Title*: {media_title}\n"
-        f"⭐ *Rating*: {media_details.get('vote_average', 'N/A')}/10\n"
-        f"📅 *Release Date*: {media_details.get('release_date', media_details.get('first_air_date', 'N/A'))}\n"
-        f"📝 *Summary*:\n{media_details.get('overview', 'No summary available.')}"
+        f"📅 *Release Year*: {release_year_detailed}\n"
+        f"{star_rating} - {rating}/10\n"
+        f"\n{media_details.get('overview', 'No summary available.')}"
     )
 
     # Send media details regardless of existence in Sonarr/Radarr
@@ -254,11 +282,9 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         if await check_movie_in_radarr(media_id):
             await update.message.reply_text(f"❌ The movie '{media_title}' already exists in Radarr.")
         else:
-            # Ask user if they want to add the movie
             await update.message.reply_text(f"The movie '{media_title}' is not in Radarr. Would you like to add it? Reply with 'yes' or 'no'.")
             context.user_data['media_info'] = {'title': media_title, 'media_type': 'movie'}
     elif media_type == 'tv':
-        # Fetch the TVDB ID for TV shows
         external_ids_url = f"https://api.themoviedb.org/3/tv/{media_id}/external_ids?api_key={TMDB_API_KEY}"
         external_ids_response = requests.get(external_ids_url)
         external_ids_response.raise_for_status()
@@ -273,10 +299,8 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         if await check_series_in_sonarr(tvdb_id):
             await update.message.reply_text(f"❌ The series '{media_title}' already exists in Sonarr.")
         else:
-            # Ask user if they want to add the series
             await update.message.reply_text(f"The series '{media_title}' is not in Sonarr. Would you like to add it? Reply with 'yes' or 'no'.")
             context.user_data['media_info'] = {'title': media_title, 'media_type': 'tv', 'tvdb_id': tvdb_id}
-
 
 
 # Search for a movie or TV show using TMDB API with multiple results handling
@@ -542,9 +566,10 @@ async def set_group_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 # Background task to check and switch night mode
 async def night_mode_checker(context):
-    async with task_lock:
+    async with night_mode_lock:
         logger.info("Night mode checker started.")
         now = get_current_time()
+
         if now.hour == 0 and not night_mode_active:
             night_mode_active = True
             logger.info("Night mode activated.")
@@ -553,8 +578,9 @@ async def night_mode_checker(context):
             night_mode_active = False
             logger.info("Night mode deactivated.")
             await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
+
         logger.info("Night mode checker finished.")
-        await asyncio.sleep(300)  # Check every 5 minutes
+        await asyncio.sleep(300)  # Sleep for 5 minutes before next run
 
 # Command to enable night mode
 async def enable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -562,7 +588,7 @@ async def enable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     if not night_mode_active:
         night_mode_active = True
         logger.info(f"Night mode enabled by user {update.message.from_user.id}.")
-        await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff braucht auch mal eine Pause.")
+        await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff Team braucht auch mal eine Pause 😴😪🥱💤🛌🏼")
 
 # Command to disable night mode
 async def disable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
