@@ -9,6 +9,7 @@ import re
 import logging
 import requests
 import time
+from zoneinfo import ZoneInfo
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 import pytz
@@ -599,21 +600,31 @@ async def set_group_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await update.message.reply_text(f"Group chat ID set to: {GROUP_CHAT_ID}")
 
 # Background task to check and switch night mode
+# Async function to check and switch night mode
 async def night_mode_checker(context):
+    global night_mode_active  # Access global state
+
     start_time = time.time()
-    #async with night_mode_lock:
     logger.info("Night mode checker started.")
-    now = get_current_time()
-
+    
+    # Get the current time in UTC+2
+    now = datetime.now(ZoneInfo("Etc/GMT-2"))
+    
+    # Check if it's midnight (00:00) and night mode is not active
     if now.hour == 0 and not night_mode_active:
-            night_mode_active = True
-            logger.info("Night mode activated.")
-            await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff braucht auch mal eine Pause.")
+        night_mode_active = True
+        logger.info("Night mode activated.")
+        await context.bot.send_message(chat_id=GROUP_CHAT_ID, 
+                                       text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff Team braucht auch mal eine Pause 😴😪🥱💤🛌🏼")
+    
+    # Check if it's 7 AM and night mode is active
     elif now.hour == 7 and night_mode_active:
-            night_mode_active = False
-            logger.info("Night mode deactivated.")
-            await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
+        night_mode_active = False
+        logger.info("Night mode deactivated.")
+        await context.bot.send_message(chat_id=GROUP_CHAT_ID, 
+                                       text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
 
+    # Log the time it took for the check to complete
     logger.info(f"Night mode checker finished in {time.time() - start_time:.2f} seconds.")
 
 # Command to enable night mode
