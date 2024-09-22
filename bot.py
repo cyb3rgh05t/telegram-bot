@@ -101,6 +101,9 @@ else:
 # Global variable to track if night mode is active
 night_mode_active = False
 
+# Mutex lock to prevent overlapping long-running operations
+task_lock = asyncio.Lock()
+
 # Get the current time in the desired timezone
 def get_current_time():
     return datetime.datetime.now(TIMEZONE_OBJ)
@@ -437,25 +440,21 @@ async def set_group_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     logger.info(f"Group chat ID set to: {GROUP_CHAT_ID} by user {update.message.from_user.id}")
     await update.message.reply_text(f"Group chat ID set to: {GROUP_CHAT_ID}")
 
-# Night mode checker using exact time
-def get_next_night_mode_times():
-    now = get_current_time()
-    midnight = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
-    morning = now.replace(hour=7, minute=0, second=0, microsecond=0)
-    return midnight, morning
-
+# Background task to check and switch night mode
 async def night_mode_checker(context):
-    global night_mode_active
-
-    now = get_current_time()
-    midnight, morning = get_next_night_mode_times()
-
-    if now >= midnight and not night_mode_active:
-        night_mode_active = True
-        await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff braucht auch mal eine Pause.")
-    elif now >= morning and night_mode_active:
-        night_mode_active = False
-        await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
+    async with task_lock:
+        logger.info("Night mode checker started.")
+        now = get_current_time()
+        if now.hour == 0 and not night_mode_active:
+            night_mode_active = True
+            logger.info("Night mode activated.")
+            await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff braucht auch mal eine Pause.")
+        elif now.hour == 7 and night_mode_active:
+            night_mode_active = False
+            logger.info("Night mode deactivated.")
+            await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
+        logger.info("Night mode checker finished.")
+        await asyncio.sleep(300)  # Check every 5 minutes
 
 # Command to enable night mode
 async def enable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -476,11 +475,11 @@ async def disable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE)
 # Restrict messages during night mode
 async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     now = get_current_time()
-    if night_mode_active or is_night_time():
+    if night_mode_active:
         is_admin = update.message.from_user.is_admin
         if not is_admin:
             logger.info(f"Deleting message from non-admin user {update.message.from_user.id} due to night mode.")
-            await update.message.reply_text("❌ Sorry, solange der NACHTMODUS aktiviert ist, kannst du von 00:00 Uhr bis 07:00 Uhr keine Mitteilungen in der Gruppe oder in den Topics senden.")
+            await update.message.reply_text("❌ Sorry, solange der NACHTMODUS aktiviert ist (00:00 - 07:00 Uhr), kannst du keine Mitteilungen in der Gruppe oder in den Topics senden.")
             await context.bot.delete_message(chat_id=update.message.chat_id, message_id=update.message.message_id)
 
 # Command to set the language for TMDB searches
