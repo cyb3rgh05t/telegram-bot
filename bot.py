@@ -160,29 +160,30 @@ async def add_media_response(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 # Handle the user's media selection and display media details before confirming
 async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_TYPE, media=None):
-    if not media:
-        selected_title = update.message.text
-        media_options = context.user_data.get('media_options')
+    selected_title = update.message.text
+    media_options = context.user_data.get('media_options', None)
 
-        if not media_options:
-            await update.message.reply_text("No media options available. Please search again.")
-            return
+    if not media_options:
+        await update.message.reply_text("No media options available. Please search again.")
+        return
 
-        # Find the selected media from the options
-        for option in media_options:
-            media_type = option['media_type']
-            media_title = option['title'] if media_type == 'movie' else option['name']
-            release_date = option.get('release_date', option.get('first_air_date', 'N/A'))
-            if f"{media_title} ({release_date})" == selected_title:
-                media = option
-                break
+    # Find the selected media from the options
+    media = None
+    for option in media_options:
+        media_type = option['media_type']
+        media_title = option['title'] if media_type == 'movie' else option['name']
+        release_date = option.get('release_date', option.get('first_air_date', 'N/A'))
+        if f"{media_title} ({release_date})" == selected_title:
+            media = option
+            break
 
-        # Clear the media options after selection
-        context.user_data.pop('media_options', None)
-
+    # If media is not found in the options
     if not media:
         await update.message.reply_text("Invalid selection. Please search again.")
         return
+
+    # Clear the media options after selection
+    context.user_data.pop('media_options', None)
 
     media_title = media['title'] if media['media_type'] == 'movie' else media['name']
     media_type = media['media_type']
@@ -229,6 +230,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         else:
             await update.message.reply_text(f"The movie '{media_title}' is not in Radarr. Would you like to add it? Reply with 'yes' or 'no'.")
             context.user_data['media_info'] = {'title': media_title, 'media_type': 'movie'}
+
 
 
 # Search for a movie or TV show using TMDB API with multiple results handling
