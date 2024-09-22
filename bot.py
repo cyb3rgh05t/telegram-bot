@@ -181,16 +181,36 @@ async def add_movie_to_radarr(movie_name):
         logger.error("Quality profile not found for Radarr.")
         return
 
+    # Get TMDb ID for the movie (you may already have this from the TMDb search)
+    tmdb_url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={movie_name}"
+    tmdb_response = requests.get(tmdb_url)
+    tmdb_response.raise_for_status()
+    tmdb_data = tmdb_response.json()
+
+    if not tmdb_data['results']:
+        logger.error(f"No TMDb results found for the movie '{movie_name}'")
+        return
+
+    # Use the first search result for simplicity
+    movie_tmdb_id = tmdb_data['results'][0]['id']
+
     data = {
         "title": movie_name,
         "qualityProfileId": quality_profile_id,
         "rootFolderPath": RADARR_ROOT_FOLDER_PATH,
-        "isAvailable": True
+        "tmdbId": movie_tmdb_id,  # Add TMDb ID to the request
+        "monitored": True,        # Ensure the movie is monitored
+        "addOptions": {
+            "searchForMovie": True  # Automatically search for the movie once added
+        }
     }
 
     response = requests.post(f"{RADARR_URL}/api/v3/movie", json=data, params={"apikey": RADARR_API_KEY})
-    response.raise_for_status()
-    logger.info(f"Movie '{movie_name}' added to Radarr.")
+    if response.status_code == 201:
+        logger.info(f"Movie '{movie_name}' added to Radarr successfully.")
+    else:
+        logger.error(f"Failed to add movie '{movie_name}' to Radarr. Status code: {response.status_code}, Response: {response.text}")
+
 
 # Define a command handler function
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
