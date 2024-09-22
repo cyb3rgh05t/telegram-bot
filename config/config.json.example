@@ -1,0 +1,9 @@
+{
+    "TOKEN": "",
+    "TIMEZONE": "Europe/Berlin",
+    "IMAGE_URL": "",
+    "BUTTON_URL": "https://t.me/c/1696089108/9291/13417",
+    "LOG_LEVEL": "INFO",
+    "TMDB_API_KEY": "",
+    "DEFAULT_LANGUAGE": "de"
+}
