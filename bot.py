@@ -73,11 +73,14 @@ def init_db():
         conn.commit()
 
 def extract_year_from_input(selected_title):
-    """Extract the year from the user's input (if present)."""
+    """Extract the year from the user's input and ensure the format is correct."""
+    # Use regex to find a year in parentheses, even if the parentheses are incomplete
     match = re.search(r'\((\d{4})', selected_title)
     if match:
-        return selected_title[:match.end()]  # Extract everything up to and including the year
+        # Ensure the closing parenthesis is present and return the title up to the year
+        return f"{selected_title[:match.end()]})"
     return selected_title  # If no year is found, return the original title
+
 
 
 # Load group chat ID and language from database
@@ -262,7 +265,6 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         await update.message.reply_text("Invalid selection. Please search again.")
         logger.error("Media selection did not match any option.")
         return
-
 
     # Clear the media options after selection
     context.user_data.pop('media_options', None)
