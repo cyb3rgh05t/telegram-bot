@@ -103,7 +103,7 @@ night_mode_active = False
 
 # Get the current time in the desired timezone
 def get_current_time():
-    return datetime.datetime.now(TIMEZONE_OBJ)
+    return datetime.now(TIMEZONE_OBJ)
 
 
 # Function to check if the series is already in Sonarr
@@ -177,17 +177,22 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
     media = None
     for option in media_options:
         media_type = option['media_type']
-        media_title = option['title'] if media_type == 'movie' else option['name']
-        release_date = option.get('release_date', option.get('first_air_date', 'N/A'))
-        logger.info(f"Checking media option: {media_title} ({release_date})")
-        if f"{media_title} ({release_date})" == selected_title:
+        media_title = option.get('title', option.get('name', 'Unknown Title'))  # Handles both movie and TV cases
+        if media_title.lower() in selected_title.lower():  # Simplified matching
             media = option
             break
+        
+    logger.info(f"User selected title: {selected_title}")
+    logger.info(f"Media options available: {[option['name'] for option in media_options]}")
 
-    # If media is not found in the options
+
     if not media:
         await update.message.reply_text("Invalid selection. Please search again.")
         return
+    
+    logger.info(f"User selected title: {selected_title}")
+    logger.info(f"Media options available: {[option['name'] for option in media_options]}")
+
 
     # Clear the media options after selection
     context.user_data.pop('media_options', None)
