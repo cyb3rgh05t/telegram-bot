@@ -29,6 +29,7 @@ IMAGE_URL = config.get("IMAGE_URL")
 BUTTON_URL = config.get("BUTTON_URL")
 LOG_LEVEL = config.get("LOG_LEVEL", "INFO").upper()
 TMDB_API_KEY = config.get("TMDB_API_KEY")
+LANGUAGE = config.get("DEFAULT_LANGUAGE")
 
 # Configure logging
 logging.basicConfig(
@@ -70,7 +71,8 @@ def load_group_id():
         cursor.execute("SELECT group_chat_id, language FROM group_data WHERE id=1")
         row = cursor.fetchone()
     if row:
-        logger.info(f"Loaded existing group chat ID: {row[0]}, language: {row[1]}")
+        logger.info(f"Loaded existing Group Chat ID: {row[0]}")
+        logger.info(f"Loaded existing Tmdb language: {row[1]}")
         return row[0], row[1]
     return None, None
 
@@ -152,6 +154,18 @@ async def welcome_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE
             reply_markup=keyboard
         )
 
+# Function to convert rating to star emojis
+def convert_rating_to_stars(rating):
+    if rating is None or rating == 'N/A':
+        return '⭐ N/A'
+    try:
+        rating = float(rating)
+        # TMDb ratings are out of 10, so we divide by 2 to get a 5-star scale
+        stars = int(rating / 2)
+        return '⭐' * stars + '✰' * (5 - stars) + f" ({rating}/10)"
+    except ValueError:
+        return '⭐ N/A'
+
 # Search for a movie using TMDB API with aiohttp (non-blocking)
 async def search_movie(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await search_media(update, context, "movie")
@@ -185,13 +199,13 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE, media
         media = media_data['results'][0]
         title_key = 'name' if media_type == 'tv' else 'title'
         poster_url = f"https://image.tmdb.org/t/p/w500{media['poster_path']}" if media['poster_path'] else None
-        rating = media.get('vote_average', 'N/A')
+        rating = convert_rating_to_stars(media.get('vote_average', 'N/A'))
 
         message = (
-            f"**Title:** {media[title_key]}\n"
-            f"**Release Date:** {media.get('first_air_date' if media_type == 'tv' else 'release_date', 'N/A')}\n"
-            f"**Rating:** {rating} / 10\n"
-            f"**Summary:** {media['overview']}"
+            f"🎬 **Title:** {media[title_key]}\n"
+            f"📅 **Release Date:** {media.get('first_air_date' if media_type == 'tv' else 'release_date', 'N/A')}\n"
+            f"⭐ **Rating:** {rating}\n"
+            f"📝 **Summary:** {media['overview']}"
         )
 
         # Truncate the message if it exceeds the maximum length
@@ -199,18 +213,18 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE, media
             message = message[:1021] + '...'
 
         if poster_url:
-            await update.message.reply_photo(photo=poster_url, caption=message, parse_mode="Markdown")
+            await update.message.reply_photo(photo=poster_url, caption=message, parse_mode='Markdown')
         else:
-            await update.message.reply_text(message)
+            await update.message.reply_text(text=message, parse_mode='Markdown')
 
-    except aiohttp.ClientError as http_err:
-        logger.error(f"HTTP error occurred: {http_err}")
-        await update.message.reply_text("❌ There was an error fetching data from TMDb. Please try again later.")
+    except aiohttp.ClientError as e:
+        logger.error(f"Error fetching {media_type} data from TMDb API: {str(e)}")
+        await update.message.reply_text(f"An error occurred while searching for that {media_type} title. Please try again later.")
     except Exception as e:
-        logger.error(f"An error occurred: {e}")
-        await update.message.reply_text("❌ An unexpected error occurred. Please try again later.")
+        logger.error(f"Unexpected error: {str(e)}")
+        await update.message.reply_text(f"An unexpected error occurred: {str(e)}. Please try again later.")
 
-# Define a message handler to restrict messages during night mode
+# Restrict messages during night mode
 async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     global night_mode_active
     if update.message.chat_id != GROUP_CHAT_ID:
