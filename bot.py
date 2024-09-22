@@ -22,26 +22,18 @@ with open(CONFIG_FILE, 'r') as config_file:
 
 TOKEN = config.get("TOKEN")
 TIMEZONE = config.get("TIMEZONE", "Europe/Berlin")
-TMDB_API_KEY = config.get("TMDB_API_KEY")
-DEFAULT_LANGUAGE = config.get("DEFAULT_LANGUAGE", "en")
 IMAGE_URL = config.get("IMAGE_URL")
 BUTTON_URL = config.get("BUTTON_URL")
 LOG_LEVEL = config.get("LOG_LEVEL", "INFO").upper()
+TMDB_API_KEY = config.get("TMDB_API_KEY")
 
-# Configure logging based on the log level from config
+# Configure logging
 logging.basicConfig(
     format='%(levelname)s - %(message)s',
     level=getattr(logging, LOG_LEVEL, logging.INFO)
 )
 
 logger = logging.getLogger(__name__)
-
-# Log the successful retrieval of the token with only first 6 characters visible
-if TOKEN:
-    redacted_token = TOKEN[:6] + '*' * (len(TOKEN) - 6)
-    logger.info(f"Token retrieved successfully: {redacted_token}")
-else:
-    logger.error("Failed to retrieve bot token from config.")
 
 # Ensure the config directory exists
 if not os.path.exists(CONFIG_DIR):
@@ -57,11 +49,10 @@ except pytz.UnknownTimeZoneError:
     logger.error(f"Invalid timezone '{TIMEZONE}' in config.json. Defaulting to 'Europe/Berlin'.")
     TIMEZONE_OBJ = pytz.timezone("Europe/Berlin")
 
-# Initialize SQLite connection and create table for storing group ID
+# Initialize SQLite connection and create table for storing group ID and language
 def init_db():
     conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
-    cursor.execute("DROP TABLE IF EXISTS group_data")  # This line drops the table if it exists
     cursor.execute('''CREATE TABLE IF NOT EXISTS group_data (
                         id INTEGER PRIMARY KEY,
                         group_chat_id INTEGER,
@@ -70,8 +61,7 @@ def init_db():
     conn.commit()
     conn.close()
 
-
-# Load group chat ID from database
+# Load group chat ID and language from database
 def load_group_id():
     conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
@@ -79,16 +69,15 @@ def load_group_id():
     row = cursor.fetchone()
     conn.close()
     if row:
-        logger.info(f"Loaded existing group chat ID: {row[0]} and language: {row[1]}")
+        logger.info(f"Loaded existing group chat ID: {row[0]}, language: {row[1]}")
         return row[0], row[1]
-    return None, DEFAULT_LANGUAGE
+    return None, None
 
-# Save group chat ID and language to the database
-def save_group_id(group_chat_id, language=DEFAULT_LANGUAGE):
+# Save group chat ID and language to database
+def save_group_id(group_chat_id, language):
     conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
-    cursor.execute("INSERT OR REPLACE INTO group_data (id, group_chat_id, language) VALUES (1, ?, ?)",
-                   (group_chat_id, language))
+    cursor.execute("INSERT OR REPLACE INTO group_data (id, group_chat_id, language) VALUES (1, ?, ?)", (group_chat_id, language))
     conn.commit()
     conn.close()
 
@@ -102,9 +91,6 @@ else:
 
 # Global variable to track if night mode is active
 night_mode_active = False
-
-# Mutex lock to prevent overlapping long-running operations
-task_lock = asyncio.Lock()
 
 # Get the current time in the desired timezone
 def get_current_time():
@@ -123,104 +109,16 @@ async def set_group_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     logger.info(f"Group chat ID set to: {GROUP_CHAT_ID} by user {update.message.from_user.id}")
     await update.message.reply_text(f"Group chat ID set to: {GROUP_CHAT_ID}")
 
-# Command to set the language for TMDb responses
+# Command to set the language
 async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     global LANGUAGE
-    if len(context.args) > 0:
+    if context.args:
         LANGUAGE = context.args[0]
         save_group_id(GROUP_CHAT_ID, LANGUAGE)
         logger.info(f"Language set to: {LANGUAGE} by user {update.message.from_user.id}")
         await update.message.reply_text(f"Language set to: {LANGUAGE}")
     else:
-        await update.message.reply_text("Please provide a language code, e.g., 'en', 'de', 'fr'.")
-
-# TMDb API request
-def search_tmdb(query, category="movie", language="en"):
-    url = f"https://api.themoviedb.org/3/search/{category}"
-    params = {
-        "api_key": TMDB_API_KEY,
-        "query": query,
-        "language": language
-    }
-    response = requests.get(url, params=params)
-    if response.status_code == 200:
-        results = response.json().get('results', [])
-        if results:
-            return results[0]  # Return the first result
-    logger.error(f"Failed to fetch TMDb data: {response.status_code} {response.text}")
-    return None
-
-# Format TMDb result with movie or TV show details
-def format_tmdb_result(result, category="movie"):
-    title = result.get('title', result.get('name', 'Unknown Title'))
-    overview = result.get('overview', 'No description available.')
-    release_date = result.get('release_date', result.get('first_air_date', 'Unknown'))
-    poster_path = result.get('poster_path', None)
-    
-    message = f"*{title}*\n\n"
-    message += f"📅 Release Date: {release_date}\n\n"
-    message += f"📝 Overview:\n{overview}"
-    
-    poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else None
-    return message, poster_url
-
-# Command to search for a movie
-async def search_movie(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = " ".join(context.args)
-    if not query:
-        await update.message.reply_text("Please provide a movie name after the command, like: /search_movie Inception")
-        return
-
-    async with task_lock:
-        result = search_tmdb(query, category="movie", language=LANGUAGE)
-        if result:
-            message, poster_url = format_tmdb_result(result, category="movie")
-            if poster_url:
-                await update.message.reply_photo(photo=poster_url, caption=message, parse_mode="Markdown")
-            else:
-                await update.message.reply_text(message, parse_mode="Markdown")
-        else:
-            await update.message.reply_text("Sorry, I couldn't find any results for your query.")
-
-# Command to search for a TV show
-async def search_tv_show(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = " ".join(context.args)
-    if not query:
-        await update.message.reply_text("Please provide a TV show name after the command, like: /search_tv_show Breaking Bad")
-        return
-
-    async with task_lock:
-        result = search_tmdb(query, category="tv", language=LANGUAGE)
-        if result:
-            message, poster_url = format_tmdb_result(result, category="tv")
-            if poster_url:
-                await update.message.reply_photo(photo=poster_url, caption=message, parse_mode="Markdown")
-            else:
-                await update.message.reply_text(message, parse_mode="Markdown")
-        else:
-            await update.message.reply_text("Sorry, I couldn't find any results for your query.")
-
-# Command to enable night mode
-async def enable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    global night_mode_active
-    async with task_lock:
-        if not night_mode_active:
-            night_mode_active = True
-            logger.info(f"Night mode enabled by user {update.message.from_user.id}")
-            await update.message.reply_text("🌙 Nachtmodus aktiviert.")
-        else:
-            await update.message.reply_text("Night mode is already active.")
-
-# Command to disable night mode
-async def disable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    global night_mode_active
-    async with task_lock:
-        if night_mode_active:
-            night_mode_active = False
-            logger.info(f"Night mode disabled by user {update.message.from_user.id}")
-            await update.message.reply_text("☀️ Nachtmodus deaktiviert.")
-        else:
-            await update.message.reply_text("Night mode is already deactivated.")
+        await update.message.reply_text("Please specify a language code (e.g., 'en', 'de').")
 
 # Define a function to welcome new members
 async def welcome_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -248,6 +146,52 @@ async def welcome_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE
             reply_markup=keyboard
         )
 
+# Search for a movie using TMDB API
+async def search_movie(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    try:
+        if not context.args:
+            await update.message.reply_text("Please provide a movie title.")
+            return
+
+        movie_title = " ".join(context.args)
+        logger.info(f"Searching for movie: {movie_title}")
+        
+        url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={movie_title}&language={LANGUAGE}"
+        response = requests.get(url)
+        response.raise_for_status()
+        
+        movie_data = response.json()
+
+        if not movie_data['results']:
+            await update.message.reply_text("No results found for that movie title.")
+            return
+
+        # Get the first result
+        movie = movie_data['results'][0]
+        poster_url = f"https://image.tmdb.org/t/p/w500{movie['poster_path']}" if movie['poster_path'] else None
+
+        message = (
+            f"**Title:** {movie['title']}\n"
+            f"**Release Date:** {movie['release_date']}\n"
+            f"**Summary:** {movie['overview']}"
+        )
+
+        # Truncate the message if it exceeds the maximum length
+        if len(message) > 1024:
+            message = message[:1021] + '...'
+
+        if poster_url:
+            await update.message.reply_photo(photo=poster_url, caption=message, parse_mode="Markdown")
+        else:
+            await update.message.reply_text(message)
+
+    except requests.exceptions.HTTPError as http_err:
+        logger.error(f"HTTP error occurred: {http_err}")
+        await update.message.reply_text("❌ There was an error fetching data from TMDb. Please try again later.")
+    except Exception as e:
+        logger.error(f"An error occurred: {e}")
+        await update.message.reply_text("❌ An unexpected error occurred. Please try again later.")
+
 # Define a message handler to restrict messages during night mode
 async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     now = get_current_time()
@@ -260,9 +204,10 @@ async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 # Background task to check and switch night mode
 async def night_mode_checker(context):
-    async with task_lock:
+    global night_mode_active
+    while True:
         logger.info("Night mode checker started.")
-        now = get_current_time()
+        now = get_current_time()  # Get the current time in the specified timezone
         if now.hour == 0 and not night_mode_active:
             night_mode_active = True
             logger.info("Night mode activated.")
@@ -274,17 +219,32 @@ async def night_mode_checker(context):
         logger.info("Night mode checker finished.")
         await asyncio.sleep(300)  # Check every 5 minutes
 
+# Command to enable night mode
+async def enable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    global night_mode_active
+    if not night_mode_active:
+        night_mode_active = True
+        logger.info(f"Night mode enabled by user {update.message.from_user.id}.")
+        await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff braucht auch mal eine Pause.")
+
+# Command to disable night mode
+async def disable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    global night_mode_active
+    if night_mode_active:
+        night_mode_active = False
+        logger.info(f"Night mode disabled by user {update.message.from_user.id}.")
+        await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
+
 async def main() -> None:
     application = ApplicationBuilder().token(TOKEN).build()
 
-    # Register the command handlers
+    # Register the command handler
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("set_group_id", set_group_id))
     application.add_handler(CommandHandler("set_language", set_language))
     application.add_handler(CommandHandler("enable_night_mode", enable_night_mode))
     application.add_handler(CommandHandler("disable_night_mode", disable_night_mode))
     application.add_handler(CommandHandler("search_movie", search_movie))
-    application.add_handler(CommandHandler("search_tv_show", search_tv_show))
 
     # Register the message handler for new members
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_members))
@@ -292,7 +252,7 @@ async def main() -> None:
     # Register the message handler for general messages (to restrict during night mode)
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, restrict_night_mode))
 
-    # Start the night mode checker task
+    # Start the night mode checker task with max_instances set to 1
     application.job_queue.run_repeating(night_mode_checker, interval=300, first=0)
 
     # Start the Bot
@@ -305,3 +265,5 @@ if __name__ == '__main__':
         asyncio.run(main())
     except KeyboardInterrupt:
         logger.info("Bot stopped gracefully.")
+    except Exception as e:
+        logger.error(f"An unexpected error occurred during startup: {e}")
