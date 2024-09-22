@@ -291,11 +291,21 @@ async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE
             await context.bot.delete_message(chat_id=update.message.chat_id, message_id=update.message.message_id)
 
 # Background task to check and switch night mode
+is_night_mode_checking = False  # Flag to track if the job is already running
+
 async def night_mode_checker(context):
     global night_mode_active
-    while True:
+    global is_night_mode_checking
+
+    if is_night_mode_checking:
+        return  # Exit if the job is already running
+
+    is_night_mode_checking = True  # Set the flag
+
+    try:
         logger.info("Night mode checker started.")
         now = get_current_time()  # Get the current time in the specified timezone
+
         if now.hour == 0 and not night_mode_active:
             night_mode_active = True
             logger.info("Night mode activated.")
@@ -304,8 +314,11 @@ async def night_mode_checker(context):
             night_mode_active = False
             logger.info("Night mode deactivated.")
             await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
+
+    finally:
+        is_night_mode_checking = False  # Reset the flag
         logger.info("Night mode checker finished.")
-        await asyncio.sleep(300)  # Check every 5 minutes
+
 
 # Command to enable night mode
 async def enable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
