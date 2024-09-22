@@ -628,20 +628,23 @@ async def night_mode_checker(context):
     global night_mode_active
 
     # Get the current time in UTC+2
-    now = datetime.now(ZoneInfo("Etc/GMT-2"))  # This should work fine with correct import
+    now = datetime.now(ZoneInfo("Etc/GMT-2"))
+    
+    # Log the current time to verify it
+    logger.info(f"Current time (UTC+2): {now.strftime('%Y-%m-%d %H:%M:%S')}")
     logger.info(f"Night mode checker started..")
 
     # Logic for activating or deactivating night mode
     if now.hour == 0 and not night_mode_active:
         night_mode_active = True
-        logger.info("Night mode activated.")
+        logger.info("Night mode activated at midnight.")
         await context.bot.send_message(chat_id=GROUP_CHAT_ID, 
                                        text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff Team braucht auch mal eine Pause 😴😪🥱💤🛌🏼")
     
     # Check if it's 7 AM and night mode is active
     elif now.hour == 7 and night_mode_active:
         night_mode_active = False
-        logger.info("Night mode deactivated.")
+        logger.info("Night mode deactivated at 7:00 AM.")
         await context.bot.send_message(chat_id=GROUP_CHAT_ID, 
                                        text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
 
