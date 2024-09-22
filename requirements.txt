@@ -5,4 +5,3 @@ python-telegram-bot [job-queue]
 requests
 aiohttp
 time
-datetime
