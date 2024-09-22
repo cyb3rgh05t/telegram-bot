@@ -113,18 +113,13 @@ def get_current_time():
 async def check_series_in_sonarr(series_tvdb_id):
     """Check if the series is already in Sonarr by TVDB ID."""
     try:
-        # Fetch all series from Sonarr
         response = requests.get(f"{SONARR_URL}/api/v3/series", params={"apikey": SONARR_API_KEY})
         response.raise_for_status()
         series_list = response.json()
 
-        # Log the TVDB IDs of all existing series in Sonarr
-        logger.info(f"Checking Sonarr for series with TVDB ID: {series_tvdb_id}")
-        
         for series in series_list:
-            logger.info(f"Existing series in Sonarr: {series['title']} (TVDB ID: {series['tvdbId']})")
             if series['tvdbId'] == series_tvdb_id:
-                logger.info(f"Series '{series['title']}' already exists in Sonarr (TVDB ID: {series['tvdbId']})")
+                logger.info(f"Series '{series['title']}' already exists in Sonarr.")
                 return True
         return False
 
@@ -140,18 +135,13 @@ async def check_series_in_sonarr(series_tvdb_id):
 async def check_movie_in_radarr(movie_tmdb_id):
     """Check if the movie is already in Radarr by TMDb ID."""
     try:
-        # Fetch all movies from Radarr
         response = requests.get(f"{RADARR_URL}/api/v3/movie", params={"apikey": RADARR_API_KEY})
         response.raise_for_status()
         movie_list = response.json()
 
-        # Log the TMDb IDs of all existing movies in Radarr
-        logger.info(f"Checking Radarr for movie with TMDb ID: {movie_tmdb_id}")
-        
         for movie in movie_list:
-            logger.info(f"Existing movie in Radarr: {movie['title']} (TMDb ID: {movie['tmdbId']})")
             if movie['tmdbId'] == movie_tmdb_id:
-                logger.info(f"Movie '{movie['title']}' already exists in Radarr (TMDb ID: {movie['tmdbId']})")
+                logger.info(f"Movie '{movie['title']}' already exists in Radarr.")
                 return True
         return False
 
@@ -200,7 +190,7 @@ async def fetch_media_details(media_type, media_id):
         raise
 
 # Handle the user's media selection and display media details before confirming
-async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_TYPE, media=None):
+async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     selected_title = update.message.text.strip().lower()
     logger.info(f"User selected title: {selected_title}")
 
@@ -210,8 +200,6 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         logger.error("No media options found in user data.")
         return
 
-    logger.info(f"Available media options: {[option.get('title', option.get('name', '')) for option in media_options]}")
-
     # Find the selected media from the options
     media = None
     for option in media_options:
@@ -219,9 +207,6 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         media_title = option.get('title') if media_type == 'movie' else option.get('name')
         release_date = option.get('release_date', option.get('first_air_date', 'N/A'))
 
-        # Logging each comparison step
-        logger.info(f"Comparing: '{media_title.lower()}' ({release_date}) with '{selected_title}'")
-        
         # Loose matching for title
         if selected_title in f"{media_title} ({release_date})".lower():
             media = option
@@ -233,7 +218,6 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         logger.error("Media selection did not match any option.")
         return
 
-
     # Clear the media options after selection
     context.user_data.pop('media_options', None)
 
@@ -243,45 +227,46 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
 
     # Fetch additional media details from TMDb
     try:
-       media_details = await fetch_media_details(media_type, media_id)
-       logger.info(f"Fetched media details for {media_title} (TMDb ID: {media_id})")
+        media_details = await fetch_media_details(media_type, media_id)
+        logger.info(f"Fetched media details for {media_title} (TMDb ID: {media_id})")
     except Exception as e:
-       await update.message.reply_text("Error fetching media details. Please try again later.")
-       logger.error(f"Failed to fetch media details: {e}")
-       return
+        await update.message.reply_text("Error fetching media details. Please try again later.")
+        logger.error(f"Failed to fetch media details: {e}")
+        return
 
-    poster_path = media_details.get('poster_path', None)
-    poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else None
-    rating = media_details.get('vote_average', 'N/A')
-    release_date = media_details.get('release_date', media_details.get('first_air_date', 'N/A'))
-    overview = media_details.get('overview', 'No summary available.')
+    # Check if media already exists in Radarr or Sonarr
+    if media_type == 'movie':
+        # Check if the movie already exists in Radarr
+        if await check_movie_in_radarr(media_id):
+            await update.message.reply_text(f"❌ The movie '{media_title}' already exists in Radarr.")
+            return
+    elif media_type == 'tv':
+        # Check if the series already exists in Sonarr
+        if await check_series_in_sonarr(media_id):
+            await update.message.reply_text(f"❌ The series '{media_title}' already exists in Sonarr.")
+            return
 
-    # Construct the message with media details
+    # Proceed to ask if the user wants to add the media
     message = (
         f"🎬 *Title*: {media_title}\n"
-        f"⭐ *Rating*: {rating}/10\n"
-        f"📅 *Release Date*: {release_date}\n"
-        f"📝 *Summary*:\n{overview}"
+        f"⭐ *Rating*: {media_details.get('vote_average', 'N/A')}/10\n"
+        f"📅 *Release Date*: {media_details.get('release_date', media_details.get('first_air_date', 'N/A'))}\n"
+        f"📝 *Summary*:\n{media_details.get('overview', 'No summary available.')}"
     )
 
-    logger.info(f"Displaying details for {media_title}")
-
-    # Send the poster image (if available) and the details message
-    if poster_url:
+    # Send the media details and prompt for confirmation
+    if media_details.get('poster_path'):
+        poster_url = f"https://image.tmdb.org/t/p/w500{media_details['poster_path']}"
         await update.message.reply_photo(photo=poster_url, caption=message, parse_mode="Markdown")
     else:
         await update.message.reply_text(text=message, parse_mode="Markdown")
 
-    # Ask for confirmation to add it to Sonarr or Radarr
     if media_type == 'tv':
-       logger.info(f"Prompting user to add TV series: {media_title}")
-       await update.message.reply_text(f"The series '{media_title}' is not in Sonarr. Would you like to add it? Reply with 'yes' or 'no'.")
-       context.user_data['media_info'] = {'title': media_title, 'media_type': 'tv'}
+        await update.message.reply_text(f"The series '{media_title}' is not in Sonarr. Would you like to add it? Reply with 'yes' or 'no'.")
+        context.user_data['media_info'] = {'title': media_title, 'media_type': 'tv'}
     elif media_type == 'movie':
-       logger.info(f"Prompting user to add movie: {media_title}")
-       await update.message.reply_text(f"The movie '{media_title}' is not in Radarr. Would you like to add it? Reply with 'yes' or 'no'.")
-       context.user_data['media_info'] = {'title': media_title, 'media_type': 'movie'}
-
+        await update.message.reply_text(f"The movie '{media_title}' is not in Radarr. Would you like to add it? Reply with 'yes' or 'no'.")
+        context.user_data['media_info'] = {'title': media_title, 'media_type': 'movie'}
 
 
 # Search for a movie or TV show using TMDB API with multiple results handling
