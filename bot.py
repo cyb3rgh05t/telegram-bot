@@ -1,6 +1,7 @@
 import asyncio
 import nest_asyncio
 import datetime
+from datetime import timedelta
 import json
 import os
 import sqlite3
@@ -77,7 +78,8 @@ def load_group_id():
         cursor.execute("SELECT group_chat_id, language FROM group_data WHERE id=1")
         row = cursor.fetchone()
     if row:
-        logger.info(f"Loaded existing group chat ID: {row[0]}, language: {row[1]}")
+        logger.info(f"Loaded existing Group Chat ID: {row[0]}, language: {row[1]}")
+        logger.info(f"Loaded existing Tmdb Language: {row[1]}")
         return row[0], row[1]
     return None, DEFAULT_LANGUAGE  # Default to English if no row is found
 
@@ -92,9 +94,9 @@ def save_group_id(group_chat_id, language):
 init_db()  # Ensure the database and table are set up
 GROUP_CHAT_ID, LANGUAGE = load_group_id()
 if GROUP_CHAT_ID is None:
-    logger.info("Group chat ID not set. Please set it using /set_group_id.")
+    logger.info("Group Chat ID not set. Please set it using /set_group_id.")
 else:
-    logger.info(f"Group chat ID is already set to: {GROUP_CHAT_ID}")
+    logger.info(f"Group Chat ID is already set to: {GROUP_CHAT_ID}")
 
 # Global variable to track if night mode is active
 night_mode_active = False
@@ -102,6 +104,14 @@ night_mode_active = False
 # Get the current time in the desired timezone
 def get_current_time():
     return datetime.datetime.now(TIMEZONE_OBJ)
+
+# Function to fetch additional details of the movie/TV show from TMDb
+async def fetch_media_details(media_type, media_id):
+    """Fetch detailed media information including poster, rating, summary, etc."""
+    url = f"https://api.themoviedb.org/3/{media_type}/{media_id}?api_key={TMDB_API_KEY}&language={LANGUAGE}"
+    response = requests.get(url)
+    response.raise_for_status()
+    return response.json()
 
 
 # Function to check if the series is already in Sonarr
@@ -148,7 +158,7 @@ async def add_media_response(update: Update, context: ContextTypes.DEFAULT_TYPE)
     else:
         await update.message.reply_text("No media information found. Please search again.")
 
-# Handle the user's media selection and check if it's already in Sonarr or Radarr
+# Handle the user's media selection and display media details before confirming
 async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_TYPE, media=None):
     if not media:
         selected_title = update.message.text
@@ -176,7 +186,32 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
 
     media_title = media['title'] if media['media_type'] == 'movie' else media['name']
     media_type = media['media_type']
+    media_id = media['id']
 
+    # Fetch additional media details from TMDb
+    media_details = await fetch_media_details(media_type, media_id)
+
+    poster_path = media_details.get('poster_path', None)
+    poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else None
+    rating = media_details.get('vote_average', 'N/A')
+    release_date = media_details.get('release_date', media_details.get('first_air_date', 'N/A'))
+    overview = media_details.get('overview', 'No summary available.')
+
+    # Construct the message with media details
+    message = (
+        f"🎬 *Title*: {media_title}\n"
+        f"⭐ *Rating*: {rating}/10\n"
+        f"📅 *Release Date*: {release_date}\n"
+        f"📝 *Summary*:\n{overview}"
+    )
+
+    # Send the poster image (if available) and the details message
+    if poster_url:
+        await update.message.reply_photo(photo=poster_url, caption=message, parse_mode="Markdown")
+    else:
+        await update.message.reply_text(text=message, parse_mode="Markdown")
+
+    # Ask for confirmation to add it to Sonarr or Radarr
     if media_type == 'tv':
         # Get TVDB ID and check if it's already in Sonarr
         tvdb_id = media.get('external_ids', {}).get('tvdb_id')
@@ -194,6 +229,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         else:
             await update.message.reply_text(f"The movie '{media_title}' is not in Radarr. Would you like to add it? Reply with 'yes' or 'no'.")
             context.user_data['media_info'] = {'title': media_title, 'media_type': 'movie'}
+
 
 # Search for a movie or TV show using TMDB API with multiple results handling
 async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -240,7 +276,7 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             context.user_data['media_options'] = media_data['results']
             return
 
-        # If only one result, continue with confirmation
+        # If only one result, continue with displaying details and confirmation
         media = media_data['results'][0]
         await handle_media_selection(update, context, media)
 
@@ -276,7 +312,7 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
         await handle_user_confirmation(update, context)
     else:
         # Handle other general messages
-        if night_mode_active or night_mode_checker():
+        if night_mode_active or await night_mode_checker(context):
             await restrict_night_mode(update, context)
 
 # Define the start function to handle the /start command
