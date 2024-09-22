@@ -78,7 +78,7 @@ def load_group_id():
         cursor.execute("SELECT group_chat_id, language FROM group_data WHERE id=1")
         row = cursor.fetchone()
     if row:
-        logger.info(f"Loaded existing Group Chat ID: {row[0]}, language: {row[1]}")
+        logger.info(f"Loaded existing Group Chat ID: {row[0]}")
         logger.info(f"Loaded existing Tmdb Language: {row[1]}")
         return row[0], row[1]
     return None, DEFAULT_LANGUAGE  # Default to English if no row is found
@@ -169,8 +169,8 @@ async def fetch_media_details(media_type, media_id):
 
 # Handle the user's media selection and display media details before confirming
 async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_TYPE, media=None):
-    selected_title = update.message.text
-    logger.info(f"User selected title: {update.message.text}")
+    selected_title = update.message.text.strip().lower()
+    logger.info(f"User selected title: {selected_title}")
 
     media_options = context.user_data.get('media_options', None)
     if not media_options:
@@ -180,9 +180,6 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
 
     logger.info(f"Available media options: {[option.get('title', option.get('name', '')) for option in media_options]}")
 
-
-    selected_title = update.message.text.strip().lower()
-
     # Find the selected media from the options
     media = None
     for option in media_options:
@@ -190,11 +187,14 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         media_title = option.get('title') if media_type == 'movie' else option.get('name')
         release_date = option.get('release_date', option.get('first_air_date', 'N/A'))
 
+        # Logging each comparison step
+        logger.info(f"Comparing: '{media_title.lower()}' ({release_date}) with '{selected_title}'")
+        
         # Loose matching for title
         if selected_title in f"{media_title} ({release_date})".lower():
-           media = option
-           logger.info(f"Selected media found: {media_title} ({release_date})")
-           break
+            media = option
+            logger.info(f"Selected media found: {media_title} ({release_date})")
+            break
 
     if not media:
         await update.message.reply_text("Invalid selection. Please search again.")
@@ -289,9 +289,10 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             # Send the list of results to the user
             reply_keyboard = [[title] for title in media_titles]
             await update.message.reply_text(
-                "Multiple results found. Please choose the correct title:",
-                reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+                 "Multiple results found. Please choose the correct title:",
+                 reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
             )
+
 
             # Store media results in user data for later selection
             context.user_data['media_options'] = media_data['results']
@@ -332,10 +333,14 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
     if context.user_data.get('media_info'):
         # Handle user confirmation for adding media to Sonarr or Radarr
         await handle_user_confirmation(update, context)
+    elif context.user_data.get('media_options'):
+        # Handle media selection if options were provided
+        await handle_media_selection(update, context)
     else:
         # Handle other general messages
         if night_mode_active or await night_mode_checker(context):
             await restrict_night_mode(update, context)
+
 
 
 # Function to get quality profile ID by name from Sonarr
