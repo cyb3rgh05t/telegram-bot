@@ -103,7 +103,7 @@ night_mode_active = False
 
 # Get the current time in the desired timezone
 def get_current_time():
-    return datetime.now(TIMEZONE_OBJ)
+    return datetime.datetime.now(TIMEZONE_OBJ)
 
 
 # Function to check if the series is already in Sonarr
@@ -181,7 +181,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         if media_title.lower() in selected_title.lower():  # Simplified matching
             media = option
             break
-        
+
     logger.info(f"User selected title: {selected_title}")
     logger.info(f"Media options available: {[option['name'] for option in media_options]}")
 
