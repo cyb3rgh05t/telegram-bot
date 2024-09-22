@@ -629,6 +629,7 @@ async def night_mode_checker(context):
 
     # Get the current time in UTC+2
     now = datetime.now(ZoneInfo("Etc/GMT-2"))  # This should work fine with correct import
+    logger.info(f"Night mode checker started..")
 
     # Logic for activating or deactivating night mode
     if now.hour == 0 and not night_mode_active:
@@ -645,7 +646,7 @@ async def night_mode_checker(context):
                                        text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
 
     # Log the time it took for the check to complete
-    logger.info(f"Night mode checker finished in {time.time() - start_time:.2f} seconds.")
+    logger.info(f"Night mode checker finished.")
 
 # Command to enable night mode
 async def enable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
