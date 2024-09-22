@@ -217,18 +217,33 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         logger.error("No media options found in user data.")
         return
 
+    # Log the available media options for debugging
+    available_titles = []
+    for option in media_options:
+        media_type = option['media_type']
+        media_title = option.get('title') if media_type == 'movie' else option.get('name')
+        release_date = option.get('release_date', option.get('first_air_date', 'N/A'))
+        release_year = release_date[:4] if release_date != 'N/A' else 'N/A'
+        full_title = f"{media_title} ({release_year})".lower()
+        available_titles.append(full_title)
+    
+    logger.info(f"Available media options: {available_titles}")
+
     # Find the selected media from the options
     media = None
     for option in media_options:
         media_type = option['media_type']
         media_title = option.get('title') if media_type == 'movie' else option.get('name')
         
-        # Extract the year from release_date or first_air_date
+        # Extract the release year from the date
         release_date = option.get('release_date', option.get('first_air_date', 'N/A'))
-        release_year = release_date[:4] if release_date != 'N/A' else 'N/A'  # Extract only the year
+        release_year = release_date[:4] if release_date != 'N/A' else 'N/A'
+        
+        # Build the full title with release year
+        full_title = f"{media_title} ({release_year})".lower()
 
-        # Loose matching for title (include release year in the search string)
-        if selected_title in f"{media_title} ({release_year})".lower():
+        # Perform a case-insensitive and whitespace-tolerant comparison
+        if selected_title == full_title:
             media = option
             logger.info(f"Selected media found: {media_title} ({release_year})")
             break
