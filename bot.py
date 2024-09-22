@@ -298,7 +298,6 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         'media_type': media_type
     }
 
-
     except requests.exceptions.HTTPError as http_err:
         logger.error(f"HTTP error occurred: {http_err}")
         await update.message.reply_text("❌ There was an error fetching data from TMDb. Please try again later.")
