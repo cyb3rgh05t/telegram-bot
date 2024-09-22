@@ -9,6 +9,9 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 import pytz
 
+# Global lock for the night mode checker
+night_mode_lock = asyncio.Lock()
+
 # Apply nest_asyncio to handle running loops
 nest_asyncio.apply()
 
@@ -152,19 +155,23 @@ async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE
 # Background task to check and switch night mode
 async def night_mode_checker(context):
     global night_mode_active
-    while True:
+    async with night_mode_lock:  # Ensure only one instance can run at a time
         logger.info("Night mode checker started.")
         now = get_current_time()  # Get the current time in the specified timezone
+        
+        # Activate night mode at midnight
         if now.hour == 0 and not night_mode_active:
             night_mode_active = True
             logger.info("Night mode activated.")
             await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff braucht auch mal eine Pause.")
+        
+        # Deactivate night mode at 7 AM
         elif now.hour == 7 and night_mode_active:
             night_mode_active = False
             logger.info("Night mode deactivated.")
             await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
+        
         logger.info("Night mode checker finished.")
-        await asyncio.sleep(300)  # Check every 5 minutes
 
 # Command to enable night mode
 async def enable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
