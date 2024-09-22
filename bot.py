@@ -47,6 +47,13 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+# Log the successful retrieval of the token with only first 6 characters visible
+if TOKEN:
+    redacted_token = TOKEN[:6] + '*' * (len(TOKEN) - 6)
+    logger.info(f"Token retrieved successfully: {redacted_token}")
+else:
+    logger.error("Failed to retrieve bot token from config.")
+
 # Ensure the config directory exists
 if not os.path.exists(CONFIG_DIR):
     os.makedirs(CONFIG_DIR)
