@@ -111,25 +111,57 @@ def get_current_time():
 
 # Function to check if the series is already in Sonarr
 async def check_series_in_sonarr(series_tvdb_id):
-    response = requests.get(f"{SONARR_URL}/api/v3/series", params={"apikey": SONARR_API_KEY})
-    response.raise_for_status()
-    series_list = response.json()
+    """Check if the series is already in Sonarr by TVDB ID."""
+    try:
+        # Fetch all series from Sonarr
+        response = requests.get(f"{SONARR_URL}/api/v3/series", params={"apikey": SONARR_API_KEY})
+        response.raise_for_status()
+        series_list = response.json()
 
-    for series in series_list:
-        if series['tvdbId'] == series_tvdb_id:
-            return True
-    return False
+        # Log the TVDB IDs of all existing series in Sonarr
+        logger.info(f"Checking Sonarr for series with TVDB ID: {series_tvdb_id}")
+        
+        for series in series_list:
+            logger.info(f"Existing series in Sonarr: {series['title']} (TVDB ID: {series['tvdbId']})")
+            if series['tvdbId'] == series_tvdb_id:
+                logger.info(f"Series '{series['title']}' already exists in Sonarr (TVDB ID: {series['tvdbId']})")
+                return True
+        return False
+
+    except requests.exceptions.HTTPError as http_err:
+        logger.error(f"HTTP error while checking Sonarr: {http_err}")
+        return False
+    except Exception as e:
+        logger.error(f"Unexpected error while checking Sonarr: {e}")
+        return False
+
 
 # Function to check if the movie is already in Radarr
 async def check_movie_in_radarr(movie_tmdb_id):
-    response = requests.get(f"{RADARR_URL}/api/v3/movie", params={"apikey": RADARR_API_KEY})
-    response.raise_for_status()
-    movie_list = response.json()
+    """Check if the movie is already in Radarr by TMDb ID."""
+    try:
+        # Fetch all movies from Radarr
+        response = requests.get(f"{RADARR_URL}/api/v3/movie", params={"apikey": RADARR_API_KEY})
+        response.raise_for_status()
+        movie_list = response.json()
 
-    for movie in movie_list:
-        if movie['tmdbId'] == movie_tmdb_id:
-            return True
-    return False
+        # Log the TMDb IDs of all existing movies in Radarr
+        logger.info(f"Checking Radarr for movie with TMDb ID: {movie_tmdb_id}")
+        
+        for movie in movie_list:
+            logger.info(f"Existing movie in Radarr: {movie['title']} (TMDb ID: {movie['tmdbId']})")
+            if movie['tmdbId'] == movie_tmdb_id:
+                logger.info(f"Movie '{movie['title']}' already exists in Radarr (TMDb ID: {movie['tmdbId']})")
+                return True
+        return False
+
+    except requests.exceptions.HTTPError as http_err:
+        logger.error(f"HTTP error while checking Radarr: {http_err}")
+        return False
+    except Exception as e:
+        logger.error(f"Unexpected error while checking Radarr: {e}")
+        return False
+
 
 # Add media to Sonarr or Radarr after user confirmation
 async def add_media_response(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -140,10 +172,10 @@ async def add_media_response(update: Update, context: ContextTypes.DEFAULT_TYPE)
         media_type = media_info['media_type']
 
         if media_type == 'tv':
-            await add_series_to_sonarr(title)
+            await add_series_to_sonarr(title, update, context)
             await update.message.reply_text(f"'{title}' has been added to Sonarr.")
         elif media_type == 'movie':
-            await add_movie_to_radarr(title)
+            await add_movie_to_radarr(title, update, context)
             await update.message.reply_text(f"'{title}' has been added to Radarr.")
         else:
             await update.message.reply_text("Unexpected media type. Please try again.")
@@ -365,13 +397,8 @@ async def get_quality_profile_id(sonarr_url, api_key, profile_name):
         return None
 
 # Function to add a series to Sonarr
-async def add_series_to_sonarr(series_name):
-    quality_profile_id = await get_quality_profile_id(SONARR_URL, SONARR_API_KEY, SONARR_QUALITY_PROFILE_NAME)
-    if quality_profile_id is None:
-        logger.error("Quality profile not found in Sonarr.")
-        return
-
-    # Get TMDb ID for the series
+async def add_series_to_sonarr(series_name, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # First, get the TMDb ID for the series
     tmdb_url = f"https://api.themoviedb.org/3/search/tv?api_key={TMDB_API_KEY}&query={series_name}"
     tmdb_response = requests.get(tmdb_url)
     tmdb_response.raise_for_status()
@@ -379,6 +406,7 @@ async def add_series_to_sonarr(series_name):
 
     if not tmdb_data['results']:
         logger.error(f"No TMDb results found for the series '{series_name}'")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ No TMDb results found for the series '{series_name}'.")
         return
 
     # Use the first search result for simplicity
@@ -393,6 +421,20 @@ async def add_series_to_sonarr(series_name):
     tvdb_id = external_ids_data.get('tvdb_id')
     if not tvdb_id:
         logger.error(f"No TVDB ID found for the series '{series_name}'")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ No TVDB ID found for the series '{series_name}'.")
+        return
+
+    # Check if the series is already in Sonarr
+    if await check_series_in_sonarr(tvdb_id):
+        logger.info(f"Series '{series_name}' already exists in Sonarr, skipping addition.")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ The series '{series_name}' already exists in Sonarr.")
+        return
+
+    # Proceed with adding the series if it's not found in Sonarr
+    quality_profile_id = await get_quality_profile_id(SONARR_URL, SONARR_API_KEY, SONARR_QUALITY_PROFILE_NAME)
+    if quality_profile_id is None:
+        logger.error("Quality profile not found in Sonarr.")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="❌ Quality profile not found in Sonarr.")
         return
 
     data = {
@@ -410,8 +452,11 @@ async def add_series_to_sonarr(series_name):
     response = requests.post(f"{SONARR_URL}/api/v3/series", json=data, params={"apikey": SONARR_API_KEY})
     if response.status_code == 201:
         logger.info(f"Series '{series_name}' added to Sonarr successfully.")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"✅ Series '{series_name}' added to Sonarr successfully.")
     else:
         logger.error(f"Failed to add series '{series_name}' to Sonarr. Status code: {response.status_code}, Response: {response.text}")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ Failed to add series '{series_name}' to Sonarr. Status code: {response.status_code}")
+
 
 # Function to get quality profile ID by name from Radarr
 async def get_radarr_quality_profile_id(radarr_url, api_key, profile_name):
@@ -435,13 +480,8 @@ async def get_radarr_quality_profile_id(radarr_url, api_key, profile_name):
         return None
 
 # Function to add a movie to Radarr
-async def add_movie_to_radarr(movie_name):
-    quality_profile_id = await get_radarr_quality_profile_id(RADARR_URL, RADARR_API_KEY, RADARR_QUALITY_PROFILE_NAME)
-    if quality_profile_id is None:
-        logger.error("Quality profile not found for Radarr.")
-        return
-
-    # Get TMDb ID for the movie
+async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # First, get the TMDb ID for the movie
     tmdb_url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={movie_name}"
     tmdb_response = requests.get(tmdb_url)
     tmdb_response.raise_for_status()
@@ -449,10 +489,24 @@ async def add_movie_to_radarr(movie_name):
 
     if not tmdb_data['results']:
         logger.error(f"No TMDb results found for the movie '{movie_name}'")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ No TMDb results found for the movie '{movie_name}'.")
         return
 
     # Use the first search result for simplicity
     movie_tmdb_id = tmdb_data['results'][0]['id']
+
+    # Check if the movie is already in Radarr
+    if await check_movie_in_radarr(movie_tmdb_id):
+        logger.info(f"Movie '{movie_name}' already exists in Radarr, skipping addition.")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ The movie '{movie_name}' already exists in Radarr.")
+        return
+
+    # Proceed with adding the movie if it's not found in Radarr
+    quality_profile_id = await get_radarr_quality_profile_id(RADARR_URL, RADARR_API_KEY, RADARR_QUALITY_PROFILE_NAME)
+    if quality_profile_id is None:
+        logger.error("Quality profile not found for Radarr.")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="❌ Quality profile not found in Radarr.")
+        return
 
     data = {
         "title": movie_name,
@@ -468,8 +522,11 @@ async def add_movie_to_radarr(movie_name):
     response = requests.post(f"{RADARR_URL}/api/v3/movie", json=data, params={"apikey": RADARR_API_KEY})
     if response.status_code == 201:
         logger.info(f"Movie '{movie_name}' added to Radarr successfully.")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"✅ Movie '{movie_name}' added to Radarr successfully.")
     else:
         logger.error(f"Failed to add movie '{movie_name}' to Radarr. Status code: {response.status_code}, Response: {response.text}")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ Failed to add movie '{movie_name}' to Radarr. Status code: {response.status_code}")
+
 
 # Define the start function to handle the /start command
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
