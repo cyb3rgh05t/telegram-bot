@@ -34,7 +34,7 @@ RADARR_URL = config.get("radarr").get("URL")
 RADARR_API_KEY = config.get("radarr").get("API_KEY")
 RADARR_QUALITY_PROFILE_NAME = config.get("radarr").get("QUALITY_PROFILE_NAME")
 RADARR_ROOT_FOLDER_PATH = config.get("radarr").get("ROOT_FOLDER_PATH")
-LANGUAGE = config.get("language").get("DEFAULT_LANGUAGE")
+LANGUAGE = config.get("tmdb").get("DEFAULT_LANGUAGE")
 
 # Configure logging
 logging.basicConfig(
