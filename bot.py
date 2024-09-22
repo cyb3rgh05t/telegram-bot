@@ -170,31 +170,36 @@ async def fetch_media_details(media_type, media_id):
 # Handle the user's media selection and display media details before confirming
 async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_TYPE, media=None):
     selected_title = update.message.text
-    media_options = context.user_data.get('media_options', None)
+    logger.info(f"User selected title: {update.message.text}")
 
+    media_options = context.user_data.get('media_options', None)
     if not media_options:
         await update.message.reply_text("No media options available. Please search again.")
+        logger.error("No media options found in user data.")
         return
+
+    logger.info(f"Available media options: {[option.get('title', option.get('name', '')) for option in media_options]}")
+
+
+    selected_title = update.message.text.strip().lower()
 
     # Find the selected media from the options
     media = None
     for option in media_options:
         media_type = option['media_type']
-        media_title = option.get('title', option.get('name', 'Unknown Title'))  # Handles both movie and TV cases
-        if media_title.lower() in selected_title.lower():  # Simplified matching
-            media = option
-            break
+        media_title = option.get('title') if media_type == 'movie' else option.get('name')
+        release_date = option.get('release_date', option.get('first_air_date', 'N/A'))
 
-    logger.info(f"User selected title: {selected_title}")
-    logger.info(f"Media options available: {[option['name'] for option in media_options]}")
-
+        # Loose matching for title
+        if selected_title in f"{media_title} ({release_date})".lower():
+           media = option
+           logger.info(f"Selected media found: {media_title} ({release_date})")
+           break
 
     if not media:
         await update.message.reply_text("Invalid selection. Please search again.")
+        logger.error("Media selection did not match any option.")
         return
-    
-    logger.info(f"User selected title: {selected_title}")
-    logger.info(f"Media options available: {[option['name'] for option in media_options]}")
 
 
     # Clear the media options after selection
@@ -206,10 +211,12 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
 
     # Fetch additional media details from TMDb
     try:
-        media_details = await fetch_media_details(media_type, media_id)
-    except Exception:
-        await update.message.reply_text("Error fetching media details. Please try again later.")
-        return
+       media_details = await fetch_media_details(media_type, media_id)
+       logger.info(f"Fetched media details for {media_title} (TMDb ID: {media_id})")
+    except Exception as e:
+       await update.message.reply_text("Error fetching media details. Please try again later.")
+       logger.error(f"Failed to fetch media details: {e}")
+       return
 
     poster_path = media_details.get('poster_path', None)
     poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else None
@@ -235,22 +242,14 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
 
     # Ask for confirmation to add it to Sonarr or Radarr
     if media_type == 'tv':
-        # Get TVDB ID and check if it's already in Sonarr
-        tvdb_id = media.get('external_ids', {}).get('tvdb_id')
-        if tvdb_id and await check_series_in_sonarr(tvdb_id):
-            await update.message.reply_text(f"The series '{media_title}' is already in Sonarr.")
-        else:
-            await update.message.reply_text(f"The series '{media_title}' is not in Sonarr. Would you like to add it? Reply with 'yes' or 'no'.")
-            context.user_data['media_info'] = {'title': media_title, 'media_type': 'tv'}
-
+       logger.info(f"Prompting user to add TV series: {media_title}")
+       await update.message.reply_text(f"The series '{media_title}' is not in Sonarr. Would you like to add it? Reply with 'yes' or 'no'.")
+       context.user_data['media_info'] = {'title': media_title, 'media_type': 'tv'}
     elif media_type == 'movie':
-        # Get TMDB ID and check if it's already in Radarr
-        tmdb_id = media['id']
-        if await check_movie_in_radarr(tmdb_id):
-            await update.message.reply_text(f"The movie '{media_title}' is already in Radarr.")
-        else:
-            await update.message.reply_text(f"The movie '{media_title}' is not in Radarr. Would you like to add it? Reply with 'yes' or 'no'.")
-            context.user_data['media_info'] = {'title': media_title, 'media_type': 'movie'}
+       logger.info(f"Prompting user to add movie: {media_title}")
+       await update.message.reply_text(f"The movie '{media_title}' is not in Radarr. Would you like to add it? Reply with 'yes' or 'no'.")
+       context.user_data['media_info'] = {'title': media_title, 'media_type': 'movie'}
+
 
 
 # Search for a movie or TV show using TMDB API with multiple results handling
@@ -296,6 +295,7 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
             # Store media results in user data for later selection
             context.user_data['media_options'] = media_data['results']
+            logger.info(f"Media options stored: {len(media_data['results'])} results")
             return
 
         # If only one result, continue with displaying details and confirmation
@@ -337,14 +337,27 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
         if night_mode_active or await night_mode_checker(context):
             await restrict_night_mode(update, context)
 
-# Define the start function to handle the /start command
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # This function will be called when the user sends /start
-    user = update.effective_user
-    await update.message.reply_html(
-        rf"Hi {user.mention_html()}! Welcome to the bot. Use /search to find a movie or TV show.",
-        reply_markup=ReplyKeyboardRemove()
-    )
+
+# Function to get quality profile ID by name from Sonarr
+async def get_quality_profile_id(sonarr_url, api_key, profile_name):
+    try:
+        response = requests.get(f"{sonarr_url}/api/v3/qualityprofile", params={"apikey": api_key})
+        response.raise_for_status()
+        profiles = response.json()
+
+        for profile in profiles:
+            if profile['name'] == profile_name:
+                return profile['id']
+    
+        logger.warning(f"Quality profile '{profile_name}' not found in Sonarr.")
+        return None
+  
+    except requests.exceptions.HTTPError as http_err:
+        logger.error(f"HTTP error occurred while fetching quality profiles: {http_err}")
+        return None
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
+        return None
 
 # Function to add a series to Sonarr
 async def add_series_to_sonarr(series_name):
@@ -395,6 +408,27 @@ async def add_series_to_sonarr(series_name):
     else:
         logger.error(f"Failed to add series '{series_name}' to Sonarr. Status code: {response.status_code}, Response: {response.text}")
 
+# Function to get quality profile ID by name from Radarr
+async def get_radarr_quality_profile_id(radarr_url, api_key, profile_name):
+    try:
+        response = requests.get(f"{radarr_url}/api/v3/qualityprofile", params={"apikey": api_key})
+        response.raise_for_status()  # Raise an error for bad responses
+        profiles = response.json()
+        
+        for profile in profiles:
+            if profile['name'] == profile_name:
+                return profile['id']
+                
+        logger.warning(f"Quality profile '{profile_name}' not found in Radarr.")
+        return None
+        
+    except requests.exceptions.HTTPError as http_err:
+        logger.error(f"HTTP error occurred while fetching quality profiles: {http_err}")
+        return None
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
+        return None
+
 # Function to add a movie to Radarr
 async def add_movie_to_radarr(movie_name):
     quality_profile_id = await get_radarr_quality_profile_id(RADARR_URL, RADARR_API_KEY, RADARR_QUALITY_PROFILE_NAME)
@@ -431,6 +465,15 @@ async def add_movie_to_radarr(movie_name):
         logger.info(f"Movie '{movie_name}' added to Radarr successfully.")
     else:
         logger.error(f"Failed to add movie '{movie_name}' to Radarr. Status code: {response.status_code}, Response: {response.text}")
+
+# Define the start function to handle the /start command
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # This function will be called when the user sends /start
+    user = update.effective_user
+    await update.message.reply_html(
+        rf"Hi {user.mention_html()}! Welcome to the bot. Use /search to find a movie or TV show.",
+        reply_markup=ReplyKeyboardRemove()
+    )
 
 # Command to set the group ID
 async def set_group_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
