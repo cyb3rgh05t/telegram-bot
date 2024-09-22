@@ -234,8 +234,31 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         logger.error(f"Failed to fetch media details: {e}")
         return
 
-    # For TV shows, retrieve the tvdbId using the external IDs
-    if media_type == 'tv':
+    # Prepare the message with media details
+    message = (
+        f"🎬 *Title*: {media_title}\n"
+        f"⭐ *Rating*: {media_details.get('vote_average', 'N/A')}/10\n"
+        f"📅 *Release Date*: {media_details.get('release_date', media_details.get('first_air_date', 'N/A'))}\n"
+        f"📝 *Summary*:\n{media_details.get('overview', 'No summary available.')}"
+    )
+
+    # Send media details regardless of existence in Sonarr/Radarr
+    if media_details.get('poster_path'):
+        poster_url = f"https://image.tmdb.org/t/p/w500{media_details['poster_path']}"
+        await update.message.reply_photo(photo=poster_url, caption=message, parse_mode="Markdown")
+    else:
+        await update.message.reply_text(text=message, parse_mode="Markdown")
+
+    # Check if the media already exists in Radarr or Sonarr
+    if media_type == 'movie':
+        if await check_movie_in_radarr(media_id):
+            await update.message.reply_text(f"❌ The movie '{media_title}' already exists in Radarr.")
+        else:
+            # Ask user if they want to add the movie
+            await update.message.reply_text(f"The movie '{media_title}' is not in Radarr. Would you like to add it? Reply with 'yes' or 'no'.")
+            context.user_data['media_info'] = {'title': media_title, 'media_type': 'movie'}
+    elif media_type == 'tv':
+        # Fetch the TVDB ID for TV shows
         external_ids_url = f"https://api.themoviedb.org/3/tv/{media_id}/external_ids?api_key={TMDB_API_KEY}"
         external_ids_response = requests.get(external_ids_url)
         external_ids_response.raise_for_status()
@@ -247,38 +270,13 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
             logger.error(f"No TVDB ID found for the series '{media_title}'")
             return
 
-        # Check if the series already exists in Sonarr
         if await check_series_in_sonarr(tvdb_id):
             await update.message.reply_text(f"❌ The series '{media_title}' already exists in Sonarr.")
-            return
-    elif media_type == 'movie':
-        # Check if the movie already exists in Radarr
-        if await check_movie_in_radarr(media_id):
-            await update.message.reply_text(f"❌ The movie '{media_title}' already exists in Radarr.")
-            return
+        else:
+            # Ask user if they want to add the series
+            await update.message.reply_text(f"The series '{media_title}' is not in Sonarr. Would you like to add it? Reply with 'yes' or 'no'.")
+            context.user_data['media_info'] = {'title': media_title, 'media_type': 'tv', 'tvdb_id': tvdb_id}
 
-    # Proceed to ask if the user wants to add the media
-    message = (
-        f"🎬 *Title*: {media_title}\n"
-        f"⭐ *Rating*: {media_details.get('vote_average', 'N/A')}/10\n"
-        f"📅 *Release Date*: {media_details.get('release_date', media_details.get('first_air_date', 'N/A'))}\n"
-        f"📝 *Summary*:\n{media_details.get('overview', 'No summary available.')}"
-    )
-
-    # Send the media details and prompt for confirmation
-    if media_details.get('poster_path'):
-        poster_url = f"https://image.tmdb.org/t/p/w500{media_details['poster_path']}"
-        await update.message.reply_photo(photo=poster_url, caption=message, parse_mode="Markdown")
-    else:
-        await update.message.reply_text(text=message, parse_mode="Markdown")
-
-    # Ask the user to confirm if they want to add the media
-    if media_type == 'tv':
-        await update.message.reply_text(f"The series '{media_title}' is not in Sonarr. Would you like to add it? Reply with 'yes' or 'no'.")
-        context.user_data['media_info'] = {'title': media_title, 'media_type': 'tv', 'tvdb_id': tvdb_id}
-    elif media_type == 'movie':
-        await update.message.reply_text(f"The movie '{media_title}' is not in Radarr. Would you like to add it? Reply with 'yes' or 'no'.")
-        context.user_data['media_info'] = {'title': media_title, 'media_type': 'movie'}
 
 
 # Search for a movie or TV show using TMDB API with multiple results handling
