@@ -105,6 +105,27 @@ night_mode_active = False
 def get_current_time():
     return datetime.datetime.now(TIMEZONE_OBJ)
 
+async def add_media_response(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    media_info = context.user_data.get('media_info')
+
+    if media_info:
+        title = media_info['title']
+        media_type = media_info['media_type']
+
+        if update.message.text.lower() == 'sonarr':
+            await add_series_to_sonarr(title)
+            await update.message.reply_text(f"'{title}' has been added to Sonarr.")
+        elif update.message.text.lower() == 'radarr':
+            await add_movie_to_radarr(title)
+            await update.message.reply_text(f"'{title}' has been added to Radarr.")
+        else:
+            await update.message.reply_text("Please reply with 'Sonarr' or 'Radarr'.")
+
+        # Clear the media_info after processing
+        context.user_data.pop('media_info', None)
+    else:
+        await update.message.reply_text("No media information found. Please search again.")
+
 # Function to get quality profile ID by name from Sonarr
 async def get_quality_profile_id(sonarr_url, api_key, profile_name):
     response = requests.get(f"{sonarr_url}/api/v3/qualityprofile", params={"apikey": api_key})
@@ -119,7 +140,7 @@ async def get_quality_profile_id(sonarr_url, api_key, profile_name):
 async def add_series_to_sonarr(series_name):
     quality_profile_id = await get_quality_profile_id(SONARR_URL, SONARR_API_KEY, SONARR_QUALITY_PROFILE_NAME)
     if quality_profile_id is None:
-        logger.error("Quality profile not found.")
+        logger.error("Quality profile not found in Sonarr.")
         return
 
     data = {
@@ -268,10 +289,15 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             await update.message.reply_text(message)
 
         # Add to Sonarr or Radarr based on media type
-        if media_type == 'tv':
-            await add_series_to_sonarr(media['name'])
-        elif media_type == 'movie':
-            await add_movie_to_radarr(media['title'])
+        if media_type in ['tv', 'movie']:
+           await update.message.reply_text(
+        f"Do you want to add this {'TV show' if media_type == 'tv' else 'movie'} to Sonarr or Radarr? Reply with 'Sonarr' or 'Radarr'."
+        )
+        context.user_data['media_info'] = {
+        'title': media['title'] if media_type == 'movie' else media['name'],
+        'media_type': media_type
+    }
+
 
     except requests.exceptions.HTTPError as http_err:
         logger.error(f"HTTP error occurred: {http_err}")
@@ -295,29 +321,23 @@ is_night_mode_checking = False  # Flag to track if the job is already running
 
 async def night_mode_checker(context):
     global night_mode_active
-    global is_night_mode_checking
 
-    if is_night_mode_checking:
-        return  # Exit if the job is already running
+    logger.info("Night mode checker running...")
+    
+    now = get_current_time()  # Get the current time in the specified timezone
 
-    is_night_mode_checking = True  # Set the flag
+    # Check for night mode activation
+    if now.hour == 0 and not night_mode_active:
+        night_mode_active = True
+        logger.info("Night mode activated.")
+        await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff braucht auch mal eine Pause.")
+        
+    # Check for night mode deactivation
+    elif now.hour == 7 and night_mode_active:
+        night_mode_active = False
+        logger.info("Night mode deactivated.")
+        await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
 
-    try:
-        logger.info("Night mode checker started.")
-        now = get_current_time()  # Get the current time in the specified timezone
-
-        if now.hour == 0 and not night_mode_active:
-            night_mode_active = True
-            logger.info("Night mode activated.")
-            await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff braucht auch mal eine Pause.")
-        elif now.hour == 7 and night_mode_active:
-            night_mode_active = False
-            logger.info("Night mode deactivated.")
-            await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
-
-    finally:
-        is_night_mode_checking = False  # Reset the flag
-        logger.info("Night mode checker finished.")
 
 
 # Command to enable night mode
@@ -352,6 +372,10 @@ async def main() -> None:
 
     # Register the message handler for general messages (to restrict during night mode)
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, restrict_night_mode))
+
+    # Register the message handler for user responses to add media
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, add_media_response))
+
 
     # Start the night mode checker task with max_instances set to 1
     application.job_queue.run_repeating(night_mode_checker, interval=300, first=0)
