@@ -105,14 +105,6 @@ night_mode_active = False
 def get_current_time():
     return datetime.datetime.now(TIMEZONE_OBJ)
 
-# Function to fetch additional details of the movie/TV show from TMDb
-async def fetch_media_details(media_type, media_id):
-    """Fetch detailed media information including poster, rating, summary, etc."""
-    url = f"https://api.themoviedb.org/3/{media_type}/{media_id}?api_key={TMDB_API_KEY}&language={LANGUAGE}"
-    response = requests.get(url)
-    response.raise_for_status()
-    return response.json()
-
 
 # Function to check if the series is already in Sonarr
 async def check_series_in_sonarr(series_tvdb_id):
@@ -158,6 +150,20 @@ async def add_media_response(update: Update, context: ContextTypes.DEFAULT_TYPE)
     else:
         await update.message.reply_text("No media information found. Please search again.")
 
+# Function to fetch additional details of the movie/TV show from TMDb
+async def fetch_media_details(media_type, media_id):
+    """Fetch detailed media information including poster, rating, summary, etc."""
+    url = f"https://api.themoviedb.org/3/{media_type}/{media_id}?api_key={TMDB_API_KEY}&language={LANGUAGE}"
+    logger.info(f"Fetching details from URL: {url}")
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        logger.info(f"Details fetched successfully for media_id: {media_id}")
+        return response.json()
+    except Exception as e:
+        logger.error(f"Error fetching media details: {e}")
+        raise
+
 # Handle the user's media selection and display media details before confirming
 async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_TYPE, media=None):
     selected_title = update.message.text
@@ -173,6 +179,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         media_type = option['media_type']
         media_title = option['title'] if media_type == 'movie' else option['name']
         release_date = option.get('release_date', option.get('first_air_date', 'N/A'))
+        logger.info(f"Checking media option: {media_title} ({release_date})")
         if f"{media_title} ({release_date})" == selected_title:
             media = option
             break
@@ -190,7 +197,11 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
     media_id = media['id']
 
     # Fetch additional media details from TMDb
-    media_details = await fetch_media_details(media_type, media_id)
+    try:
+        media_details = await fetch_media_details(media_type, media_id)
+    except Exception:
+        await update.message.reply_text("Error fetching media details. Please try again later.")
+        return
 
     poster_path = media_details.get('poster_path', None)
     poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else None
@@ -205,6 +216,8 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         f"📅 *Release Date*: {release_date}\n"
         f"📝 *Summary*:\n{overview}"
     )
+
+    logger.info(f"Displaying details for {media_title}")
 
     # Send the poster image (if available) and the details message
     if poster_url:
@@ -230,7 +243,6 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         else:
             await update.message.reply_text(f"The movie '{media_title}' is not in Radarr. Would you like to add it? Reply with 'yes' or 'no'.")
             context.user_data['media_info'] = {'title': media_title, 'media_type': 'movie'}
-
 
 
 # Search for a movie or TV show using TMDB API with multiple results handling
