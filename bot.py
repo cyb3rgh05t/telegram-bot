@@ -119,7 +119,7 @@ async def check_series_in_sonarr(series_tvdb_id):
 
         for series in series_list:
             if series['tvdbId'] == series_tvdb_id:
-                logger.info(f"Series '{series['title']}' already exists in Sonarr.")
+                logger.info(f"Series '{series['title']}' already exists in Sonarr (TVDB ID: {series['tvdbId']})")
                 return True
         return False
 
@@ -234,16 +234,27 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         logger.error(f"Failed to fetch media details: {e}")
         return
 
-    # Check if media already exists in Radarr or Sonarr
-    if media_type == 'movie':
+    # For TV shows, retrieve the tvdbId using the external IDs
+    if media_type == 'tv':
+        external_ids_url = f"https://api.themoviedb.org/3/tv/{media_id}/external_ids?api_key={TMDB_API_KEY}"
+        external_ids_response = requests.get(external_ids_url)
+        external_ids_response.raise_for_status()
+        external_ids_data = external_ids_response.json()
+
+        tvdb_id = external_ids_data.get('tvdb_id')
+        if not tvdb_id:
+            await update.message.reply_text(f"❌ No TVDB ID found for the series '{media_title}'.")
+            logger.error(f"No TVDB ID found for the series '{media_title}'")
+            return
+
+        # Check if the series already exists in Sonarr
+        if await check_series_in_sonarr(tvdb_id):
+            await update.message.reply_text(f"❌ The series '{media_title}' already exists in Sonarr.")
+            return
+    elif media_type == 'movie':
         # Check if the movie already exists in Radarr
         if await check_movie_in_radarr(media_id):
             await update.message.reply_text(f"❌ The movie '{media_title}' already exists in Radarr.")
-            return
-    elif media_type == 'tv':
-        # Check if the series already exists in Sonarr
-        if await check_series_in_sonarr(media_id):
-            await update.message.reply_text(f"❌ The series '{media_title}' already exists in Sonarr.")
             return
 
     # Proceed to ask if the user wants to add the media
@@ -261,9 +272,10 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
     else:
         await update.message.reply_text(text=message, parse_mode="Markdown")
 
+    # Ask the user to confirm if they want to add the media
     if media_type == 'tv':
         await update.message.reply_text(f"The series '{media_title}' is not in Sonarr. Would you like to add it? Reply with 'yes' or 'no'.")
-        context.user_data['media_info'] = {'title': media_title, 'media_type': 'tv'}
+        context.user_data['media_info'] = {'title': media_title, 'media_type': 'tv', 'tvdb_id': tvdb_id}
     elif media_type == 'movie':
         await update.message.reply_text(f"The movie '{media_title}' is not in Radarr. Would you like to add it? Reply with 'yes' or 'no'.")
         context.user_data['media_info'] = {'title': media_title, 'media_type': 'movie'}
