@@ -366,12 +366,8 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             for media in media_data['results']:
                 media_type = media['media_type']
                 media_title = media['title'] if media_type == 'movie' else media['name']
-                # Extract the year from the release date, default to 'N/A' if missing
                 release_date = media.get('release_date', media.get('first_air_date', 'N/A'))
-                release_year = release_date[:4] if release_date != 'N/A' else 'N/A'
-        
-            # Append index for easier selection
-            media_titles.append(f"{media_title} ({release_year})")
+                media_titles.append(f"{media_title} ({release_date})")
 
             # Send the list of results to the user
             reply_keyboard = [[title] for title in media_titles]
