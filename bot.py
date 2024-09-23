@@ -630,9 +630,9 @@ async def disable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE)
 # Night mode checker
 async def night_mode_checker(context):
     global night_mode_active
-
     now = get_current_time()
-
+    logger.info(f"Current time (UTC+2): {now.strftime('%Y-%m-%d %H:%M:%S')}")
+    logger.info(f"Night mode checker started")
     if now.hour == 0 and not night_mode_active:
         night_mode_active = True
         logger.info("Night mode activated at midnight.")
@@ -643,6 +643,7 @@ async def night_mode_checker(context):
         logger.info("Night mode deactivated at 7:00 AM.")
         await context.bot.send_message(chat_id=GROUP_CHAT_ID, 
                                        text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
+    logger.info(f"Night mode checker finished")
 
 # Restrict messages during night mode
 async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
