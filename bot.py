@@ -13,6 +13,42 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKe
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, CallbackQueryHandler, ContextTypes
 import pytz
 
+# Function to redact sensitive information like tokens and API keys
+def redact_sensitive_info(value, visible_chars=4):
+    if isinstance(value, str) and len(value) > visible_chars * 2:
+        return f"{value[:visible_chars]}{'*' * (len(value) - visible_chars * 2)}{value[-visible_chars:]}"
+    return value
+
+# Log all config entries, redacting sensitive information
+def log_config_entries(config):
+    sensitive_keys = ['TOKEN', 'API_KEY', 'SECRET', 'KEY']  # Keys to redact
+    logger.info("Logging all configuration entries:")
+    
+    for section, entries in config.items():
+        if isinstance(entries, dict):
+            logger.info(f"Section [{section}]:")
+            for key, value in entries.items():
+                if any(sensitive_key in key.upper() for sensitive_key in sensitive_keys):
+                    value = redact_sensitive_info(value)
+                logger.info(f"  {key}: {value}")
+        else:
+            logger.info(f"{section}: {entries}")
+
+# Function to check and log paths
+def check_and_log_paths():
+    # Check if config directory exists
+    if not os.path.exists(CONFIG_DIR):
+        os.makedirs(CONFIG_DIR)
+        logger.info(f"Config directory '{CONFIG_DIR}' not found. Created the directory.")
+    else:
+        logger.info(f"Config directory '{CONFIG_DIR}' already exists.")
+
+    # Check if database file exists
+    if not os.path.exists(DATABASE_FILE):
+        logger.info(f"Database file '{DATABASE_FILE}' does not exist. It will be created automatically.")
+    else:
+        logger.info(f"Database file '{DATABASE_FILE}' already exists.")
+
 # Apply nest_asyncio to handle running loops
 nest_asyncio.apply()
 
@@ -22,6 +58,7 @@ CONFIG_FILE = os.path.join(CONFIG_DIR, 'config.json')
 
 with open(CONFIG_FILE, 'r') as config_file:
     config = json.load(config_file)
+
 
 TOKEN = config.get("bot").get("TOKEN")
 TIMEZONE = config.get("bot").get("TIMEZONE", "Europe/Berlin")
@@ -47,19 +84,21 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# Log the successful retrieval of the token with only first 6 characters visible
+# Log the successful retrieval of the token with only first and last 4 characters visible
 if TOKEN:
-    redacted_token = TOKEN[:6] + '*' * (len(TOKEN) - 6)
+    redacted_token = redact_sensitive_info(TOKEN)
     logger.info(f"Token retrieved successfully: {redacted_token}")
 else:
     logger.error("Failed to retrieve bot token from config.")
 
-# Ensure the config directory exists
-if not os.path.exists(CONFIG_DIR):
-    os.makedirs(CONFIG_DIR)
+# Log all configuration entries
+log_config_entries(config)
 
 # Path for SQLite database file in the config folder
 DATABASE_FILE = os.path.join(CONFIG_DIR, "group_data.db")
+
+# Check and log the paths for config and database
+check_and_log_paths()
 
 # Timezone configuration
 try:
@@ -230,7 +269,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
 
     media_options = context.user_data.get('media_options', None)
     if not media_options:
-        await update.message.reply_text("No media options available. Please search again.")
+        await update.message.reply_text("Keine Ergebnisse gefunden. Bitte versuche es erneut.")
         logger.error("No media options found in user data.")
         return
 
@@ -266,7 +305,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
             break
 
     if not media:
-        await update.message.reply_text("Invalid selection. Please search again.")
+        await update.message.reply_text("Ungültige Auswahl. Bitte versuche es erneut.")
         logger.error("Media selection did not match any option.")
         return
 
@@ -282,7 +321,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         media_details = await fetch_media_details(media_type, media_id)
         logger.info(f"Fetched media details for {media_title} (TMDb ID: {media_id})")
     except Exception as e:
-        await update.message.reply_text("Error fetching media details. Please try again later.")
+        await update.message.reply_text("Fehler beim laden der Metadata. Bitte versuche es später erneut.")
         logger.error(f"Failed to fetch media details: {e}")
         return
 
@@ -311,7 +350,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
     # Check if the media already exists in Radarr or Sonarr
     if media_type == 'movie':
         if await check_movie_in_radarr(media_id):
-            await update.message.reply_text(f"❌ The movie '{media_title}' already exists in Radarr.")
+            await update.message.reply_text(f"😎 Der Film *'{media_title}'* ist bereits bei StreamNet TV vorhanden.")
         else:
             await ask_to_add_media(update, context, media_title, 'movie')
             context.user_data['media_info'] = {'title': media_title, 'media_type': 'movie'}
@@ -323,12 +362,12 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
 
         tvdb_id = external_ids_data.get('tvdb_id')
         if not tvdb_id:
-            await update.message.reply_text(f"❌ No TVDB ID found for the series '{media_title}'.")
+            await update.message.reply_text(f"🆘 Keine TVDB ID gefunden für die Serie *'{media_title}'*.")
             logger.error(f"No TVDB ID found for the series '{media_title}'")
             return
 
         if await check_series_in_sonarr(tvdb_id):
-            await update.message.reply_text(f"❌ The series '{media_title}' already exists in Sonarr.")
+            await update.message.reply_text(f"😎 Die Serie *'{media_title}'* ist bereits bei StreamNet TV vorhanden.")
         else:
             await ask_to_add_media(update, context, media_title, 'tv')
             context.user_data['media_info'] = {'title': media_title, 'media_type': 'tv', 'tvdb_id': tvdb_id}
@@ -357,7 +396,7 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         media_data = response.json()
 
         if not media_data['results']:
-            await update.message.reply_text(f"No results found for the title '{title}'. Please try another title.")
+            await update.message.reply_text(f"🆘 Keine Ergebnisse gefunden für *'{title}'*. Bitte versuche einen anderen Titel.")
             return
 
         # If more than one result is found, show a list to the user
@@ -375,7 +414,7 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             # Send the list of results to the user
             reply_keyboard = [[title] for title in media_titles]
             await update.message.reply_text(
-                 "Multiple results found. Please choose the correct title:",
+                 "Mehrere Ergebnisse gefunden, bitte wähle den richtigen Film oder Serie aus:",
                  reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
             )
 
@@ -390,13 +429,13 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
     except requests.exceptions.HTTPError as http_err:
         logger.error(f"HTTP error occurred: {http_err}")
-        await update.message.reply_text("❌ An HTTP error occurred while fetching data from TMDb. Please try again later.")
+        await update.message.reply_text("🆘 Ein HTTP Fehler ist beim laden der Metadaten von TMDB aufgetreten. Bitte versuche es später erneut.")
     except requests.exceptions.RequestException as e:
         logger.error(f"An error occurred: {e}")
-        await update.message.reply_text("❌ An error occurred while fetching data. Please try again later.")
+        await update.message.reply_text("🆘 Ein Fehler ist beim laden der Metadaten aufgetreten. Bitte versuche es später erneut.")
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
-        await update.message.reply_text("❌ An unexpected error occurred. Please try again later.")
+        await update.message.reply_text("🆘 Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es später erneut.")
 
 # Handle user's confirmation (yes/no)
 async def handle_user_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -406,12 +445,12 @@ async def handle_user_confirmation(update: Update, context: ContextTypes.DEFAULT
         if update.message.text.lower() == 'yes':
             await add_media_response(update, context)
         elif update.message.text.lower() == 'no':
-            await update.message.reply_text("Operation canceled. The media was not added.")
+            await update.message.reply_text("Anfrage beendet. Der Titel wurde nicht angefordert.")
             context.user_data.pop('media_info', None)
         else:
-            await update.message.reply_text("Please reply with 'yes' or 'no'.")
+            await update.message.reply_text("Bitte antworte mit 'yes' oder 'no'.")
     else:
-        await update.message.reply_text("No media information found. Please search for media first.")
+        await update.message.reply_text("Kein Film oder Serie angegeben. Bitte suche zuerst nach einem Film oder Serie.")
 
 
 # Function to ask the user whether they want to add media
@@ -419,15 +458,15 @@ async def ask_to_add_media(update: Update, context: ContextTypes.DEFAULT_TYPE, m
     # Create "Yes" and "No" buttons
     keyboard = [
         [
-            InlineKeyboardButton("Yes", callback_data=f"add_{media_type}_yes"),
-            InlineKeyboardButton("No", callback_data=f"add_{media_type}_no"),
+            InlineKeyboardButton("Ja", callback_data=f"add_{media_type}_yes"),
+            InlineKeyboardButton("Nein", callback_data=f"add_{media_type}_no"),
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     # Send the message with buttons
     await update.message.reply_text(
-        f"Do you want to add '{media_title}' to {'Sonarr' if media_type == 'tv' else 'Radarr'}?",
+        f"Willst du *'{media_title}'* anfragen?",
         reply_markup=reply_markup
     )
 
@@ -450,18 +489,18 @@ async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAUL
             # User confirmed to add the media
             if media_type == 'movie':
                 await add_movie_to_radarr(media_title, update, context)
-                await query.edit_message_text(f"'{media_title}' has been added to Radarr.")
+                await query.edit_message_text(f"*'{media_title}'* has been added to Radarr.")
             elif media_type == 'tv':
                 await add_series_to_sonarr(media_title, update, context)
-                await query.edit_message_text(f"'{media_title}' has been added to Sonarr.")
+                await query.edit_message_text(f"*'{media_title}'* has been added to Sonarr.")
         elif choice == 'no':
             # User declined to add the media
-            await query.edit_message_text(f"Adding '{media_title}' was canceled.")
+            await query.edit_message_text(f"Anfrage von *'{media_title}'* wurde abgebrochen.")
 
         # Clear media_info after the decision
         context.user_data.pop('media_info', None)
     else:
-        await query.edit_message_text("No media information found. Please search again.")
+        await query.edit_message_text("Keine Metadaten gefunden. Bitte versuche es erneut")
 
 
 # Message handler for general text
@@ -510,7 +549,7 @@ async def add_series_to_sonarr(series_name, update: Update, context: ContextType
 
     if not tmdb_data['results']:
         logger.error(f"No TMDb results found for the series '{series_name}'")
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ No TMDb results found for the series '{series_name}'.")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"🆘 Keine TMDB Ergebnisse für die Serie *'{series_name}'* gefunden.")
         return
 
     # Use the first search result for simplicity
@@ -525,20 +564,20 @@ async def add_series_to_sonarr(series_name, update: Update, context: ContextType
     tvdb_id = external_ids_data.get('tvdb_id')
     if not tvdb_id:
         logger.error(f"No TVDB ID found for the series '{series_name}'")
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ No TVDB ID found for the series '{series_name}'.")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"🆘 Keine TVDB ID für die Serie *'{series_name}'* gefunden.")
         return
 
     # Check if the series is already in Sonarr
     if await check_series_in_sonarr(tvdb_id):
         logger.info(f"Series '{series_name}' already exists in Sonarr, skipping addition.")
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"😎 The TV Show *'{series_name}'* already exists in Sonarr.")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"😎 Die Serie *'{series_name}'* ist bereits bei StreamNet TV vorhanden.")
         return
 
     # Proceed with adding the series if it's not found in Sonarr
     quality_profile_id = await get_quality_profile_id(SONARR_URL, SONARR_API_KEY, SONARR_QUALITY_PROFILE_NAME)
     if quality_profile_id is None:
         logger.error("Quality profile not found in Sonarr.")
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="❌ Quality profile not found in Sonarr.")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="🆘 Quality Profil in Sonarr nicht gefunden.")
         return
 
     data = {
@@ -567,16 +606,16 @@ async def add_series_to_sonarr(series_name, update: Update, context: ContextType
 
             if search_response.status_code == 201:
                 logger.info(f"Manual search for series '{series_name}' started.")
-                await context.bot.send_message(chat_id=update.effective_chat.id, text=f"✅ Series '{series_name}' added to Sonarr. Manual search started.")
+                await context.bot.send_message(chat_id=update.effective_chat.id, text=f"✅ Die Serie *'{series_name}'* wurde angefragt. Manuelle Suche wurde gestartet.")
             else:
                 logger.error(f"Failed to start manual search for series '{series_name}'. Status code: {search_response.status_code}, Response: {search_response.text}")
-                await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ Failed to start search for series '{series_name}'.")
+                await context.bot.send_message(chat_id=update.effective_chat.id, text=f"🆘 Suche für die Serie *'{series_name}'* gescheitert.")
         else:
             logger.info(f"Search for series '{series_name}' started automatically.")
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"✅ Series '{series_name}' added to Sonarr and search started.")
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"✅ Die Serie *'{series_name}'* wurde angefragt und die Suche wurde gestartet.")
     else:
         logger.error(f"Failed to add series '{series_name}' to Sonarr. Status code: {response.status_code}, Response: {response.text}")
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ Failed to add series '{series_name}' to Sonarr. Status code: {response.status_code}")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"🆘 Anfragen der Serie *'{series_name}'* gescheitert.\nStatus code: {response.status_code}")
 
 # Function to get quality profile ID by name from Radarr
 async def get_radarr_quality_profile_id(radarr_url, api_key, profile_name):
@@ -609,7 +648,7 @@ async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.
 
     if not tmdb_data['results']:
         logger.error(f"No TMDb results found for the movie '{movie_name}'")
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ No TMDb results found for the movie '{movie_name}'.")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"🆘 Keine TMDB Ergebnisse für den Film *'{movie_name}'* gefunden.")
         return
 
     # Use the first search result for simplicity
@@ -618,14 +657,14 @@ async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.
     # Check if the movie is already in Radarr
     if await check_movie_in_radarr(movie_tmdb_id):
         logger.info(f"Movie '{movie_name}' already exists in Radarr, skipping addition.")
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ The movie '{movie_name}' already exists in Radarr.")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"✅ Der Film *'{movie_name}'* ist bereits bei StreamNet TV vorhanden.")
         return
 
     # Proceed with adding the movie if it's not found in Radarr
     quality_profile_id = await get_radarr_quality_profile_id(RADARR_URL, RADARR_API_KEY, RADARR_QUALITY_PROFILE_NAME)
     if quality_profile_id is None:
         logger.error("Quality profile not found in Radarr.")
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="❌ Quality profile not found in Radarr.")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="🆘 Quality Profil in Radarr nicht gefunden.")
         return
 
     data = {
@@ -653,16 +692,16 @@ async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.
 
             if search_response.status_code == 201:
                 logger.info(f"Manual search for movie '{movie_name}' started.")
-                await context.bot.send_message(chat_id=update.effective_chat.id, text=f"✅ Movie '{movie_name}' added to Radarr. Manual search started.")
+                await context.bot.send_message(chat_id=update.effective_chat.id, text=f"✅ Der Film *'{movie_name}'* wurde angefragt. Manuelle Suche wurde gestartet.")
             else:
                 logger.error(f"Failed to start manual search for movie '{movie_name}'. Status code: {search_response.status_code}, Response: {search_response.text}")
-                await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ Failed to start search for movie '{movie_name}'.")
+                await context.bot.send_message(chat_id=update.effective_chat.id, text=f"🆘 Suche für den Film *'{movie_name}'* gescheitert.")
         else:
             logger.info(f"Search for movie '{movie_name}' started automatically.")
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"✅ Movie '{movie_name}' added to Radarr and search started.")
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"✅ Der Film *'{movie_name}'* wurde angefragt und die Suche wurde gestartet.")
     else:
         logger.error(f"Failed to add movie '{movie_name}' to Radarr. Status code: {response.status_code}, Response: {response.text}")
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ Failed to add movie '{movie_name}' to Radarr. Status code: {response.status_code}")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"🆘 Anfragen des Films *'{movie_name}'* gescheitert.\nStatus code: {response.status_code}")
 
 # Command to set the group ID
 async def set_group_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -715,7 +754,7 @@ async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE
         is_admin = member.status in ('administrator', 'creator')
         if not is_admin:
             logger.info(f"Deleting message from non-admin user {update.message.from_user.id} due to night mode.")
-            await update.message.reply_text("❌ Sorry, solange der NACHTMODUS aktiviert ist (00:00 - 07:00 Uhr), kannst du keine Mitteilungen in der Gruppe oder in den Topics senden.")
+            await update.message.reply_text("🆘 Sorry, solange der NACHTMODUS aktiviert ist (00:00 - 07:00 Uhr), kannst du keine Mitteilungen in der Gruppe oder in den Topics senden.")
             await context.bot.delete_message(chat_id=update.message.chat_id, message_id=update.message.message_id)
 
 # Command to set the language for TMDB searches
@@ -729,9 +768,9 @@ async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             logger.info(f"Language set to: {LANGUAGE} by user {update.message.from_user.id}")
             await update.message.reply_text(f"Language set to: {LANGUAGE}")
         else:
-            await update.message.reply_text("Invalid language code. Please use a 2-letter language code (e.g., 'en', 'de').")
+            await update.message.reply_text("Ungültiger Language Code. Bitte benutze einen 2-letter Language Code (e.g., 'en', 'de').")
     else:
-        await update.message.reply_text("Please specify a language code (e.g., 'en', 'de').")
+        await update.message.reply_text("Bitte gebe eine Language Code ein (e.g., 'en', 'de').")
 
 # Function to welcome new members
 async def welcome_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -763,7 +802,7 @@ async def welcome_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     await update.message.reply_html(
-        rf"Hi {user.mention_html()}! Welcome to the bot. Use /search to find a movie or TV show.",
+        rf"Hi {user.mention_html()}! Willkomen bei StreamNet TV, ich bin Mr.StreamNet - der Butler der Gruppe.",
         reply_markup=ReplyKeyboardRemove()
     )
 
@@ -781,7 +820,7 @@ async def main() -> None:
     
     # Register callback query handler for buttons
     application.add_handler(CallbackQueryHandler(handle_add_media_callback))
-    
+
     # Register the message handler for new members
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_members))
 
