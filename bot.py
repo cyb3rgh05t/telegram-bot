@@ -412,13 +412,13 @@ async def handle_user_confirmation(update: Update, context: ContextTypes.DEFAULT
         await update.message.reply_text("No media information found. Please search for media first.")
 
 # Message handler for general text
-async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE, media) -> None:
     if context.user_data.get('media_info'):
         # Handle user confirmation for adding media to Sonarr or Radarr
         await handle_user_confirmation(update, context)
     elif context.user_data.get('media_options'):
         # Handle media selection if options were provided
-        await handle_media_selection(update, context)
+        await handle_media_selection(update, context, media)
     else:
         # Handle other general messages
         if night_mode_active or await night_mode_checker(context):
