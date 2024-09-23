@@ -222,7 +222,7 @@ def extract_year_from_input(selected_title):
     return selected_title  # If no year is found, return the original title
 
 # Handle the user's media selection and display media details before confirming
-async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_TYPE, media):
+async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Get the user's selected title and normalize it by extracting the year
     selected_title = extract_year_from_input(update.message.text.strip().lower())
@@ -412,13 +412,13 @@ async def handle_user_confirmation(update: Update, context: ContextTypes.DEFAULT
         await update.message.reply_text("No media information found. Please search for media first.")
 
 # Message handler for general text
-async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE, media) -> None:
+async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if context.user_data.get('media_info'):
         # Handle user confirmation for adding media to Sonarr or Radarr
         await handle_user_confirmation(update, context)
     elif context.user_data.get('media_options'):
         # Handle media selection if options were provided
-        await handle_media_selection(update, context, media)
+        await handle_media_selection(update, context)
     else:
         # Handle other general messages
         if night_mode_active or await night_mode_checker(context):
