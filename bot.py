@@ -10,7 +10,7 @@ import logging
 import requests
 import time
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, CallbackQueryHandler, ContextTypes
 import pytz
 
 # Apply nest_asyncio to handle running loops
@@ -313,7 +313,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         if await check_movie_in_radarr(media_id):
             await update.message.reply_text(f"❌ The movie '{media_title}' already exists in Radarr.")
         else:
-            await update.message.reply_text(f"The movie '{media_title}' is not in Radarr. Would you like to add it? Reply with 'yes' or 'no'.")
+            await ask_to_add_media(update, context, media_title, 'movie')
             context.user_data['media_info'] = {'title': media_title, 'media_type': 'movie'}
     elif media_type == 'tv':
         external_ids_url = f"https://api.themoviedb.org/3/tv/{media_id}/external_ids?api_key={TMDB_API_KEY}"
@@ -330,7 +330,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         if await check_series_in_sonarr(tvdb_id):
             await update.message.reply_text(f"❌ The series '{media_title}' already exists in Sonarr.")
         else:
-            await update.message.reply_text(f"The series '{media_title}' is not in Sonarr. Would you like to add it? Reply with 'yes' or 'no'.")
+            await ask_to_add_media(update, context, media_title, 'tv')
             context.user_data['media_info'] = {'title': media_title, 'media_type': 'tv', 'tvdb_id': tvdb_id}
 
 
@@ -412,6 +412,57 @@ async def handle_user_confirmation(update: Update, context: ContextTypes.DEFAULT
             await update.message.reply_text("Please reply with 'yes' or 'no'.")
     else:
         await update.message.reply_text("No media information found. Please search for media first.")
+
+
+# Function to ask the user whether they want to add media
+async def ask_to_add_media(update: Update, context: ContextTypes.DEFAULT_TYPE, media_title: str, media_type: str):
+    # Create "Yes" and "No" buttons
+    keyboard = [
+        [
+            InlineKeyboardButton("Yes", callback_data=f"add_{media_type}_yes"),
+            InlineKeyboardButton("No", callback_data=f"add_{media_type}_no"),
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    # Send the message with buttons
+    await update.message.reply_text(
+        f"Do you want to add '{media_title}' to {'Sonarr' if media_type == 'tv' else 'Radarr'}?",
+        reply_markup=reply_markup
+    )
+
+# Handle the user's choice when they press "Yes" or "No"
+async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+
+    # Extract the user's choice from callback data
+    callback_data = query.data.split("_")
+    media_type = callback_data[1]
+    choice = callback_data[2]
+
+    media_info = context.user_data.get('media_info')
+
+    if media_info:
+        media_title = media_info['title']
+
+        if choice == 'yes':
+            # User confirmed to add the media
+            if media_type == 'movie':
+                await add_movie_to_radarr(media_title, update, context)
+                await query.edit_message_text(f"'{media_title}' has been added to Radarr.")
+            elif media_type == 'tv':
+                await add_series_to_sonarr(media_title, update, context)
+                await query.edit_message_text(f"'{media_title}' has been added to Sonarr.")
+        elif choice == 'no':
+            # User declined to add the media
+            await query.edit_message_text(f"Adding '{media_title}' was canceled.")
+
+        # Clear media_info after the decision
+        context.user_data.pop('media_info', None)
+    else:
+        await query.edit_message_text("No media information found. Please search again.")
+
 
 # Message handler for general text
 async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -727,7 +778,10 @@ async def main() -> None:
     application.add_handler(CommandHandler("enable_night_mode", enable_night_mode))
     application.add_handler(CommandHandler("disable_night_mode", disable_night_mode))
     application.add_handler(CommandHandler("search", search_media))
-
+    
+    # Register callback query handler for buttons
+    application.add_handler(CallbackQueryHandler(handle_add_media_callback))
+    
     # Register the message handler for new members
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_members))
 
