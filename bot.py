@@ -362,29 +362,35 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
         # If more than one result is found, show a list to the user
         if len(media_data['results']) > 1:
-            media_titles = []
-            for media in media_data['results']:
-                media_type = media['media_type']
-                media_title = media['title'] if media_type == 'movie' else media['name']
-                release_date = media.get('release_date', media.get('first_air_date', 'N/A'))
-                media_titles.append(f"{media_title} ({release_date})")
-
-            # Send the list of results to the user
-            reply_keyboard = [[title] for title in media_titles]
-            await update.message.reply_text(
-                 "Multiple results found. Please choose the correct title:",
-                 reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
-            )
-
-
-            # Store media results in user data for later selection
-            context.user_data['media_options'] = media_data['results']
-            logger.info(f"Media options stored: {len(media_data['results'])} results")
-            return
-
-        # If only one result, continue with displaying details and confirmation
+           media_titles = []
+    
+           # Limit the results to the first 10 to avoid overwhelming the user
+           for index, media in enumerate(media_data['results'][:10], start=1):
+              media_type = media['media_type']
+              media_title = media['title'] if media_type == 'movie' else media['name']
+        
+           # Extract the year from the release date, default to 'N/A' if missing
+           release_date = media.get('release_date', media.get('first_air_date', 'N/A'))
+           release_year = release_date[:4] if release_date != 'N/A' else 'N/A'
+        
+           # Append index for easier selection
+           media_titles.append(f"{index}. {media_title} ({release_year})")
+    
+        # Send the list of results to the user
+        reply_keyboard = [[title] for title in media_titles]
+        await update.message.reply_text(
+             "Multiple results found. Please choose the correct title by selecting from the list:",
+              reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+        )
+    
+        # Store media results in user data for later selection
+        context.user_data['media_options'] = media_data['results']
+        logger.info(f"Media options stored: {len(media_data['results'])} results")
+    
+    # If only one result, continue with displaying details and confirmation
         media = media_data['results'][0]
         await handle_media_selection(update, context, media)
+
 
     except requests.exceptions.HTTPError as http_err:
         logger.error(f"HTTP error occurred: {http_err}")
