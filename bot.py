@@ -480,7 +480,7 @@ async def add_series_to_sonarr(series_name, update: Update, context: ContextType
     # Check if the series is already in Sonarr
     if await check_series_in_sonarr(tvdb_id):
         logger.info(f"Series '{series_name}' already exists in Sonarr, skipping addition.")
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ The series '{series_name}' already exists in Sonarr.")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"😎 The TV Show *'{series_name}'* already exists in Sonarr.")
         return
 
     # Proceed with adding the series if it's not found in Sonarr
@@ -498,7 +498,7 @@ async def add_series_to_sonarr(series_name, update: Update, context: ContextType
         "tvdbId": tvdb_id,
         "monitored": True,
         "addOptions": {
-            "searchForMissingEpisodes": True  # Even if this fails, manual search will be triggered
+            "searchForMissingEpisodes": True  # Attempt to trigger search via addOptions
         }
     }
 
@@ -506,22 +506,26 @@ async def add_series_to_sonarr(series_name, update: Update, context: ContextType
     if response.status_code == 201:
         logger.info(f"Series '{series_name}' added to Sonarr successfully.")
 
-        # Manually trigger a search for the series
+        # Check if the search started automatically, and manually trigger if not
         series_id = response.json().get('id')
-        search_data = {"name": "SeriesSearch", "seriesId": series_id}
-        search_response = requests.post(f"{SONARR_URL}/api/v3/command", json=search_data, params={"apikey": SONARR_API_KEY})
 
-        if search_response.status_code == 201:
-            logger.info(f"Search for series '{series_name}' started.")
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"✅ Series '{series_name}' added to Sonarr and search started.")
+        if not response.json().get('addOptions', {}).get('searchForMissingEpisodes', False):
+            logger.info(f"Triggering manual search for series '{series_name}'.")
+            search_data = {"name": "SeriesSearch", "seriesId": series_id}
+            search_response = requests.post(f"{SONARR_URL}/api/v3/command", json=search_data, params={"apikey": SONARR_API_KEY})
+
+            if search_response.status_code == 201:
+                logger.info(f"Manual search for series '{series_name}' started.")
+                await context.bot.send_message(chat_id=update.effective_chat.id, text=f"✅ Series '{series_name}' added to Sonarr. Manual search started.")
+            else:
+                logger.error(f"Failed to start manual search for series '{series_name}'. Status code: {search_response.status_code}, Response: {search_response.text}")
+                await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ Failed to start search for series '{series_name}'.")
         else:
-            logger.error(f"Failed to start search for series '{series_name}'. Status code: {search_response.status_code}, Response: {search_response.text}")
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ Failed to start search for series '{series_name}'.")
+            logger.info(f"Search for series '{series_name}' started automatically.")
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"✅ Series '{series_name}' added to Sonarr and search started.")
     else:
         logger.error(f"Failed to add series '{series_name}' to Sonarr. Status code: {response.status_code}, Response: {response.text}")
         await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ Failed to add series '{series_name}' to Sonarr. Status code: {response.status_code}")
-
-
 
 # Function to get quality profile ID by name from Radarr
 async def get_radarr_quality_profile_id(radarr_url, api_key, profile_name):
@@ -580,7 +584,7 @@ async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.
         "tmdbId": movie_tmdb_id,
         "monitored": True,
         "addOptions": {
-            "searchForMovie": True  # Even if this fails, manual search will be triggered
+            "searchForMovie": True  # Attempt to trigger search via addOptions
         }
     }
 
@@ -588,21 +592,26 @@ async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.
     if response.status_code == 201:
         logger.info(f"Movie '{movie_name}' added to Radarr successfully.")
 
-        # Manually trigger a search for the movie
+        # Check if the search started automatically, and manually trigger if not
         movie_id = response.json().get('id')
-        search_data = {"name": "MoviesSearch", "movieIds": [movie_id]}
-        search_response = requests.post(f"{RADARR_URL}/api/v3/command", json=search_data, params={"apikey": RADARR_API_KEY})
 
-        if search_response.status_code == 201:
-            logger.info(f"Search for movie '{movie_name}' started.")
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"✅ Movie '{movie_name}' added to Radarr and search started.")
+        if not response.json().get('addOptions', {}).get('searchForMovie', False):
+            logger.info(f"Triggering manual search for movie '{movie_name}'.")
+            search_data = {"name": "MoviesSearch", "movieIds": [movie_id]}
+            search_response = requests.post(f"{RADARR_URL}/api/v3/command", json=search_data, params={"apikey": RADARR_API_KEY})
+
+            if search_response.status_code == 201:
+                logger.info(f"Manual search for movie '{movie_name}' started.")
+                await context.bot.send_message(chat_id=update.effective_chat.id, text=f"✅ Movie '{movie_name}' added to Radarr. Manual search started.")
+            else:
+                logger.error(f"Failed to start manual search for movie '{movie_name}'. Status code: {search_response.status_code}, Response: {search_response.text}")
+                await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ Failed to start search for movie '{movie_name}'.")
         else:
-            logger.error(f"Failed to start search for movie '{movie_name}'. Status code: {search_response.status_code}, Response: {search_response.text}")
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ Failed to start search for movie '{movie_name}'.")
+            logger.info(f"Search for movie '{movie_name}' started automatically.")
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"✅ Movie '{movie_name}' added to Radarr and search started.")
     else:
         logger.error(f"Failed to add movie '{movie_name}' to Radarr. Status code: {response.status_code}, Response: {response.text}")
         await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ Failed to add movie '{movie_name}' to Radarr. Status code: {response.status_code}")
-
 
 # Command to set the group ID
 async def set_group_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
