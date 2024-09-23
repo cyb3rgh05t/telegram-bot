@@ -6,12 +6,12 @@ import json
 import os
 import sqlite3
 import re
-import requests
 import logging
-import aiohttp
+import requests
 import time
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
+import pytz
 
 # Apply nest_asyncio to handle running loops
 nest_asyncio.apply()
@@ -80,13 +80,6 @@ def init_db():
                           )''')
         conn.commit()
 
-def extract_year_from_input(selected_title):
-    """Extract the year from the user's input and ensure the format is correct."""
-    match = re.search(r'\((\d{4})', selected_title)
-    if match:
-        return f"{selected_title[:match.end()]})"
-    return selected_title
-
 # Load group chat ID and language from database
 def load_group_id():
     with sqlite3.connect(DATABASE_FILE) as conn:
@@ -124,42 +117,51 @@ task_lock = asyncio.Lock()
 def get_current_time():
     return datetime.now(TIMEZONE_OBJ)
 
+
 # Function to check if the series is already in Sonarr
 async def check_series_in_sonarr(series_tvdb_id):
     """Check if the series is already in Sonarr by TVDB ID."""
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f"{SONARR_URL}/api/v3/series", params={"apikey": SONARR_API_KEY}) as response:
-                response.raise_for_status()
-                series_list = await response.json()
+        response = requests.get(f"{SONARR_URL}/api/v3/series", params={"apikey": SONARR_API_KEY})
+        response.raise_for_status()
+        series_list = response.json()
 
         for series in series_list:
             if series['tvdbId'] == series_tvdb_id:
                 logger.info(f"Series '{series['title']}' already exists in Sonarr (TVDB ID: {series['tvdbId']})")
                 return True
         return False
-    except Exception as e:
-        logger.error(f"Error while checking Sonarr: {e}")
+
+    except requests.exceptions.HTTPError as http_err:
+        logger.error(f"HTTP error while checking Sonarr: {http_err}")
         return False
+    except Exception as e:
+        logger.error(f"Unexpected error while checking Sonarr: {e}")
+        return False
+
 
 # Function to check if the movie is already in Radarr
 async def check_movie_in_radarr(movie_tmdb_id):
     """Check if the movie is already in Radarr by TMDb ID."""
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f"{RADARR_URL}/api/v3/movie", params={"apikey": RADARR_API_KEY}) as response:
-                response.raise_for_status()
-                movie_list = await response.json()
+        response = requests.get(f"{RADARR_URL}/api/v3/movie", params={"apikey": RADARR_API_KEY})
+        response.raise_for_status()
+        movie_list = response.json()
 
         for movie in movie_list:
             if movie['tmdbId'] == movie_tmdb_id:
                 logger.info(f"Movie '{movie['title']}' already exists in Radarr.")
                 return True
         return False
-    except Exception as e:
-        logger.error(f"Error while checking Radarr: {e}")
+
+    except requests.exceptions.HTTPError as http_err:
+        logger.error(f"HTTP error while checking Radarr: {http_err}")
         return False
-    
+    except Exception as e:
+        logger.error(f"Unexpected error while checking Radarr: {e}")
+        return False
+
+
 # Add media to Sonarr or Radarr after user confirmation
 async def add_media_response(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     media_info = context.user_data.get('media_info')
@@ -182,32 +184,47 @@ async def add_media_response(update: Update, context: ContextTypes.DEFAULT_TYPE)
     else:
         await update.message.reply_text("No media information found. Please search again.")
 
-# Fetch media details
+# Function to fetch additional details of the movie/TV show from TMDb
 async def fetch_media_details(media_type, media_id):
     """Fetch detailed media information including poster, rating, summary, etc."""
     url = f"https://api.themoviedb.org/3/{media_type}/{media_id}?api_key={TMDB_API_KEY}&language={LANGUAGE}"
     logger.info(f"Fetching details from URL: {url}")
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                response.raise_for_status()
-                media_details = await response.json()
+        response = requests.get(url)
+        response.raise_for_status()
         logger.info(f"Details fetched successfully for media_id: {media_id}")
-        return media_details
+        return response.json()
     except Exception as e:
         logger.error(f"Error fetching media details: {e}")
         raise
 
 def rating_to_stars(rating):
     """Convert a TMDb rating (out of 10) to a 10-star emoji string."""
+    # Convert the rating to a 5-star scale
     stars = (rating / 10) * 10
-    full_stars = int(stars)
-    half_star = 1 if stars - full_stars >= 0.5 else 0
-    empty_stars = 10 - full_stars - half_star
-    return "⭐" * full_stars + "✨" * half_star + "★" * empty_stars
 
-# Handle the user's media selection
+    # Determine the number of full stars, half stars, and empty stars
+    full_stars = int(stars)  # Full stars
+    half_star = 1 if stars - full_stars >= 0.5 else 0  # Half star
+    empty_stars = 10 - full_stars - half_star  # Empty stars
+
+    # Build the star emoji string
+    star_display = "⭐" * full_stars + "✨" * half_star + "★" * empty_stars
+    return star_display
+
+def extract_year_from_input(selected_title):
+    """Extract the year from the user's input and ensure the format is correct."""
+    # Use regex to find a year in parentheses, even if the parentheses are incomplete
+    match = re.search(r'\((\d{4})', selected_title)
+    if match:
+        # Ensure the closing parenthesis is present and return the title up to the year
+        return f"{selected_title[:match.end()]})"
+    return selected_title  # If no year is found, return the original title
+
+# Handle the user's media selection and display media details before confirming
 async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_TYPE, media):
+
+    # Get the user's selected title and normalize it by extracting the year
     selected_title = extract_year_from_input(update.message.text.strip().lower())
     logger.info(f"User selected title: {selected_title}")
 
@@ -217,6 +234,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         logger.error("No media options found in user data.")
         return
 
+    # Log the available media options for debugging
     available_titles = []
     for option in media_options:
         media_type = option['media_type']
@@ -225,17 +243,23 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         release_year = release_date[:4] if release_date != 'N/A' else 'N/A'
         full_title = f"{media_title} ({release_year})".lower()
         available_titles.append(full_title)
-
+    
     logger.info(f"Available media options: {available_titles}")
 
+    # Find the selected media from the options
     media = None
     for option in media_options:
         media_type = option['media_type']
         media_title = option.get('title') if media_type == 'movie' else option.get('name')
+        
+        # Extract the release year from the date
         release_date = option.get('release_date', option.get('first_air_date', 'N/A'))
         release_year = release_date[:4] if release_date != 'N/A' else 'N/A'
+        
+        # Build the full title with release year
         full_title = f"{media_title} ({release_year})".lower()
 
+        # Perform a case-insensitive and whitespace-tolerant comparison
         if selected_title == full_title:
             media = option
             logger.info(f"Selected media found: {media_title} ({release_year})")
@@ -246,12 +270,14 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         logger.error("Media selection did not match any option.")
         return
 
+    # Clear the media options after selection
     context.user_data.pop('media_options', None)
 
     media_title = media['title'] if media['media_type'] == 'movie' else media['name']
     media_type = media['media_type']
     media_id = media['id']
 
+    # Fetch additional media details from TMDb
     try:
         media_details = await fetch_media_details(media_type, media_id)
         logger.info(f"Fetched media details for {media_title} (TMDb ID: {media_id})")
@@ -260,24 +286,29 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         logger.error(f"Failed to fetch media details: {e}")
         return
 
+    # Convert rating to stars using the helper function
     rating = media_details.get('vote_average', 0)
     star_rating = rating_to_stars(rating)
 
+    # Extract the year from the release date for the detailed message as well
     full_release_date = media_details.get('release_date', media_details.get('first_air_date', 'N/A'))
     release_year_detailed = full_release_date[:4] if full_release_date != 'N/A' else 'N/A'
 
+    # Prepare the message with media details and star rating
     message = (
         f"🎬 *{media_title}* ({release_year_detailed}) \n\n"
         f"{star_rating} - {rating}/10\n"
         f"\n{media_details.get('overview', 'No summary available.')}"
     )
 
+    # Send media details regardless of existence in Sonarr/Radarr
     if media_details.get('poster_path'):
         poster_url = f"https://image.tmdb.org/t/p/w500{media_details['poster_path']}"
         await update.message.reply_photo(photo=poster_url, caption=message, parse_mode="Markdown")
     else:
         await update.message.reply_text(text=message, parse_mode="Markdown")
 
+    # Check if the media already exists in Radarr or Sonarr
     if media_type == 'movie':
         if await check_movie_in_radarr(media_id):
             await update.message.reply_text(f"❌ The movie '{media_title}' already exists in Radarr.")
@@ -286,9 +317,9 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
             context.user_data['media_info'] = {'title': media_title, 'media_type': 'movie'}
     elif media_type == 'tv':
         external_ids_url = f"https://api.themoviedb.org/3/tv/{media_id}/external_ids?api_key={TMDB_API_KEY}"
-        async with aiohttp.ClientSession() as session:
-            async with session.get(external_ids_url) as external_ids_response:
-                external_ids_data = await external_ids_response.json()
+        external_ids_response = requests.get(external_ids_url)
+        external_ids_response.raise_for_status()
+        external_ids_data = external_ids_response.json()
 
         tvdb_id = external_ids_data.get('tvdb_id')
         if not tvdb_id:
@@ -302,6 +333,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
             await update.message.reply_text(f"The series '{media_title}' is not in Sonarr. Would you like to add it? Reply with 'yes' or 'no'.")
             context.user_data['media_info'] = {'title': media_title, 'media_type': 'tv', 'tvdb_id': tvdb_id}
 
+
 # Search for a movie or TV show using TMDB API with multiple results handling
 async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
@@ -313,22 +345,22 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         logger.info(f"Searching for media: {title}")
         
         url = f"https://api.themoviedb.org/3/search/multi?api_key={TMDB_API_KEY}&query={title}&language={LANGUAGE}"
+        response = requests.get(url)
+        if response.status_code == 429:
+            retry_after = int(response.headers.get("Retry-After", 1))
+            logger.warning(f"Rate limited by TMDb. Retrying after {retry_after} seconds.")
+            await asyncio.sleep(retry_after)
+            response = requests.get(url)
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                if response.status == 429:
-                    retry_after = int(response.headers.get("Retry-After", 1))
-                    logger.warning(f"Rate limited by TMDb. Retrying after {retry_after} seconds.")
-                    await asyncio.sleep(retry_after)
-                    async with session.get(url) as retry_response:
-                        media_data = await retry_response.json()
-                else:
-                    media_data = await response.json()
+        
+        response.raise_for_status()
+        media_data = response.json()
 
         if not media_data['results']:
             await update.message.reply_text(f"No results found for the title '{title}'. Please try another title.")
             return
 
+        # If more than one result is found, show a list to the user
         if len(media_data['results']) > 1:
             media_titles = []
             for media in media_data['results']:
@@ -337,19 +369,29 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 release_date = media.get('release_date', media.get('first_air_date', 'N/A'))
                 media_titles.append(f"{media_title} ({release_date})")
 
+            # Send the list of results to the user
             reply_keyboard = [[title] for title in media_titles]
             await update.message.reply_text(
                  "Multiple results found. Please choose the correct title:",
                  reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
             )
 
+
+            # Store media results in user data for later selection
             context.user_data['media_options'] = media_data['results']
             logger.info(f"Media options stored: {len(media_data['results'])} results")
             return
 
+        # If only one result, continue with displaying details and confirmation
         media = media_data['results'][0]
         await handle_media_selection(update, context, media)
 
+    except requests.exceptions.HTTPError as http_err:
+        logger.error(f"HTTP error occurred: {http_err}")
+        await update.message.reply_text("❌ An HTTP error occurred while fetching data from TMDb. Please try again later.")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"An error occurred: {e}")
+        await update.message.reply_text("❌ An error occurred while fetching data. Please try again later.")
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         await update.message.reply_text("❌ An unexpected error occurred. Please try again later.")
@@ -381,6 +423,8 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
         # Handle other general messages
         if night_mode_active or await night_mode_checker(context):
             await restrict_night_mode(update, context)
+
+
 
 # Function to get quality profile ID by name from Sonarr
 async def get_quality_profile_id(sonarr_url, api_key, profile_name):
@@ -675,13 +719,13 @@ async def main() -> None:
     # Register the message handler for new members
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_members))
 
-    # Schedule night mode checker to run every 5 minutes
+    # Start the night mode checker task with max_instances set to 1
     application.job_queue.run_repeating(night_mode_checker, interval=300, first=0)
 
     # Register the message handler for user confirmation and general messages
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, restrict_night_mode))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
 
-    # Start the bot
+    # Start the Bot
     logger.info("Bot started polling.")
     await application.run_polling()
 
