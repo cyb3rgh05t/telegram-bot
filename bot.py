@@ -219,16 +219,14 @@ async def add_media_response(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
         if media_type == 'tv':
             await add_series_to_sonarr(title, update, context)
-            escaped_message = escape_markdown_v2(f"Die Serie *{title_escaped}* wurde angefragt.")
             await update.message.reply_text( 
-            text=escaped_message, 
+            text=f"Die Serie *{title_escaped}* wurde angefragt.",
             parse_mode="MarkdownV2"
             )
         elif media_type == 'movie':
             await add_movie_to_radarr(title, update, context)
-            escaped_message = escape_markdown_v2(f"Der Film *{title_escaped}* wurde angefragt.")
             await update.message.reply_text( 
-            text=escaped_message, 
+            text=f"Der Film *{title_escaped}* wurde angefragt.", 
             parse_mode="MarkdownV2"
             )
         else:
@@ -373,9 +371,8 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
     media_title_escaped = escape_markdown_v2(media_title)
     if media_type == 'movie':
         if await check_movie_in_radarr(media_id):
-            escaped_message = escape_markdown_v2(f"😎 Der Film *{media_title_escaped}* ist bereits bei StreamNet TV vorhanden.")
             await update.message.reply_text( 
-            text=escaped_message, 
+            text=f"😎 Der Film *{media_title_escaped}* ist bereits bei StreamNet TV vorhanden.", 
             parse_mode="MarkdownV2"
             )
         else:
@@ -389,18 +386,16 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
 
         tvdb_id = external_ids_data.get('tvdb_id')
         if not tvdb_id:
-            escaped_message = escape_markdown_v2(f"🆘 Keine TVDB ID gefunden für die Serie *{media_title_escaped}*.")
             await update.message.reply_text(
-            text=escaped_message, 
+            text=f"🆘 Keine TVDB ID gefunden für die Serie *{media_title_escaped}*.", 
             parse_mode="MarkdownV2"
             )
             logger.error(f"No TVDB ID found for the series '{media_title}'")
             return
 
         if await check_series_in_sonarr(tvdb_id):
-            escaped_message = escape_markdown_v2(f"😎 Die Serie *{media_title_escaped}* ist bereits bei StreamNet TV vorhanden.")
             await update.message.reply_text(
-            text=escaped_message, 
+            text=f"😎 Die Serie *{media_title_escaped}* ist bereits bei StreamNet TV vorhanden.", 
             parse_mode="MarkdownV2"
             )
         else:
@@ -436,9 +431,8 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         title_escaped = escape_markdown_v2(title)
 
         if not media_data['results']:
-            escaped_message = escape_markdown_v2(f"🆘 Keine Ergebnisse gefunden für *{title_escaped}*. Bitte versuche einen anderen Titel.")
             await update.message.reply_text(
-            text=escaped_message, 
+            text=f"🆘 Keine Ergebnisse gefunden für *{title_escaped}*. Bitte versuche einen anderen Titel.", 
             parse_mode="MarkdownV2"
             )
             return
@@ -550,12 +544,10 @@ async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAUL
                 # await query.edit_message_text(f"Die Serie *{media_title_escaped}* wurde angefragt.",parse_mode="MarkdownV2")
         elif choice == 'no':
             # User declined to add the media
-            escaped_message = escape_markdown_v2(f"Anfrage von *{media_title_escaped}* wurde abgebrochen.")
             await query.edit_message_text(
-            text=escaped_message, 
+            text=f"Anfrage von *{media_title_escaped}* wurde abgebrochen.", 
             parse_mode="MarkdownV2"
             )
-            await query.edit_message_text(f"Anfrage von *{media_title_escaped}* wurde abgebrochen.",parse_mode="MarkdownV2")
 
         # Clear media_info after the decision
         context.user_data.pop('media_info', None)
@@ -618,10 +610,9 @@ async def add_series_to_sonarr(series_name, update: Update, context: ContextType
 
     if not tmdb_data['results']:
         logger.error(f"No TMDb results found for the series '{series_name}'")
-        escaped_message = escape_markdown_v2(f"🆘 Keine TMDB Ergebnisse für die Serie *{series_name_escaped}* gefunden.")
         await context.bot.send_message(
         chat_id=update.effective_chat.id, 
-        text=escaped_message, 
+        text=f"🆘 Keine TMDB Ergebnisse für die Serie *{series_name_escaped}* gefunden.", 
         parse_mode="MarkdownV2"
         )
         return
@@ -638,10 +629,9 @@ async def add_series_to_sonarr(series_name, update: Update, context: ContextType
     tvdb_id = external_ids_data.get('tvdb_id')
     if not tvdb_id:
         logger.error(f"No TVDB ID found for the series '{series_name}'")
-        escaped_message = escape_markdown_v2(f"🆘 Keine TVDB ID für die Serie *{series_name_escaped}* gefunden.")
         await context.bot.send_message(
         chat_id=update.effective_chat.id, 
-        text=escaped_message, 
+        text=f"🆘 Keine TVDB ID für die Serie *{series_name_escaped}* gefunden.", 
         parse_mode="MarkdownV2"
         )
         return
@@ -649,10 +639,9 @@ async def add_series_to_sonarr(series_name, update: Update, context: ContextType
     # Check if the series is already in Sonarr
     if await check_series_in_sonarr(tvdb_id):
         logger.info(f"Series '{series_name}' already exists in Sonarr, skipping addition.")
-        escaped_message = escape_markdown_v2(f"😎 Die Serie *{series_name_escaped}* ist bereits bei StreamNet TV vorhanden.")
         await context.bot.send_message(
         chat_id=update.effective_chat.id, 
-        text=escaped_message, 
+        text=f"😎 Die Serie *{series_name_escaped}* ist bereits bei StreamNet TV vorhanden.", 
         parse_mode="MarkdownV2"
         )
         return
@@ -690,34 +679,30 @@ async def add_series_to_sonarr(series_name, update: Update, context: ContextType
 
             if search_response.status_code == 201:
                 logger.info(f"Manual search for series '{series_name}' started.")
-                escaped_message = escape_markdown_v2(f"✅ Die Serie *{series_name_escaped}* wurde angefragt. Manuelle Suche wurde gestartet.")
                 await context.bot.send_message(
                 chat_id=update.effective_chat.id, 
-                text=escaped_message, 
+                text=f"✅ Die Serie *{series_name_escaped}* wurde angefragt. Manuelle Suche wurde gestartet.", 
                 parse_mode="MarkdownV2"
                 )
             else:
                 logger.error(f"Failed to start manual search for series '{series_name}'. Status code: {search_response.status_code}, Response: {search_response.text}")
-                escaped_message = escape_markdown_v2(f"🆘 Suche für die Serie *{series_name_escaped}* gescheitert.")
                 await context.bot.send_message(
                 chat_id=update.effective_chat.id, 
-                text=escaped_message, 
+                text=f"🆘 Suche für die Serie *{series_name_escaped}* gescheitert.", 
                 parse_mode="MarkdownV2"
                 )
         else:
             logger.info(f"Search for series '{series_name}' started automatically.")
-            escaped_message = escape_markdown_v2(f"✅ Die Serie *{series_name_escaped}* wurde angefragt und die Suche wurde gestartet.")
             await context.bot.send_message(
             chat_id=update.effective_chat.id, 
-            text=escaped_message, 
+            text=f"✅ Die Serie *{series_name_escaped}* wurde angefragt und die Suche wurde gestartet.", 
             parse_mode="MarkdownV2"
             )
     else:
         logger.error(f"Failed to add series '{series_name}' to Sonarr. Status code: {response.status_code}, Response: {response.text}")
-        escaped_message = escape_markdown_v2(f"🆘 Anfragen der Serie *{series_name_escaped}* gescheitert.\nStatus code: *{response.status_code}*")
         await context.bot.send_message(
         chat_id=update.effective_chat.id, 
-        text=escaped_message, 
+        text=f"🆘 Anfragen der Serie *{series_name_escaped}* gescheitert.\nStatus code: *{response.status_code}*", 
         parse_mode="MarkdownV2"
         )
 # Function to get quality profile ID by name from Radarr
@@ -756,10 +741,9 @@ async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.
 
     if not tmdb_data['results']:
         logger.error(f"No TMDb results found for the movie '{movie_name}'")
-        escaped_message = escape_markdown_v2(f"🆘 Keine TMDB Ergebnisse für den Film *{movie_name_escaped}* gefunden.")
         await context.bot.send_message(
         chat_id=update.effective_chat.id, 
-        text=escaped_message, 
+        text=f"🆘 Keine TMDB Ergebnisse für den Film *{movie_name_escaped}* gefunden.", 
         parse_mode="MarkdownV2"
         )
         return
@@ -770,10 +754,10 @@ async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.
     # Check if the movie is already in Radarr
     if await check_movie_in_radarr(movie_tmdb_id):
         logger.info(f"Movie '{movie_name}' already exists in Radarr, skipping addition.")
-        escaped_message = escape_markdown_v2(f"✅ Der Film *{movie_name_escaped}* ist bereits bei StreamNet TV vorhanden.")
+        escaped_message = escape_markdown_v2()
         await context.bot.send_message(
         chat_id=update.effective_chat.id, 
-        text=escaped_message, 
+        text=f"✅ Der Film *{movie_name_escaped}* ist bereits bei StreamNet TV vorhanden.", 
         parse_mode="MarkdownV2"
         )
         return
@@ -810,34 +794,30 @@ async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.
 
             if search_response.status_code == 201:
                 logger.info(f"Manual search for movie '{movie_name}' started.")
-                escaped_message = escape_markdown_v2(f"✅ Der Film *{movie_name_escaped}* wurde angefragt. Manuelle Suche wurde gestartet.")
                 await context.bot.send_message(
                 chat_id=update.effective_chat.id, 
-                text=escaped_message, 
+                text=f"✅ Der Film *{movie_name_escaped}* wurde angefragt. Manuelle Suche wurde gestartet.", 
                 parse_mode="MarkdownV2"
                 )
             else:
                 logger.error(f"Failed to start manual search for movie '{movie_name}'. Status code: {search_response.status_code}, Response: {search_response.text}")
-                escaped_message = escape_markdown_v2(f"🆘 Suche für den Film *{movie_name_escaped}* gescheitert.")
                 await context.bot.send_message(
                 chat_id=update.effective_chat.id, 
-                text=escaped_message, 
+                text=f"🆘 Suche für den Film *{movie_name_escaped}* gescheitert.", 
                 parse_mode="MarkdownV2"
                 )
         else:
             logger.info(f"Search for movie '{movie_name}' started automatically.")
-            escaped_message = escape_markdown_v2(f"✅ Der Film *{movie_name_escaped}* wurde angefragt und die Suche wurde gestartet.")
             await context.bot.send_message(
             chat_id=update.effective_chat.id, 
-            text=escaped_message, 
+            text=f"✅ Der Film *{movie_name_escaped}* wurde angefragt und die Suche wurde gestartet.", 
             parse_mode="MarkdownV2"
             )
     else:
         logger.error(f"Failed to add movie '{movie_name}' to Radarr. Status code: {response.status_code}, Response: {response.text}")
-        escaped_message = escape_markdown_v2(f"🆘 Anfragen des Films *{movie_name_escaped}* gescheitert.\nStatus code: *{response.status_code}*")
         await context.bot.send_message(
         chat_id=update.effective_chat.id, 
-        text=escaped_message, 
+        text=f"🆘 Anfragen des Films *{movie_name_escaped}* gescheitert.\nStatus code: *{response.status_code}*", 
         parse_mode="MarkdownV2"
         )
 
