@@ -9,6 +9,7 @@ import re
 import logging
 import requests
 import time
+from telegram.constants import ChatAction
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, CallbackQueryHandler, ContextTypes
 import pytz
@@ -276,6 +277,10 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         await update.message.reply_text("Keine Ergebnisse gefunden. Bitte versuche es erneut.")
         logger.error("No media options found in user data.")
         return
+    
+    # Show the typing indicator while the bot is working
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
+
 
     # Log the available media options for debugging
     available_titles = []
@@ -387,7 +392,11 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
         title = " ".join(context.args)
         logger.info(f"Searching for media: {title}")
-        
+
+        # Show the typing indicator while the bot is working
+        await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
+
+        # Actual processing logic (searching media)
         url = f"https://api.themoviedb.org/3/search/multi?api_key={TMDB_API_KEY}&query={title}&language={LANGUAGE}"
         response = requests.get(url)
         if response.status_code == 429:
@@ -400,6 +409,7 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         response.raise_for_status()
         media_data = response.json()
         title_escaped = escape_markdown_v2(title)
+
         if not media_data['results']:
             await update.message.reply_text(f"🆘 Keine Ergebnisse gefunden für *{title_escaped}*. Bitte versuche einen anderen Titel.",parse_mode="MarkdownV2")
             return
@@ -447,6 +457,9 @@ async def handle_user_confirmation(update: Update, context: ContextTypes.DEFAULT
     media_info = context.user_data.get('media_info')
 
     if media_info:
+        # Show typing indicator while adding the movie
+        await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
+
         if update.message.text.lower() == 'yes':
             await add_media_response(update, context)
         elif update.message.text.lower() == 'no':
@@ -511,6 +524,10 @@ async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAUL
 
 # Message handler for general text
 async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+
+    # Show typing indicator while adding the movie
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
+
     if context.user_data.get('media_info'):
         # Handle user confirmation for adding media to Sonarr or Radarr
         await handle_user_confirmation(update, context)
@@ -547,6 +564,10 @@ async def get_quality_profile_id(sonarr_url, api_key, profile_name):
 
 # Function to add a series to Sonarr
 async def add_series_to_sonarr(series_name, update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    # Show typing indicator while adding the movie
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
+
     # First, get the TMDb ID for the series
     tmdb_url = f"https://api.themoviedb.org/3/search/tv?api_key={TMDB_API_KEY}&query={series_name}"
     tmdb_response = requests.get(tmdb_url)
@@ -647,6 +668,10 @@ async def get_radarr_quality_profile_id(radarr_url, api_key, profile_name):
 
 # Function to add a movie to Radarr
 async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    # Show typing indicator while adding the movie
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
+
     # First, get the TMDb ID for the movie
     tmdb_url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={movie_name}"
     tmdb_response = requests.get(tmdb_url)
