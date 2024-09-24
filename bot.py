@@ -461,11 +461,15 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 media_titles.append(f"{media_title} ({release_year})")
 
             # Using InlineKeyboardMarkup for media selection
-            keyboard = [[InlineKeyboardButton(text=title, callback_data=title)] for title in media_titles]
+            keyboard = [
+            [InlineKeyboardButton(text=f"{media_title} ({release_year})", callback_data=f"{media['media_type']}_{media['id']}")]
+            for media in media_data['results']
+            ]
             await status_message.edit_text(
             "Mehrere Ergebnisse gefunden, bitte wähle den richtigen Film oder Serie aus:",
             reply_markup=InlineKeyboardMarkup(keyboard)
             )
+
 
             # Store media results in user data for later selection
             context.user_data['media_options'] = media_data['results']
@@ -551,46 +555,30 @@ async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAUL
     query = update.callback_query
     await query.answer()
 
-    # Extract the user's choice from callback data
+    # Extract the media type and ID from the callback data (formatted as 'movie_12345')
     callback_data = query.data.split("_")
 
     # Ensure that the callback data has at least two parts
-    if len(callback_data) < 3:
+    if len(callback_data) < 2:
         logger.error(f"Invalid callback data format: {query.data}")
         await query.edit_message_text("Fehlerhafte Auswahl. Bitte versuche es erneut.")
         return
 
-    media_type = callback_data[1]  # e.g., 'movie' or 'tv'
-    choice = callback_data[2]      # e.g., 'yes' or 'no'
+    media_type = callback_data[0]  # e.g., 'movie' or 'tv'
+    media_id = callback_data[1]    # TMDb ID of the selected media
 
-    media_info = context.user_data.get('media_info')
-    if media_info:
-        media_title = media_info['title']
-        media_title_escaped = escape_markdown_v2(media_title)
+    # Fetch the media details using the TMDb ID
+    try:
+        media_details = await fetch_media_details(media_type, media_id)
+        logger.info(f"Fetched media details for {media_type} with ID {media_id}")
 
-        if choice == 'yes':
-            if media_type == 'movie':
-                await add_movie_to_radarr(media_title, update, context)
-                await query.edit_message_text(
-                text=f"Der Film *{media_title}* wurde angefragt.", 
-                parse_mode="Markdown"
-                )
-            elif media_type == 'tv':
-                await add_series_to_sonarr(media_title, update, context)
-                await query.edit_message_text(
-                text=f"Die Serie *{media_title}* wurde angefragt.", 
-                parse_mode="Markdown"
-                )
-        elif choice == 'no':
-            await query.edit_message_text(
-            text=f"Anfrage von *{media_title}* wurde abgebrochen.",
-            parse_mode="Markdown"
-            )
+        # Now process the media details and prompt the user for confirmation (yes/no)
+        await prompt_user_to_confirm_addition(update, context, media_details)
 
-        # Clear media_info after the decision
-        context.user_data.pop('media_info', None)
-    else:
-        await query.edit_message_text("Keine Metadaten gefunden. Bitte versuche es erneut.")
+    except Exception as e:
+        logger.error(f"Failed to fetch media details: {e}")
+        await query.edit_message_text("Fehler beim Abrufen der Mediendetails. Bitte versuche es später erneut.")
+
 
 
 # Message handler for general text
