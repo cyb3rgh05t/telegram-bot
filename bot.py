@@ -462,14 +462,17 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
             # Using InlineKeyboardMarkup for media selection
             keyboard = [
-            [InlineKeyboardButton(text=f"{media_title} ({release_year})", callback_data=f"{media['media_type']}_{media['id']}")]
+            [InlineKeyboardButton(
+            text=f"{media['title'] if media['media_type'] == 'movie' else media['name']} ({media.get('release_date', media.get('first_air_date', 'N/A'))[:4]})",
+            callback_data=f"{media['media_type']}_{media['id']}"
+            )]
             for media in media_data['results']
             ]
+
             await status_message.edit_text(
             "Mehrere Ergebnisse gefunden, bitte wähle den richtigen Film oder Serie aus:",
             reply_markup=InlineKeyboardMarkup(keyboard)
             )
-
 
             # Store media results in user data for later selection
             context.user_data['media_options'] = media_data['results']
@@ -555,7 +558,7 @@ async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAUL
     query = update.callback_query
     await query.answer()
 
-    # Extract the media type and ID from the callback data (formatted as 'movie_12345')
+    # Extract the media type and ID from the callback data (formatted as 'movie_12345' or 'tv_67890')
     callback_data = query.data.split("_")
 
     # Ensure that the callback data has at least two parts
@@ -578,6 +581,24 @@ async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAUL
     except Exception as e:
         logger.error(f"Failed to fetch media details: {e}")
         await query.edit_message_text("Fehler beim Abrufen der Mediendetails. Bitte versuche es später erneut.")
+
+# Function to prompt user to confirm media addition
+async def prompt_user_to_confirm_addition(update: Update, context: ContextTypes.DEFAULT_TYPE, media_details):
+    media_title = media_details['title'] if media_details['media_type'] == 'movie' else media_details['name']
+    media_title_escaped = escape_markdown_v2(media_title)
+
+    # Ask the user for confirmation to add the media
+    keyboard = [
+        [InlineKeyboardButton("Ja", callback_data=f"add_{media_details['media_type']}_yes"),
+         InlineKeyboardButton("Nein", callback_data=f"add_{media_details['media_type']}_no")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await update.message.reply_text(
+        f"Willst du *{media_title}* anfragen?",
+        parse_mode="Markdown",
+        reply_markup=reply_markup
+    )
 
 
 
