@@ -597,19 +597,19 @@ async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAUL
                 if media_type == 'movie':
                     await add_movie_to_radarr(media_title, update, context)
                     await query.message.edit_text(
-                    f"Der Film *{media_title}* wurde angefragt.",
-                    parse_mode="Markdown"
+                        f"Der Film *{media_title}* wurde angefragt.",
+                        parse_mode="Markdown"
                     )
                 elif media_type == 'tv':
                     await add_series_to_sonarr(media_title, update, context)
                     await query.message.edit_text(
-                    f"Die Serie *{media_title}* wurde angefragt.",
-                    parse_mode="Markdown"
+                        f"Die Serie *{media_title}* wurde angefragt.",
+                        parse_mode="Markdown"
                     )
             else:
                 await query.message.edit_text(
-                f"Die Anfrage für *{media_title}* wurde abgebrochen.",
-                parse_mode="Markdown"
+                    f"Die Anfrage für *{media_title}* wurde abgebrochen.",
+                    parse_mode="Markdown"
                 )
 
         except Exception as e:
@@ -620,6 +620,7 @@ async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAUL
         # Invalid callback data format
         logger.error(f"Invalid callback data format: {query.data}")
         await query.message.edit_text("Fehlerhafte Auswahl. Bitte versuche es erneut.")  # Use query.message
+
 
 
 # Function to prompt user to confirm media addition
@@ -638,6 +639,7 @@ async def prompt_user_to_confirm_addition(message, context: ContextTypes.DEFAULT
         parse_mode="Markdown",
         reply_markup=reply_markup
     )
+
 
 # Message handler for general text
 async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
