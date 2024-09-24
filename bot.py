@@ -158,8 +158,10 @@ def get_current_time():
     return datetime.now(TIMEZONE_OBJ)
 
 # Avoid issues with special characters in MarkdownV2
+# Function to escape special characters for MarkdownV2
 def escape_markdown_v2(text):
-    return re.sub(r'([_*\[\]()~`>#+\-=|{}.!])', r'\\\1', text)
+    escape_chars = r'([_*\[\]()~`>#+\-=|{}.!])'
+    return re.sub(escape_chars, r'\\\1', text)
 
 # Function to check if the series is already in Sonarr
 async def check_series_in_sonarr(series_tvdb_id):
