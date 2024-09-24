@@ -215,7 +215,8 @@ async def add_media_response(update: Update, context: ContextTypes.DEFAULT_TYPE)
         title = media_info['title']
         media_type = media_info['media_type']
         title_escaped = escape_markdown_v2(title)
-
+        # Show typing indicator while adding the movie
+        await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
         if media_type == 'tv':
             await add_series_to_sonarr(title, update, context)
             await update.message.reply_text(f"Die Serie *{title_escaped}* wurde angefragt.",parse_mode="MarkdownV2")
@@ -269,6 +270,8 @@ def extract_year_from_input(selected_title):
 
 # Handle the user's media selection and display media details before confirming
 async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Show typing indicator while adding the movie
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
 
     # Get the user's selected title and normalize it by extracting the year
     selected_title = extract_year_from_input(update.message.text.strip().lower())
@@ -475,6 +478,8 @@ async def handle_user_confirmation(update: Update, context: ContextTypes.DEFAULT
 
 # Function to ask the user whether they want to add media
 async def ask_to_add_media(update: Update, context: ContextTypes.DEFAULT_TYPE, media_title: str, media_type: str):
+    # Show typing indicator while adding the movie
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
     # Create "Yes" and "No" buttons
     keyboard = [
         [
@@ -502,16 +507,21 @@ async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAUL
     choice = callback_data[2]
 
     media_info = context.user_data.get('media_info')
-    media_title_escaped = escape_markdown_v2(media_title)
+
     if media_info:
         media_title = media_info['title']
+        media_title_escaped = escape_markdown_v2(media_title)
 
         if choice == 'yes':
             # User confirmed to add the media
             if media_type == 'movie':
+                # Show typing indicator while adding the movie
+                await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
                 await add_movie_to_radarr(media_title, update, context)
                 # await query.edit_message_text(f"Der Film *{media_title_escaped}* wurde angefragt.",pare_mode="MarkdownV2")
             elif media_type == 'tv':
+                # Show typing indicator while adding the movie
+                await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
                 await add_series_to_sonarr(media_title, update, context)
                 # await query.edit_message_text(f"Die Serie *{media_title_escaped}* wurde angefragt.",parse_mode="MarkdownV2")
         elif choice == 'no':
