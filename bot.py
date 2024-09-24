@@ -559,8 +559,8 @@ async def handle_media_callback(update: Update, context: ContextTypes.DEFAULT_TY
 # Handle the user's choice when they press "Yes" or "No"
 # Callback query handler for handling media selection
 async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
+    query = update.callback_query  # Access the callback query object
+    await query.answer()  # Acknowledge the callback query
 
     # Extract the media type and ID from the callback data (formatted as 'movie_12345' or 'tv_67890')
     callback_data = query.data.split("_")
@@ -568,7 +568,7 @@ async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAUL
     # Ensure that the callback data has at least two parts
     if len(callback_data) < 2:
         logger.error(f"Invalid callback data format: {query.data}")
-        await query.edit_message_text("Fehlerhafte Auswahl. Bitte versuche es erneut.")
+        await query.message.edit_text("Fehlerhafte Auswahl. Bitte versuche es erneut.")  # Use query.message.edit_text
         return
 
     media_type = callback_data[0]  # e.g., 'movie' or 'tv'
@@ -580,15 +580,16 @@ async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAUL
         logger.info(f"Fetched media details for {media_type} with ID {media_id}")
 
         # Now process the media details and prompt the user for confirmation (yes/no)
-        await prompt_user_to_confirm_addition(update, context, media_details)
+        await prompt_user_to_confirm_addition(query.message, context, media_details)
 
     except Exception as e:
         logger.error(f"Failed to fetch media details: {e}")
-        await query.edit_message_text("Fehler beim Abrufen der Mediendetails. Bitte versuche es später erneut.")
+        await query.message.edit_text("Fehler beim Abrufen der Mediendetails. Bitte versuche es später erneut.")
+
 
 
 # Function to prompt user to confirm media addition
-async def prompt_user_to_confirm_addition(update: Update, context: ContextTypes.DEFAULT_TYPE, media_details):
+async def prompt_user_to_confirm_addition(message, context: ContextTypes.DEFAULT_TYPE, media_details):
     media_title = media_details['title'] if media_details['media_type'] == 'movie' else media_details['name']
     media_title_escaped = escape_markdown_v2(media_title)
 
@@ -599,11 +600,13 @@ async def prompt_user_to_confirm_addition(update: Update, context: ContextTypes.
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await update.message.reply_text(
+    # Use the message object passed into this function
+    await message.reply_text(
         f"Willst du *{media_title}* anfragen?",
         parse_mode="Markdown",
         reply_markup=reply_markup
     )
+
 
 # Message handler for general text
 async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
