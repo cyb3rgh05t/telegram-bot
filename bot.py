@@ -9,6 +9,7 @@ import re
 import logging
 import requests
 import time
+import aiohttp
 from telegram.constants import ChatAction
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, CallbackQueryHandler, ContextTypes
@@ -167,9 +168,9 @@ def escape_markdown_v2(text):
 async def check_series_in_sonarr(series_tvdb_id):
     """Check if the series is already in Sonarr by TVDB ID."""
     try:
-        response = requests.get(f"{SONARR_URL}/api/v3/series", params={"apikey": SONARR_API_KEY})
-        response.raise_for_status()
-        series_list = response.json()
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"{SONARR_URL}/api/v3/series", params={"apikey": SONARR_API_KEY}) as response:
+                series_list = await response.json()
 
         for series in series_list:
             if series['tvdbId'] == series_tvdb_id:
@@ -177,7 +178,7 @@ async def check_series_in_sonarr(series_tvdb_id):
                 return True
         return False
 
-    except requests.exceptions.HTTPError as http_err:
+    except aiohttp.ClientError as http_err:
         logger.error(f"HTTP error while checking Sonarr: {http_err}")
         return False
     except Exception as e:
@@ -189,9 +190,9 @@ async def check_series_in_sonarr(series_tvdb_id):
 async def check_movie_in_radarr(movie_tmdb_id):
     """Check if the movie is already in Radarr by TMDb ID."""
     try:
-        response = requests.get(f"{RADARR_URL}/api/v3/movie", params={"apikey": RADARR_API_KEY})
-        response.raise_for_status()
-        movie_list = response.json()
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"{RADARR_URL}/api/v3/movie", params={"apikey": RADARR_API_KEY}) as response:
+                movie_list = await response.json()
 
         for movie in movie_list:
             if movie['tmdbId'] == movie_tmdb_id:
@@ -199,7 +200,7 @@ async def check_movie_in_radarr(movie_tmdb_id):
                 return True
         return False
 
-    except requests.exceptions.HTTPError as http_err:
+    except aiohttp.ClientError as http_err:
         logger.error(f"HTTP error while checking Radarr: {http_err}")
         return False
     except Exception as e:
@@ -246,14 +247,13 @@ async def fetch_media_details(media_type, media_id):
     """Fetch detailed media information including poster, rating, summary, etc."""
     url = f"https://api.themoviedb.org/3/{media_type}/{media_id}?api_key={TMDB_API_KEY}&language={LANGUAGE}"
     logger.info(f"Fetching details from URL: {url}")
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        logger.info(f"Details fetched successfully for media_id: {media_id}")
-        return response.json()
-    except Exception as e:
-        logger.error(f"Error fetching media details: {e}")
-        raise
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            media_details = await response.json()
+
+    logger.info(f"Details fetched successfully for media_id: {media_id}")
+    return media_details
 
 def rating_to_stars(rating):
     """Convert a TMDb rating (out of 10) to a 10-star emoji string."""
@@ -281,12 +281,6 @@ def extract_year_from_input(selected_title):
 # Handle the user's media selection and display media details before confirming
 async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
-    # Show typing indicator while adding the movie
-    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
-    # Allow the typing indicator to be shown for a short period
-    await asyncio.sleep(0.5)  # Small delay to make sure the typing action is visible
-
-
     # Get the user's selected title and normalize it by extracting the year
     selected_title = extract_year_from_input(update.message.text.strip().lower())
     logger.info(f"User selected title: {selected_title}")
@@ -390,9 +384,9 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
             context.user_data['media_info'] = {'title': media_title, 'media_type': 'movie'}
     elif media_type == 'tv':
         external_ids_url = f"https://api.themoviedb.org/3/tv/{media_id}/external_ids?api_key={TMDB_API_KEY}"
-        external_ids_response = requests.get(external_ids_url)
-        external_ids_response.raise_for_status()
-        external_ids_data = external_ids_response.json()
+        async with aiohttp.ClientSession() as session:
+            async with session.get(external_ids_url) as response:
+                external_ids_data = await response.json()
 
         tvdb_id = external_ids_data.get('tvdb_id')
         if not tvdb_id:
@@ -430,16 +424,17 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
         # Actual processing logic (searching media)
         url = f"https://api.themoviedb.org/3/search/multi?api_key={TMDB_API_KEY}&query={title}&language={LANGUAGE}"
-        response = requests.get(url)
-        if response.status_code == 429:
-            retry_after = int(response.headers.get("Retry-After", 1))
-            logger.warning(f"Rate limited by TMDb. Retrying after {retry_after} seconds.")
-            await asyncio.sleep(retry_after)
-            response = requests.get(url)
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status == 429:
+                    retry_after = int(response.headers.get("Retry-After", 1))
+                    logger.warning(f"Rate limited by TMDb. Retrying after {retry_after} seconds.")
+                    await asyncio.sleep(retry_after)
+                    async with session.get(url) as retry_response:
+                        media_data = await retry_response.json()
+                else:
+                    media_data = await response.json()
 
-        
-        response.raise_for_status()
-        media_data = response.json()
         title_escaped = escape_markdown_v2(title)
 
         if not media_data['results']:
@@ -477,15 +472,13 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         media = media_data['results'][0]
         await handle_media_selection(update, context, media)
 
-    except requests.exceptions.HTTPError as http_err:
+    except aiohttp.ClientError as http_err:
         logger.error(f"HTTP error occurred: {http_err}")
         await update.message.reply_text("🆘 Ein HTTP Fehler ist beim laden der Metadaten von TMDB aufgetreten. Bitte versuche es später erneut.")
-    except requests.exceptions.RequestException as e:
-        logger.error(f"An error occurred: {e}")
-        await update.message.reply_text("🆘 Ein Fehler ist beim laden der Metadaten aufgetreten. Bitte versuche es später erneut.")
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         await update.message.reply_text("🆘 Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es später erneut.")
+
 
 # Handle user's confirmation (yes/no)
 async def handle_user_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -635,9 +628,10 @@ async def add_series_to_sonarr(series_name, update: Update, context: ContextType
 
     # First, get the TMDb ID for the series
     tmdb_url = f"https://api.themoviedb.org/3/search/tv?api_key={TMDB_API_KEY}&query={series_name}"
-    tmdb_response = requests.get(tmdb_url)
-    tmdb_response.raise_for_status()
-    tmdb_data = tmdb_response.json()
+    async with aiohttp.ClientSession() as session:
+        async with session.get(tmdb_url) as tmdb_response:
+            tmdb_data = await tmdb_response.json()
+
     series_name_escaped = escape_markdown_v2(series_name)
 
     if not tmdb_data['results']:
@@ -654,9 +648,10 @@ async def add_series_to_sonarr(series_name, update: Update, context: ContextType
 
     # Use TMDb ID to get TVDB ID (Sonarr uses TVDB)
     external_ids_url = f"https://api.themoviedb.org/3/tv/{series_tmdb_id}/external_ids?api_key={TMDB_API_KEY}"
-    external_ids_response = requests.get(external_ids_url)
-    external_ids_response.raise_for_status()
-    external_ids_data = external_ids_response.json()
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(external_ids_url) as external_ids_response:
+            external_ids_data = await external_ids_response.json()
 
     tvdb_id = external_ids_data.get('tvdb_id')
     if not tvdb_id:
@@ -696,47 +691,47 @@ async def add_series_to_sonarr(series_name, update: Update, context: ContextType
             "searchForMissingEpisodes": True  # Attempt to trigger search via addOptions
         }
     }
+     
+    async with aiohttp.ClientSession() as session:
+        async with session.post(f"{SONARR_URL}/api/v3/series", json=data, params={"apikey": SONARR_API_KEY}) as response:
+            if response.status == 201:
+                logger.info(f"Series '{series_name}' added to Sonarr successfully.")
 
-    response = requests.post(f"{SONARR_URL}/api/v3/series", json=data, params={"apikey": SONARR_API_KEY})
-    if response.status_code == 201:
-        logger.info(f"Series '{series_name}' added to Sonarr successfully.")
+                series_id = (await response.json()).get('id')
 
-        # Check if the search started automatically, and manually trigger if not
-        series_id = response.json().get('id')
-
-        if not response.json().get('addOptions', {}).get('searchForMissingEpisodes', False):
-            logger.info(f"Triggering manual search for series '{series_name}'.")
-            search_data = {"name": "SeriesSearch", "seriesId": series_id}
-            search_response = requests.post(f"{SONARR_URL}/api/v3/command", json=search_data, params={"apikey": SONARR_API_KEY})
-
-            if search_response.status_code == 201:
-                logger.info(f"Manual search for series '{series_name}' started.")
-                await context.bot.send_message(
-                chat_id=update.effective_chat.id, 
-                text=f"✅ Die Serie *{series_name}* wurde angefragt. Manuelle Suche wurde gestartet.", 
-                parse_mode="Markdown"
-                )
+                if not (await response.json()).get('addOptions', {}).get('searchForMissingEpisodes', False):
+                    logger.info(f"Triggering manual search for series '{series_name}'.")
+                    search_data = {"name": "SeriesSearch", "seriesId": series_id}
+                    async with session.post(f"{SONARR_URL}/api/v3/command", json=search_data, params={"apikey": SONARR_API_KEY}) as search_response:
+                        if search_response.status == 201:
+                            logger.info(f"Manual search for series '{series_name}' started.")
+                            await context.bot.send_message(
+                            chat_id=update.effective_chat.id, 
+                            text=f"✅ Die Serie *{series_name}* wurde angefragt. Manuelle Suche wurde gestartet.", 
+                            parse_mode="Markdown"
+                            )
+                        else:
+                            logger.error(f"Failed to start manual search for series '{series_name}'. Status code: {search_response.status_code}")
+                            await context.bot.send_message(
+                            chat_id=update.effective_chat.id, 
+                            text=f"🆘 Suche für die Serie *{series_name}* gescheitert.", 
+                            parse_mode="Markdown"
+                            )
+                else:
+                    logger.info(f"Search for series '{series_name}' started automatically.")
+                    await context.bot.send_message(
+                    chat_id=update.effective_chat.id, 
+                    text=f"✅ Die Serie *{series_name}* wurde angefragt und die Suche wurde gestartet.", 
+                    parse_mode="Markdown"
+                    )
             else:
-                logger.error(f"Failed to start manual search for series '{series_name}'. Status code: {search_response.status_code}, Response: {search_response.text}")
+                logger.error(f"Failed to add series '{series_name}' to Sonarr. Status code: {response.status}")
                 await context.bot.send_message(
                 chat_id=update.effective_chat.id, 
-                text=f"🆘 Suche für die Serie *{series_name}* gescheitert.", 
+                text=f"🆘 Anfragen der Serie *{series_name}* gescheitert.\nStatus code: *{response.status_code}*", 
                 parse_mode="Markdown"
                 )
-        else:
-            logger.info(f"Search for series '{series_name}' started automatically.")
-            await context.bot.send_message(
-            chat_id=update.effective_chat.id, 
-            text=f"✅ Die Serie *{series_name}* wurde angefragt und die Suche wurde gestartet.", 
-            parse_mode="Markdown"
-            )
-    else:
-        logger.error(f"Failed to add series '{series_name}' to Sonarr. Status code: {response.status_code}, Response: {response.text}")
-        await context.bot.send_message(
-        chat_id=update.effective_chat.id, 
-        text=f"🆘 Anfragen der Serie *{series_name}* gescheitert.\nStatus code: *{response.status_code}*", 
-        parse_mode="Markdown"
-        )
+
 # Function to get quality profile ID by name from Radarr
 async def get_radarr_quality_profile_id(radarr_url, api_key, profile_name):
     try:
@@ -769,9 +764,10 @@ async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.
 
     # First, get the TMDb ID for the movie
     tmdb_url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={movie_name}"
-    tmdb_response = requests.get(tmdb_url)
-    tmdb_response.raise_for_status()
-    tmdb_data = tmdb_response.json()
+    async with aiohttp.ClientSession() as session:
+        async with session.get(tmdb_url) as tmdb_response:
+            tmdb_data = await tmdb_response.json()
+
     movie_name_escaped = escape_markdown_v2(movie_name)
 
     if not tmdb_data['results']:
@@ -813,47 +809,46 @@ async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.
             "searchForMovie": True  # Attempt to trigger search via addOptions
         }
     }
+    
+    async with aiohttp.ClientSession() as session:
+        async with session.post(f"{RADARR_URL}/api/v3/movie", json=data, params={"apikey": RADARR_API_KEY}) as response:
+            if response.status == 201:
+                logger.info(f"Movie '{movie_name}' added to Radarr successfully.")
 
-    response = requests.post(f"{RADARR_URL}/api/v3/movie", json=data, params={"apikey": RADARR_API_KEY})
-    if response.status_code == 201:
-        logger.info(f"Movie '{movie_name}' added to Radarr successfully.")
+                movie_id = (await response.json()).get('id')
 
-        # Check if the search started automatically, and manually trigger if not
-        movie_id = response.json().get('id')
-
-        if not response.json().get('addOptions', {}).get('searchForMovie', False):
-            logger.info(f"Triggering manual search for movie '{movie_name}'.")
-            search_data = {"name": "MoviesSearch", "movieIds": [movie_id]}
-            search_response = requests.post(f"{RADARR_URL}/api/v3/command", json=search_data, params={"apikey": RADARR_API_KEY})
-
-            if search_response.status_code == 201:
-                logger.info(f"Manual search for movie '{movie_name}' started.")
-                await context.bot.send_message(
-                chat_id=update.effective_chat.id, 
-                text=f"✅ Der Film *{movie_name}* wurde angefragt. Manuelle Suche wurde gestartet.", 
-                parse_mode="Markdown"
-                )
+                if not (await response.json()).get('addOptions', {}).get('searchForMovie', False):
+                    logger.info(f"Triggering manual search for movie '{movie_name}'.")
+                    search_data = {"name": "MoviesSearch", "movieIds": [movie_id]}
+                    async with session.post(f"{RADARR_URL}/api/v3/command", json=search_data, params={"apikey": RADARR_API_KEY}) as search_response:
+                        if search_response.status == 201:
+                            logger.info(f"Manual search for movie '{movie_name}' started.")
+                            await context.bot.send_message(
+                            chat_id=update.effective_chat.id, 
+                            text=f"✅ Der Film *{movie_name}* wurde angefragt. Manuelle Suche wurde gestartet.", 
+                            parse_mode="Markdown"
+                            )
+                        else:
+                            logger.error(f"Failed to start manual search for movie '{movie_name}'. Status code: {search_response.status_code}")
+                            await context.bot.send_message(
+                            chat_id=update.effective_chat.id, 
+                            text=f"🆘 Suche für den Film *{movie_name}* gescheitert.", 
+                            parse_mode="Markdown"
+                            )
+                else:
+                    logger.info(f"Search for movie '{movie_name}' started automatically.")
+                    await context.bot.send_message(
+                    chat_id=update.effective_chat.id, 
+                    text=f"✅ Der Film *{movie_name}* wurde angefragt und die Suche wurde gestartet.", 
+                    parse_mode="Markdown"
+                    )
             else:
-                logger.error(f"Failed to start manual search for movie '{movie_name}'. Status code: {search_response.status_code}, Response: {search_response.text}")
+                logger.error(f"Failed to add movie '{movie_name}' to Radarr. Status code: {response.status}")
                 await context.bot.send_message(
                 chat_id=update.effective_chat.id, 
-                text=f"🆘 Suche für den Film *{movie_name}* gescheitert.", 
+                text=f"🆘 Anfragen des Films *{movie_name}* gescheitert.\nStatus code: *{response.status_code}*", 
                 parse_mode="Markdown"
                 )
-        else:
-            logger.info(f"Search for movie '{movie_name}' started automatically.")
-            await context.bot.send_message(
-            chat_id=update.effective_chat.id, 
-            text=f"✅ Der Film *{movie_name}* wurde angefragt und die Suche wurde gestartet.", 
-            parse_mode="Markdown"
-            )
-    else:
-        logger.error(f"Failed to add movie '{movie_name}' to Radarr. Status code: {response.status_code}, Response: {response.text}")
-        await context.bot.send_message(
-        chat_id=update.effective_chat.id, 
-        text=f"🆘 Anfragen des Films *{movie_name}* gescheitert.\nStatus code: *{response.status_code}*", 
-        parse_mode="Markdown"
-        )
 
 # Command to set the group ID
 async def set_group_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
