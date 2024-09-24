@@ -252,8 +252,12 @@ async def fetch_media_details(media_type, media_id):
         async with session.get(url) as response:
             media_details = await response.json()
 
+    # Add media_type to media_details so you can use it later
+    media_details['media_type'] = media_type  # Retain the media_type from the original query
+
     logger.info(f"Details fetched successfully for media_id: {media_id}")
     return media_details
+
 
 def rating_to_stars(rating):
     """Convert a TMDb rating (out of 10) to a 10-star emoji string."""
@@ -582,6 +586,7 @@ async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAUL
         logger.error(f"Failed to fetch media details: {e}")
         await query.edit_message_text("Fehler beim Abrufen der Mediendetails. Bitte versuche es später erneut.")
 
+
 # Function to prompt user to confirm media addition
 async def prompt_user_to_confirm_addition(update: Update, context: ContextTypes.DEFAULT_TYPE, media_details):
     media_title = media_details['title'] if media_details['media_type'] == 'movie' else media_details['name']
@@ -599,8 +604,6 @@ async def prompt_user_to_confirm_addition(update: Update, context: ContextTypes.
         parse_mode="Markdown",
         reply_markup=reply_markup
     )
-
-
 
 # Message handler for general text
 async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
