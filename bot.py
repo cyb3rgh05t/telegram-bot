@@ -469,7 +469,7 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             [InlineKeyboardButton(
             text=f"{media['title'] if media['media_type'] == 'movie' else media['name']} ({media.get('release_date', media.get('first_air_date', 'N/A'))[:4]})",
             callback_data=f"{media['media_type']}_{media['id']}"
-            )]
+             )]
             for media in media_data['results']
             ]
 
@@ -557,47 +557,67 @@ async def handle_media_callback(update: Update, context: ContextTypes.DEFAULT_TY
 
 
 # Handle the user's choice when they press "Yes" or "No"
-# Callback query handler for handling media confirmation
+# Callback query handler for handling media selection or confirmation
 async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    # Extract the action, media type, media ID, and the user's choice from the callback data (formatted as 'confirm_movie_12345_yes')
+    # Split the callback data (e.g., 'movie_27205' or 'confirm_movie_27205_yes')
     callback_data = query.data.split("_")
 
-    # Ensure that the callback data has enough parts
-    if len(callback_data) < 4 or callback_data[0] != "confirm":
+    # If the callback data is in the form 'movie_27205', it means the user selected a media option
+    if len(callback_data) == 2:
+        media_type = callback_data[0]  # 'movie' or 'tv'
+        media_id = callback_data[1]    # TMDb ID of the selected media
+
+        # Fetch the media details
+        try:
+            media_details = await fetch_media_details(media_type, media_id)
+            logger.info(f"Fetched media details for {media_type} with ID {media_id}")
+
+            # Prompt the user to confirm adding this media
+            await prompt_user_to_confirm_addition(query.message, context, media_details)
+
+        except Exception as e:
+            logger.error(f"Failed to fetch media details: {e}")
+            await query.message.edit_text("Fehler beim Abrufen der Mediendetails. Bitte versuche es später erneut.")
+
+    # If the callback data is in the form 'confirm_movie_27205_yes', it means the user is confirming the addition
+    elif len(callback_data) == 4 and callback_data[0] == 'confirm':
+        media_type = callback_data[1]  # 'movie' or 'tv'
+        media_id = callback_data[2]    # TMDb ID of the selected media
+        choice = callback_data[3]      # 'yes' or 'no'
+
+        # Fetch the media details again (optional, or you can pass along the media details from earlier)
+        try:
+            media_details = await fetch_media_details(media_type, media_id)
+            media_title = media_details['title'] if media_type == 'movie' else media_details['name']
+
+            if choice == 'yes':
+                if media_type == 'movie':
+                    await add_movie_to_radarr(media_title, update, context)
+                    await query.message.edit_text(
+                    text=f"Der Film *{media_title}* wurde angefragt.",
+                    parse_mode="Markdown"
+                    )
+                elif media_type == 'tv':
+                    await add_series_to_sonarr(media_title, update, context)
+                    await query.message.edit_text(
+                    text=f"Die Serie *{media_title}* wurde angefragt.",
+                    parse_mode="Markdown"
+                    )
+            else:
+                await query.message.edit_text(f"Die Anfrage für *{media_title}* wurde abgebrochen.", parse_mode="MarkdownV2")
+
+        except Exception as e:
+            logger.error(f"Failed to fetch media details for confirmation: {e}")
+            await query.message.edit_text("Fehler beim Abrufen der Mediendetails. Bitte versuche es später erneut.")
+
+    else:
+        # Invalid callback data format
         logger.error(f"Invalid callback data format: {query.data}")
         await query.message.edit_text("Fehlerhafte Auswahl. Bitte versuche es erneut.")
-        return
 
-    media_type = callback_data[1]  # e.g., 'movie' or 'tv'
-    media_id = callback_data[2]    # TMDb ID of the selected media
-    choice = callback_data[3]      # e.g., 'yes' or 'no'
-
-    media_details = await fetch_media_details(media_type, media_id)
-    media_title= media_details['title'] if media_type == 'movie' else media_details['name']
-
-    if choice == 'yes':
-        # Process adding the movie or TV show
-        if media_type == 'movie':
-            await add_movie_to_radarr(media_title, update, context)
-            await query.message.edit_text(
-            f"Der Film *{media_title}* wurde angefragt.",
-            parse_mode="Markdown"
-            )
-        elif media_type == 'tv':
-            await add_series_to_sonarr(media_title, update, context)
-            await query.message.edit_text(
-            f"Die Serie *{media_title}* wurde angefragt.",
-            parse_mode="Markdown"
-            )
-    else:
-        # If the user said no, just cancel the operation
-        await query.message.edit_text(
-        f"Die Anfrage für *{media_title}* wurde abgebrochen.",
-        parse_mode="Markdown"
-        )
 
 # Function to prompt user to confirm media addition
 async def prompt_user_to_confirm_addition(message, context: ContextTypes.DEFAULT_TYPE, media_details):
