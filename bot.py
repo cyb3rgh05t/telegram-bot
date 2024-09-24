@@ -460,7 +460,7 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 # Append index for easier selection
                 media_titles.append(f"{media_title} ({release_year})")
 
-            # Creating inline keyboard buttons for media options
+            # Using InlineKeyboardMarkup for media selection
             keyboard = [[InlineKeyboardButton(text=title, callback_data=title)] for title in media_titles]
             await status_message.edit_text(
             "Mehrere Ergebnisse gefunden, bitte wähle den richtigen Film oder Serie aus:",
@@ -542,8 +542,12 @@ async def handle_media_callback(update: Update, context: ContextTypes.DEFAULT_TY
 
     # Handle the media selection based on user input
     context.user_data['selected_media'] = selected_title
+
+    # Continue with the process after the user makes a selection
     await handle_media_selection(update, context)
-    
+
+
+
 # Handle the user's choice when they press "Yes" or "No"
 async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
