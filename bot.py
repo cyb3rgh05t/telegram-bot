@@ -419,7 +419,6 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
         # Show the typing indicator while the bot is working
         await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
-        # Allow the typing indicator to be shown for a short period
         await asyncio.sleep(0.5)  # Small delay to make sure the typing action is visible
 
         # Actual processing logic (searching media)
@@ -435,32 +434,33 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 else:
                     media_data = await response.json()
 
-        title_escaped = escape_markdown_v2(title)
-
         if not media_data['results']:
             await update.message.reply_text(
-            text=f"🆘 Keine Ergebnisse gefunden für *{title}*. Bitte versuche einen anderen Titel.", 
-            parse_mode="Markdown"
+                text=f"🆘 Keine Ergebnisse gefunden für *{title}*. Bitte versuche einen anderen Titel.",
+                parse_mode="Markdown"
             )
             return
 
         # If more than one result is found, show a list to the user
         if len(media_data['results']) > 1:
             media_titles = []
-            for media in media_data['results']:
+            keyboard = []
+            for i, media in enumerate(media_data['results']):
                 media_type = media['media_type']
                 media_title = media['title'] if media_type == 'movie' else media['name']
                 release_date = media.get('release_date', media.get('first_air_date', 'N/A'))
-                # Extract the year from the release date, default to 'N/A' if missing
                 release_year = release_date[:4] if release_date != 'N/A' else 'N/A'
-                # Append index for easier selection
+                
+                # Use the index to generate callback data for InlineKeyboard
                 media_titles.append(f"{media_title} ({release_year})")
+                keyboard.append([InlineKeyboardButton(f"{media_title} ({release_year})", callback_data=f"select_media_{i}")])
 
-            # Send the list of results to the user
-            reply_keyboard = [[title] for title in media_titles]
+            # Create the InlineKeyboardMarkup with the list of results
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
             await update.message.reply_text(
                  "Mehrere Ergebnisse gefunden, bitte wähle den richtigen Film oder Serie aus:",
-                 reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+                 reply_markup=reply_markup
             )
 
             # Store media results in user data for later selection
@@ -527,51 +527,38 @@ async def ask_to_add_media(update: Update, context: ContextTypes.DEFAULT_TYPE, m
         reply_markup=reply_markup
     )
 
-# Handle the user's choice when they press "Yes" or "No"
+# Handle the user's choice when they press an InlineKeyboard button
 async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
 
-    # Extract the user's choice from callback data
-    callback_data = query.data.split("_")
-    media_type = callback_data[1]
-    choice = callback_data[2]
+    # Extract the media index from callback data (e.g., "select_media_0")
+    callback_data = query.data
+    if callback_data.startswith("select_media_"):
+        media_index = int(callback_data.split("_")[-1])
+        media_options = context.user_data.get('media_options', None)
 
-    media_info = context.user_data.get('media_info')
-
-    if media_info:
-        media_title = media_info['title']
-        media_title_escaped = escape_markdown_v2(media_title)
-
-        if choice == 'yes':
-            # User confirmed to add the media
-            if media_type == 'movie':
-                # Show typing indicator while adding the movie
-                await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
-                # Allow the typing indicator to be shown for a short period
-                await asyncio.sleep(0.5)  # Small delay to make sure the typing action is visible
-
-                await add_movie_to_radarr(media_title, update, context)
-                # await query.edit_message_text(f"Der Film *{media_title_escaped}* wurde angefragt.",pare_mode="MarkdownV2")
-            elif media_type == 'tv':
-                # Show typing indicator while adding the movie
-                await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
-                # Allow the typing indicator to be shown for a short period
-                await asyncio.sleep(0.5)  # Small delay to make sure the typing action is visible
-
-                await add_series_to_sonarr(media_title, update, context)
-                # await query.edit_message_text(f"Die Serie *{media_title_escaped}* wurde angefragt.",parse_mode="MarkdownV2")
-        elif choice == 'no':
-            # User declined to add the media
-            await query.edit_message_text(
-            text=f"Anfrage von *{media_title}* wurde abgebrochen.", 
-            parse_mode="Markdown"
-            )
-
-        # Clear media_info after the decision
-        context.user_data.pop('media_info', None)
+        if media_options and 0 <= media_index < len(media_options):
+            # Proceed with the selected media
+            media = media_options[media_index]
+            await handle_media_selection(update, context, media)
+        else:
+            await query.edit_message_text("Ungültige Auswahl. Bitte versuche es erneut.")
+            logger.error("Media selection did not match any option.")
     else:
-        await query.edit_message_text("Keine Metadaten gefunden. Bitte versuche es erneut")
+        # Handle other types of callbacks (e.g., yes/no for adding media)
+        # Your existing logic for handling "yes/no" can go here
+        media_info = context.user_data.get('media_info')
+
+        if media_info:
+            media_title = media_info['title']
+            media_type = media_info['media_type']
+
+            if callback_data == f"add_{media_type}_yes":
+                await add_media_response(update, context)
+            elif callback_data == f"add_{media_type}_no":
+                await query.edit_message_text(f"Anfrage von *{media_title}* wurde abgebrochen.", parse_mode="Markdown")
+                context.user_data.pop('media_info', None)
 
 
 # Message handler for general text
