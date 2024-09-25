@@ -379,7 +379,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
                 parse_mode="Markdown"
             )
         else:
-            await ask_to_add_media(update, context, media_title, 'movie')
+            await prompt_user_to_confirm_addition(update, context, media_title, 'movie')
             context.user_data['media_info'] = {'title': media_title, 'media_type': 'movie'}
     elif media_type == 'tv':
         external_ids_url = f"https://api.themoviedb.org/3/tv/{media_id}/external_ids?api_key={TMDB_API_KEY}"
@@ -402,7 +402,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
                 parse_mode="Markdown"
             )
         else:
-            await ask_to_add_media(update, context, media_title, 'tv')
+            await prompt_user_to_confirm_addition(update, context, media_title, 'tv')
             context.user_data['media_info'] = {'title': media_title, 'media_type': 'tv', 'tvdb_id': tvdb_id}
 
 
@@ -525,7 +525,6 @@ async def ask_to_add_media(update: Update, context: ContextTypes.DEFAULT_TYPE, m
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    media_title_escaped = escape_markdown_v2(media_title)
     await update.message.reply_text(
         f"Willst du *{media_title}* anfragen?",
         parse_mode="Markdown",
