@@ -323,7 +323,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
     full_release_date = media_details.get('release_date', media_details.get('first_air_date', 'N/A'))
     release_year_detailed = full_release_date[:4] if full_release_date != 'N/A' else 'N/A'
 
-     # Generate the TMDb URL
+    # Generate the TMDb URL
     tmdb_url = f"https://www.themoviedb.org/{'movie' if media_type == 'movie' else 'tv'}/{media_id}"
 
     # Prepare the message with media details, star rating, and the TMDb URL
@@ -344,8 +344,8 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
 
     # Now check if the media already exists in Radarr or Sonarr
     # Send status message that it's checking if the media exists
-    checking_status_message = await update.callback_query.message.reply_text("👀 Überprüfe ob der Titel bereits vorhanden ist...")
-    
+    checking_status_message = await update.callback_query.message.reply_text("👀 Überprüfe, ob der Titel bereits vorhanden ist...")
+
     if media_type == 'movie':
         if await check_movie_in_radarr(media_id):
             await checking_status_message.edit_text(
@@ -353,13 +353,29 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
                 parse_mode="Markdown"
             )
         else:
+            # Update the status message to indicate the media is being added
+            await checking_status_message.edit_text("‼️ Titel wurde nicht gefunden...")
+
+            # Ask the user whether they want to add the media
             await ask_to_add_media(update, context, media_title, 'movie')
+
+            # Store media information for later confirmation
             context.user_data['media_info'] = {'title': media_title, 'media_type': 'movie'}
     elif media_type == 'tv':
         external_ids_url = f"https://api.themoviedb.org/3/tv/{media_id}/external_ids?api_key={TMDB_API_KEY}"
-        async with aiohttp.ClientSession() as session:
-            async with session.get(external_ids_url) as response:
-                external_ids_data = await response.json()
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(external_ids_url) as response:
+                    if response.status != 200:
+                        raise Exception(f"Failed to fetch external IDs, status code: {response.status}")
+                    external_ids_data = await response.json()
+        except Exception as e:
+            await checking_status_message.edit_text(
+                text=f"🆘 Fehler beim Abrufen der TVDB ID für die Serie *{media_title}*. {str(e)}", 
+                parse_mode="Markdown"
+            )
+            logger.error(f"Error fetching external IDs for series '{media_title}': {e}")
+            return
 
         tvdb_id = external_ids_data.get('tvdb_id')
         if not tvdb_id:
@@ -377,13 +393,14 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
             )
         else:
             # Update the status message to indicate the media is being added
-            await checking_status_message.edit_text("‼️ Titel wurde nicht gefunden, Anfrage läuft...")
+            await checking_status_message.edit_text("‼️ Titel wurde nicht gefunden...")
 
             # Ask the user whether they want to add the media
             await ask_to_add_media(update, context, media_title, 'tv')
-    
+
             # Store media information for later confirmation
             context.user_data['media_info'] = {'title': media_title, 'media_type': 'tv', 'tvdb_id': tvdb_id}
+
 
 
 
