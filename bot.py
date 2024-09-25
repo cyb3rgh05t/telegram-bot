@@ -537,13 +537,19 @@ async def ask_to_add_media(update: Update, context: ContextTypes.DEFAULT_TYPE, m
         reply_markup=reply_markup
     )
 
-# Handle the user's choice when they press "Yes" or "No"
 async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
 
-    # Extract the user's choice from callback data
+    # Safely extract the callback data
     callback_data = query.data.split("_")
+    
+    # Check if the callback data is in the expected format
+    if len(callback_data) < 3:
+        logger.error(f"Invalid callback data format: {callback_data}")
+        await query.edit_message_text("🆘 Fehlerhafte Auswahl. Bitte versuche es erneut.")
+        return
+
     media_type = callback_data[1]
     choice = callback_data[2]
 
@@ -551,26 +557,13 @@ async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAUL
 
     if media_info:
         media_title = media_info['title']
-        media_title_escaped = escape_markdown_v2(media_title)
 
         if choice == 'yes':
             # User confirmed to add the media
             if media_type == 'movie':
-                # Show typing indicator while adding the movie
-                await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
-                # Allow the typing indicator to be shown for a short period
-                await asyncio.sleep(0.5)  # Small delay to make sure the typing action is visible
-
                 await add_movie_to_radarr(media_title, update, context)
-                # await query.edit_message_text(f"Der Film *{media_title_escaped}* wurde angefragt.",pare_mode="MarkdownV2")
             elif media_type == 'tv':
-                # Show typing indicator while adding the movie
-                await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
-                # Allow the typing indicator to be shown for a short period
-                await asyncio.sleep(0.5)  # Small delay to make sure the typing action is visible
-
                 await add_series_to_sonarr(media_title, update, context)
-                # await query.edit_message_text(f"Die Serie *{media_title_escaped}* wurde angefragt.",parse_mode="MarkdownV2")
         elif choice == 'no':
             # User declined to add the media
             await query.edit_message_text(
@@ -582,7 +575,6 @@ async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAUL
         context.user_data.pop('media_info', None)
     else:
         await query.edit_message_text("Keine Metadaten gefunden. Bitte versuche es erneut")
-
 
 # Message handler for general text
 async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
