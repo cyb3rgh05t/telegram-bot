@@ -579,14 +579,15 @@ async def get_quality_profile_id(sonarr_url, api_key, profile_name):
 # Function to add a series to Sonarr
 async def add_series_to_sonarr(series_name, update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    # Show typing indicator while adding the movie
+    # Show typing indicator while adding the series
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
-    # Allow the typing indicator to be shown for a short period
     await asyncio.sleep(0.5)  # Small delay to make sure the typing action is visible
 
-    # Send a progress message
-    status_message = await update.message.reply_text("📺 Serien Anfrage läuft, bitte warten...")
-
+    # Determine where to send the status message (handling both update.message and update.callback_query)
+    if update.message:
+        status_message = await update.message.reply_text("🎬 Serien Anfrage läuft, bitte warten...")
+    else:
+        status_message = await update.callback_query.message.reply_text("🎬 Serien Anfrage läuft, bitte warten...")
 
     # First, get the TMDb ID for the series
     tmdb_url = f"https://api.themoviedb.org/3/search/tv?api_key={TMDB_API_KEY}&query={series_name}"
@@ -594,14 +595,9 @@ async def add_series_to_sonarr(series_name, update: Update, context: ContextType
         async with session.get(tmdb_url) as tmdb_response:
             tmdb_data = await tmdb_response.json()
 
-
     if not tmdb_data['results']:
         logger.error(f"No TMDb results found for the series '{series_name}'")
-        await status_message.edit_text(
-        chat_id=update.effective_chat.id, 
-        text=f"🆘 Keine TMDB Ergebnisse für die Serie *{series_name}* gefunden.", 
-        parse_mode="Markdown"
-        )
+        await status_message.edit_text(f"🆘 Keine TMDB Ergebnisse für die Serie *{series_name}* gefunden.", parse_mode="Markdown")
         return
 
     # Use the first search result for simplicity
@@ -617,28 +613,20 @@ async def add_series_to_sonarr(series_name, update: Update, context: ContextType
     tvdb_id = external_ids_data.get('tvdb_id')
     if not tvdb_id:
         logger.error(f"No TVDB ID found for the series '{series_name}'")
-        await status_message.edit_text(
-        chat_id=update.effective_chat.id, 
-        text=f"🆘 Keine TVDB ID für die Serie *{series_name}* gefunden.", 
-        parse_mode="Markdown"
-        )
+        await status_message.edit_text(f"🆘 Keine TVDB ID für die Serie *{series_name}* gefunden.", parse_mode="Markdown")
         return
 
     # Check if the series is already in Sonarr
     if await check_series_in_sonarr(tvdb_id):
         logger.info(f"Series '{series_name}' already exists in Sonarr, skipping addition.")
-        await status_message.edit_text(
-        chat_id=update.effective_chat.id, 
-        text=f"✅ Die Serie *{series_name}* ist bereits bei StreamNet TV vorhanden.", 
-        parse_mode="Markdown"
-        )
+        await status_message.edit_text(f"✅ Die Serie *{series_name}* ist bereits bei StreamNet TV vorhanden.", parse_mode="Markdown")
         return
 
     # Proceed with adding the series if it's not found in Sonarr
     quality_profile_id = await get_quality_profile_id(SONARR_URL, SONARR_API_KEY, SONARR_QUALITY_PROFILE_NAME)
     if quality_profile_id is None:
         logger.error("Quality profile not found in Sonarr.")
-        await status_message.edit_text(chat_id=update.effective_chat.id, text="🆘 Quality Profil in Sonarr nicht gefunden.")
+        await status_message.edit_text("🆘 Quality Profil in Sonarr nicht gefunden.")
         return
 
     data = {
@@ -666,32 +654,17 @@ async def add_series_to_sonarr(series_name, update: Update, context: ContextType
                     async with session.post(f"{SONARR_URL}/api/v3/command", json=search_data, params={"apikey": SONARR_API_KEY}) as search_response:
                         if search_response.status == 201:
                             logger.info(f"Manual search for series '{series_name}' started.")
-                            await status_message.edit_text(
-                            chat_id=update.effective_chat.id, 
-                            text=f"✅ Die Serie *{series_name}* wurde angefragt. Manuelle Suche wurde gestartet.", 
-                            parse_mode="Markdown"
-                            )
+                            await status_message.edit_text(f"✅ Die Serie *{series_name}* wurde angefragt. Manuelle Suche wurde gestartet.", parse_mode="Markdown")
                         else:
                             logger.error(f"Failed to start manual search for series '{series_name}'. Status code: {search_response.status_code}")
-                            await status_message.edit_text(
-                            chat_id=update.effective_chat.id, 
-                            text=f"🆘 Suche für die Serie *{series_name}* gescheitert.", 
-                            parse_mode="Markdown"
-                            )
+                            await status_message.edit_text(f"🆘 Suche für die Serie *{series_name}* gescheitert.", parse_mode="Markdown")
                 else:
                     logger.info(f"Search for series '{series_name}' started automatically.")
-                    await status_message.edit_text(
-                    chat_id=update.effective_chat.id, 
-                    text=f"✅ Die Serie *{series_name}* wurde angefragt und die Suche wurde gestartet.", 
-                    parse_mode="Markdown"
-                    )
+                    await status_message.edit_text(f"✅ Die Serie *{series_name}* wurde angefragt und die Suche wurde gestartet.", parse_mode="Markdown")
             else:
                 logger.error(f"Failed to add series '{series_name}' to Sonarr. Status code: {response.status}")
-                await status_message.edit_text(
-                chat_id=update.effective_chat.id, 
-                text=f"🆘 Anfragen der Serie *{series_name}* gescheitert.\nStatus code: *{response.status_code}*", 
-                parse_mode="Markdown"
-                )
+                await status_message.edit_text(f"🆘 Anfragen der Serie *{series_name}* gescheitert.\nStatus code: *{response.status_code}*", parse_mode="Markdown")
+
 
 # Function to get quality profile ID by name from Radarr
 async def get_radarr_quality_profile_id(radarr_url, api_key, profile_name):
@@ -719,12 +692,13 @@ async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.
 
     # Show typing indicator while adding the movie
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
-    # Allow the typing indicator to be shown for a short period
     await asyncio.sleep(0.5)  # Small delay to make sure the typing action is visible
 
-    # Send a progress message
-    status_message = await update.message.reply_text("🎬 Film Anfrage läuft, bitte warten...")
-
+    # Determine where to send the status message (handling both update.message and update.callback_query)
+    if update.message:
+        status_message = await update.message.reply_text("🎬 Film Anfrage läuft, bitte warten...")
+    else:
+        status_message = await update.callback_query.message.reply_text("🎬 Film Anfrage läuft, bitte warten...")
 
     # First, get the TMDb ID for the movie
     tmdb_url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={movie_name}"
@@ -732,14 +706,9 @@ async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.
         async with session.get(tmdb_url) as tmdb_response:
             tmdb_data = await tmdb_response.json()
 
-
     if not tmdb_data['results']:
         logger.error(f"No TMDb results found for the movie '{movie_name}'")
-        await status_message.edit_text(
-        chat_id=update.effective_chat.id, 
-        text=f"🆘 Keine TMDB Ergebnisse für den Film *{movie_name}* gefunden.", 
-        parse_mode="Markdown"
-        )
+        await status_message.edit_text(f"🆘 Keine TMDB Ergebnisse für den Film *{movie_name}* gefunden.", parse_mode="Markdown")
         return
 
     # Use the first search result for simplicity
@@ -748,18 +717,14 @@ async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.
     # Check if the movie is already in Radarr
     if await check_movie_in_radarr(movie_tmdb_id):
         logger.info(f"Movie '{movie_name}' already exists in Radarr, skipping addition.")
-        await status_message.edit_text(
-        chat_id=update.effective_chat.id, 
-        text=f"✅ Der Film *{movie_name}* ist bereits bei StreamNet TV vorhanden.", 
-        parse_mode="Markdown"
-        )
+        await status_message.edit_text(f"✅ Der Film *{movie_name}* ist bereits bei StreamNet TV vorhanden.", parse_mode="Markdown")
         return
 
     # Proceed with adding the movie if it's not found in Radarr
     quality_profile_id = await get_radarr_quality_profile_id(RADARR_URL, RADARR_API_KEY, RADARR_QUALITY_PROFILE_NAME)
     if quality_profile_id is None:
         logger.error("Quality profile not found in Radarr.")
-        await status_message.edit_text(chat_id=update.effective_chat.id, text="🆘 Quality Profil in Radarr nicht gefunden.")
+        await status_message.edit_text("🆘 Quality Profil in Radarr nicht gefunden.")
         return
 
     data = {
@@ -786,32 +751,17 @@ async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.
                     async with session.post(f"{RADARR_URL}/api/v3/command", json=search_data, params={"apikey": RADARR_API_KEY}) as search_response:
                         if search_response.status == 201:
                             logger.info(f"Manual search for movie '{movie_name}' started.")
-                            await status_message.edit_text(
-                            chat_id=update.effective_chat.id, 
-                            text=f"✅ Der Film *{movie_name}* wurde angefragt. Manuelle Suche wurde gestartet.", 
-                            parse_mode="Markdown"
-                            )
+                            await status_message.edit_text(f"✅ Der Film *{movie_name}* wurde angefragt. Manuelle Suche wurde gestartet.", parse_mode="Markdown")
                         else:
                             logger.error(f"Failed to start manual search for movie '{movie_name}'. Status code: {search_response.status_code}")
-                            await status_message.edit_text(
-                            chat_id=update.effective_chat.id, 
-                            text=f"🆘 Suche für den Film *{movie_name}* gescheitert.", 
-                            parse_mode="Markdown"
-                            )
+                            await status_message.edit_text(f"🆘 Suche für den Film *{movie_name}* gescheitert.", parse_mode="Markdown")
                 else:
                     logger.info(f"Search for movie '{movie_name}' started automatically.")
-                    await status_message.edit_text(
-                    chat_id=update.effective_chat.id, 
-                    text=f"✅ Der Film *{movie_name}* wurde angefragt und die Suche wurde gestartet.", 
-                    parse_mode="Markdown"
-                    )
+                    await status_message.edit_text(f"✅ Der Film *{movie_name}* wurde angefragt und die Suche wurde gestartet.", parse_mode="Markdown")
             else:
                 logger.error(f"Failed to add movie '{movie_name}' to Radarr. Status code: {response.status}")
-                await status_message.edit_text(
-                chat_id=update.effective_chat.id, 
-                text=f"🆘 Anfragen des Films *{movie_name}* gescheitert.\nStatus code: *{response.status_code}*", 
-                parse_mode="Markdown"
-                )
+                await status_message.edit_text(f"🆘 Anfragen des Films *{movie_name}* gescheitert.\nStatus code: *{response.status_code}*", parse_mode="Markdown")
+
 
 # Command to set the group ID
 async def set_group_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
