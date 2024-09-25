@@ -281,60 +281,12 @@ def extract_year_from_input(selected_title):
 # Handle the user's media selection and display media details before confirming
 async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
-    # Get the user's selected title and normalize it by extracting the year
-    selected_title = extract_year_from_input(update.message.text.strip().lower())
-    logger.info(f"User selected title: {selected_title}")
-
-    media_options = context.user_data.get('media_options', None)
-    if not media_options:
-        await update.message.reply_text("Keine Ergebnisse gefunden. Bitte versuche es erneut.")
-        logger.error("No media options found in user data.")
-        return
-    
-    # Show the typing indicator while the bot is working
-    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
-    # Allow the typing indicator to be shown for a short period
-    await asyncio.sleep(0.5)  # Small delay to make sure the typing action is visible
-
-
-    # Log the available media options for debugging
-    available_titles = []
-    for option in media_options:
-        media_type = option['media_type']
-        media_title = option.get('title') if media_type == 'movie' else option.get('name')
-        release_date = option.get('release_date', option.get('first_air_date', 'N/A'))
-        release_year = release_date[:4] if release_date != 'N/A' else 'N/A'
-        full_title = f"{media_title} ({release_year})".lower()
-        available_titles.append(full_title)
-    
-    logger.info(f"Available media options: {available_titles}")
-
-    # Find the selected media from the options
-    media = None
-    for option in media_options:
-        media_type = option['media_type']
-        media_title = option.get('title') if media_type == 'movie' else option.get('name')
-        
-        # Extract the release year from the date
-        release_date = option.get('release_date', option.get('first_air_date', 'N/A'))
-        release_year = release_date[:4] if release_date != 'N/A' else 'N/A'
-        
-        # Build the full title with release year
-        full_title = f"{media_title} ({release_year})".lower()
-
-        # Perform a case-insensitive and whitespace-tolerant comparison
-        if selected_title == full_title:
-            media = option
-            logger.info(f"Selected media found: {media_title} ({release_year})")
-            break
-
+    # Get the user's selected media from user_data
+    media = context.user_data.get('selected_media')
     if not media:
         await update.message.reply_text("Ungültige Auswahl. Bitte versuche es erneut.")
-        logger.error("Media selection did not match any option.")
+        logger.error("No selected media found in user data.")
         return
-
-    # Clear the media options after selection
-    context.user_data.pop('media_options', None)
 
     media_title = media['title'] if media['media_type'] == 'movie' else media['name']
     media_type = media['media_type']
@@ -540,14 +492,13 @@ async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAUL
 
         if media_options and 0 <= media_index < len(media_options):
             # Proceed with the selected media
-            media = media_options[media_index]
-            await handle_media_selection(update, context, media)
+            context.user_data['selected_media'] = media_options[media_index]
+            await handle_media_selection(update, context)
         else:
             await query.edit_message_text("Ungültige Auswahl. Bitte versuche es erneut.")
             logger.error("Media selection did not match any option.")
     else:
         # Handle other types of callbacks (e.g., yes/no for adding media)
-        # Your existing logic for handling "yes/no" can go here
         media_info = context.user_data.get('media_info')
 
         if media_info:
@@ -559,7 +510,6 @@ async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAUL
             elif callback_data == f"add_{media_type}_no":
                 await query.edit_message_text(f"Anfrage von *{media_title}* wurde abgebrochen.", parse_mode="Markdown")
                 context.user_data.pop('media_info', None)
-
 
 # Message handler for general text
 async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
