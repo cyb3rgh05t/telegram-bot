@@ -61,6 +61,7 @@ CONFIG_FILE = os.path.join(CONFIG_DIR, 'config.json')
 with open(CONFIG_FILE, 'r') as config_file:
     config = json.load(config_file)
 
+
 TOKEN = config.get("bot").get("TOKEN")
 TIMEZONE = config.get("bot").get("TIMEZONE", "Europe/Berlin")
 IMAGE_URL = config.get("welcome").get("IMAGE_URL")
@@ -158,6 +159,7 @@ def get_current_time():
     return datetime.now(TIMEZONE_OBJ)
 
 # Avoid issues with special characters in MarkdownV2
+# Function to escape special characters for MarkdownV2
 def escape_markdown_v2(text):
     escape_chars = r'([_*\[\]()~`>#+\-=|{}.!])'
     return re.sub(escape_chars, r'\\\1', text)
@@ -217,19 +219,20 @@ async def add_media_response(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
         # Show typing indicator while adding the movie
         await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
+        # Allow the typing indicator to be shown for a short period
         await asyncio.sleep(0.5)  # Small delay to make sure the typing action is visible
 
         if media_type == 'tv':
             await add_series_to_sonarr(title, update, context)
             await update.message.reply_text( 
-                text=f"Die Serie *{title}* wurde angefragt.",
-                parse_mode="Markdown"
+            text=f"Die Serie *{title}* wurde angefragt.",
+            parse_mode="Markdown"
             )
         elif media_type == 'movie':
             await add_movie_to_radarr(title, update, context)
             await update.message.reply_text( 
-                text=f"Der Film *{title}* wurde angefragt.", 
-                parse_mode="Markdown"
+            text=f"Der Film *{title}* wurde angefragt.", 
+            parse_mode="Markdown"
             )
         else:
             await update.message.reply_text("Unerwarteter Fehler aufgetreten. Bitte versuche es erneut")
@@ -249,12 +252,8 @@ async def fetch_media_details(media_type, media_id):
         async with session.get(url) as response:
             media_details = await response.json()
 
-    # Add media_type to media_details so you can use it later
-    media_details['media_type'] = media_type  # Retain the media_type from the original query
-
     logger.info(f"Details fetched successfully for media_id: {media_id}")
     return media_details
-
 
 def rating_to_stars(rating):
     """Convert a TMDb rating (out of 10) to a 10-star emoji string."""
@@ -294,7 +293,9 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
     
     # Show the typing indicator while the bot is working
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
+    # Allow the typing indicator to be shown for a short period
     await asyncio.sleep(0.5)  # Small delay to make sure the typing action is visible
+
 
     # Log the available media options for debugging
     available_titles = []
@@ -375,11 +376,11 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
     if media_type == 'movie':
         if await check_movie_in_radarr(media_id):
             await update.message.reply_text( 
-                text=f"😎 Der Film *{media_title}* ist bereits bei StreamNet TV vorhanden.", 
-                parse_mode="Markdown"
+            text=f"😎 Der Film *{media_title}* ist bereits bei StreamNet TV vorhanden.", 
+            parse_mode="Markdown"
             )
         else:
-            await prompt_user_to_confirm_addition(update, context, media_title, 'movie')
+            await ask_to_add_media(update, context, media_title, 'movie')
             context.user_data['media_info'] = {'title': media_title, 'media_type': 'movie'}
     elif media_type == 'tv':
         external_ids_url = f"https://api.themoviedb.org/3/tv/{media_id}/external_ids?api_key={TMDB_API_KEY}"
@@ -390,19 +391,19 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         tvdb_id = external_ids_data.get('tvdb_id')
         if not tvdb_id:
             await update.message.reply_text(
-                text=f"🆘 Keine TVDB ID gefunden für die Serie *{media_title}*.", 
-                parse_mode="Markdown"
+            text=f"🆘 Keine TVDB ID gefunden für die Serie *{media_title}*.", 
+            parse_mode="Markdown"
             )
             logger.error(f"No TVDB ID found for the series '{media_title}'")
             return
 
         if await check_series_in_sonarr(tvdb_id):
             await update.message.reply_text(
-                text=f"😎 Die Serie *{media_title}* ist bereits bei StreamNet TV vorhanden.", 
-                parse_mode="Markdown"
+            text=f"😎 Die Serie *{media_title}* ist bereits bei StreamNet TV vorhanden.", 
+            parse_mode="Markdown"
             )
         else:
-            await prompt_user_to_confirm_addition(update, context, media_title, 'tv')
+            await ask_to_add_media(update, context, media_title, 'tv')
             context.user_data['media_info'] = {'title': media_title, 'media_type': 'tv', 'tvdb_id': tvdb_id}
 
 
@@ -418,11 +419,11 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
         # Show the typing indicator while the bot is working
         await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
+        # Allow the typing indicator to be shown for a short period
         await asyncio.sleep(0.5)  # Small delay to make sure the typing action is visible
 
         # Send a progress message
         status_message = await update.message.reply_text("🔍 Suche nach Ergebnissen, bitte warten....")
-
 
         # Actual processing logic (searching media)
         url = f"https://api.themoviedb.org/3/search/multi?api_key={TMDB_API_KEY}&query={title}&language={LANGUAGE}"
@@ -441,8 +442,8 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
         if not media_data['results']:
             await status_message.edit_text(
-                text=f"🆘 Keine Ergebnisse gefunden für *{title}*. Bitte versuche einen anderen Titel.", 
-                parse_mode="Markdown"
+            text=f"🆘 Keine Ergebnisse gefunden für *{title}*. Bitte versuche einen anderen Titel.", 
+            parse_mode="Markdown"
             )
             return
 
@@ -497,6 +498,7 @@ async def handle_user_confirmation(update: Update, context: ContextTypes.DEFAULT
 
         # Show typing indicator while adding the movie
         await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
+        # Allow the typing indicator to be shown for a short period
         await asyncio.sleep(0.5)  # Small delay to make sure the typing action is visible
 
 
@@ -516,155 +518,78 @@ async def ask_to_add_media(update: Update, context: ContextTypes.DEFAULT_TYPE, m
 
     # Show typing indicator while adding the movie
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
+    # Allow the typing indicator to be shown for a short period
     await asyncio.sleep(0.5)  # Small delay to make sure the typing action is visible
 
     # Create "Yes" and "No" buttons
     keyboard = [
-        [InlineKeyboardButton("Ja", callback_data=f"add_{media_type}_yes"),
-         InlineKeyboardButton("Nein", callback_data=f"add_{media_type}_no")]
+        [
+            InlineKeyboardButton("Ja", callback_data=f"add_{media_type}_yes"),
+            InlineKeyboardButton("Nein", callback_data=f"add_{media_type}_no"),
+        ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-
+    media_title_escaped = escape_markdown_v2(media_title)
+    # Send the message with buttons
     await update.message.reply_text(
         f"Willst du *{media_title}* anfragen?",
         parse_mode="Markdown",
         reply_markup=reply_markup
     )
 
-# Updated function for handling media callback
-async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query  # Access the callback query object
-    await query.answer()  # Acknowledge the callback query
+# Handle the user's choice when they press "Yes" or "No"
+async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
 
-    # Split the callback data (e.g., 'movie_27205' or 'confirm_movie_27205_yes')
+    # Extract the user's choice from callback data
     callback_data = query.data.split("_")
+    media_type = callback_data[1]
+    choice = callback_data[2]
 
-    # If the callback data is in the form 'movie_27205', it means the user selected a media option
-    if len(callback_data) == 2:
-        media_type = callback_data[0]  # 'movie' or 'tv'
-        media_id = callback_data[1]    # TMDb ID of the selected media
+    media_info = context.user_data.get('media_info')
 
-        # Fetch the media details
-        try:
-            media_details = await fetch_media_details(media_type, media_id)
-            logger.info(f"Fetched media details for {media_type} with ID {media_id}")
+    if media_info:
+        media_title = media_info['title']
+        media_title_escaped = escape_markdown_v2(media_title)
 
-            # Prompt the user to confirm adding this media, but ensure query.message exists
-            if query.message:
-                await prompt_user_to_confirm_addition(query.message, context, media_details)
-            else:
-                logger.error("Query message is None, sending a direct message to the user.")
-                # Send a direct message to the user instead of trying to edit the query message
-                await context.bot.send_message(
-                    chat_id=query.from_user.id,
-                    text="Fehler: Kann nicht bestätigen, keine Nachricht verfügbar."
-                )
+        if choice == 'yes':
+            # User confirmed to add the media
+            if media_type == 'movie':
+                # Show typing indicator while adding the movie
+                await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
+                # Allow the typing indicator to be shown for a short period
+                await asyncio.sleep(0.5)  # Small delay to make sure the typing action is visible
 
-        except Exception as e:
-            logger.error(f"Failed to fetch media details: {e}")
-            if query.message:
-                await query.message.edit_text("Fehler beim Abrufen der Mediendetails. Bitte versuche es später erneut.")
-            else:
-                # If query.message is None, notify the user via a direct message
-                await context.bot.send_message(
-                    chat_id=query.from_user.id,
-                    text="Fehler beim Abrufen der Mediendetails. Bitte versuche es später erneut."
-                )
-                logger.error("Query message is None, cannot edit the message.")
+                await add_movie_to_radarr(media_title, update, context)
+                # await query.edit_message_text(f"Der Film *{media_title_escaped}* wurde angefragt.",pare_mode="MarkdownV2")
+            elif media_type == 'tv':
+                # Show typing indicator while adding the movie
+                await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
+                # Allow the typing indicator to be shown for a short period
+                await asyncio.sleep(0.5)  # Small delay to make sure the typing action is visible
 
-    # If the callback data is in the form 'confirm_movie_27205_yes', it means the user is confirming the addition
-    elif len(callback_data) == 4 and callback_data[0] == 'confirm':
-        media_type = callback_data[1]  # 'movie' or 'tv'
-        media_id = callback_data[2]    # TMDb ID of the selected media
-        choice = callback_data[3]      # 'yes' or 'no'
-
-        # Fetch the media details again (optional, or you can pass along the media details from earlier)
-        try:
-            media_details = await fetch_media_details(media_type, media_id)
-            media_title = media_details['title'] if media_type == 'movie' else media_details['name']
-
-            if query.message:  # Check if query.message is not None
-                if choice == 'yes':
-                    if media_type == 'movie':
-                        await add_movie_to_radarr(media_title, update, context)
-                        await query.message.edit_text(
-                            f"Der Film *{media_title}* wurde angefragt.",
-                            parse_mode="Markdown"
-                        )
-                    elif media_type == 'tv':
-                        await add_series_to_sonarr(media_title, update, context)
-                        await query.message.edit_text(
-                            f"Die Serie *{media_title}* wurde angefragt.",
-                            parse_mode="Markdown"
-                        )
-                else:
-                    await query.message.edit_text(
-                        f"Die Anfrage für *{media_title}* wurde abgebrochen.",
-                        parse_mode="Markdown"
-                    )
-            else:
-                logger.error("Query message is None, sending confirmation as a direct message to the user.")
-                await context.bot.send_message(
-                    chat_id=query.from_user.id,
-                    text=f"Die Anfrage für *{media_title}* wurde abgebrochen.",
-                    parse_mode="Markdown"
-                )
-
-        except Exception as e:
-            logger.error(f"Failed to fetch media details for confirmation: {e}")
-            if query.message:
-                await query.message.edit_text("Fehler beim Abrufen der Mediendetails. Bitte versuche es später erneut.")
-            else:
-                await context.bot.send_message(
-                    chat_id=query.from_user.id,
-                    text="Fehler beim Abrufen der Mediendetails. Bitte versuche es später erneut."
-                )
-                logger.error("Query message is None, cannot edit the message.")
-
-    else:
-        # Invalid callback data format
-        logger.error(f"Invalid callback data format: {query.data}")
-        if query.message:
-            await query.message.edit_text("Fehlerhafte Auswahl. Bitte versuche es erneut.")
-        else:
-            await context.bot.send_message(
-                chat_id=query.from_user.id,
-                text="Fehlerhafte Auswahl. Bitte versuche es erneut."
+                await add_series_to_sonarr(media_title, update, context)
+                # await query.edit_message_text(f"Die Serie *{media_title_escaped}* wurde angefragt.",parse_mode="MarkdownV2")
+        elif choice == 'no':
+            # User declined to add the media
+            await query.edit_message_text(
+            text=f"Anfrage von *{media_title}* wurde abgebrochen.", 
+            parse_mode="Markdown"
             )
-            logger.error("Query message is None, cannot edit the message.")
 
-# Function to prompt user to confirm media addition
-async def prompt_user_to_confirm_addition(message, context: ContextTypes.DEFAULT_TYPE, media_details):
-    media_title = media_details['title'] if media_details['media_type'] == 'movie' else media_details['name']
-
-    # Ask the user for confirmation to add the media
-    keyboard = [
-        [InlineKeyboardButton("Ja", callback_data=f"confirm_{media_details['media_type']}_{media_details['id']}_yes"),
-         InlineKeyboardButton("Nein", callback_data=f"confirm_{media_details['media_type']}_{media_details['id']}_no")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    if message:  # Check if the message exists
-        await message.reply_text(
-            f"Willst du *{media_title}* anfragen?",
-            parse_mode="Markdown",
-            reply_markup=reply_markup
-        )
+        # Clear media_info after the decision
+        context.user_data.pop('media_info', None)
     else:
-        # If message is None, notify the user via direct message
-        logger.error("Message object is None, sending confirmation via direct message.")
-        await context.bot.send_message(
-            chat_id=message.from_user.id,
-            text=f"Willst du *{media_title}* anfragen?",
-            parse_mode="Markdown",
-            reply_markup=reply_markup
-        )
+        await query.edit_message_text("Keine Metadaten gefunden. Bitte versuche es erneut")
+
 
 # Message handler for general text
 async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     # Show typing indicator while adding the movie
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
+    # Allow the typing indicator to be shown for a short period
     await asyncio.sleep(0.5)  # Small delay to make sure the typing action is visible
 
 
@@ -678,6 +603,8 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
         # Handle other general messages
         if night_mode_active or await night_mode_checker(context):
             await restrict_night_mode(update, context)
+
+
 
 # Function to get quality profile ID by name from Sonarr
 async def get_quality_profile_id(sonarr_url, api_key, profile_name):
@@ -710,7 +637,6 @@ async def add_series_to_sonarr(series_name, update: Update, context: ContextType
 
     # Send a progress message
     status_message = await update.message.reply_text("📺 Serien Anfrage läuft, bitte warten...")
-
 
     # First, get the TMDb ID for the series
     tmdb_url = f"https://api.themoviedb.org/3/search/tv?api_key={TMDB_API_KEY}&query={series_name}"
@@ -846,7 +772,7 @@ async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
     # Allow the typing indicator to be shown for a short period
     await asyncio.sleep(0.5)  # Small delay to make sure the typing action is visible
-    
+
     # Send a progress message
     status_message = await update.message.reply_text("🎬 Film Anfrage läuft, bitte warten...")
 
