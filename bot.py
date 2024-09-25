@@ -215,31 +215,36 @@ async def add_media_response(update: Update, context: ContextTypes.DEFAULT_TYPE)
     if media_info:
         title = media_info['title']
         media_type = media_info['media_type']
+        title_escaped = escape_markdown_v2(title)
 
-        # Show typing indicator while adding the movie
+        # Show typing indicator while adding the media
         await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
-        # Allow the typing indicator to be shown for a short period
         await asyncio.sleep(0.5)  # Small delay to make sure the typing action is visible
 
+        # Check whether the update is from a normal message or a callback query
+        if update.message:
+            status_message = await update.message.reply_text("👀 Anfrage läuft, bitte warten...")
+        else:
+            status_message = await update.callback_query.message.reply_text("👀 Anfrage läuft, bitte warten...")
+
+        # Handle TV shows (Sonarr) or movies (Radarr)
         if media_type == 'tv':
             await add_series_to_sonarr(title, update, context)
-            await update.message.reply_text( 
-            text=f"Die Serie *{title}* wurde angefragt.",
-            parse_mode="Markdown"
-            )
+            await status_message.edit_text(f"Die Serie *{title}* wurde angefragt.", parse_mode="Markdown")
         elif media_type == 'movie':
             await add_movie_to_radarr(title, update, context)
-            await update.message.reply_text( 
-            text=f"Der Film *{title}* wurde angefragt.", 
-            parse_mode="Markdown"
-            )
+            await status_message.edit_text(f"Der Film *{title}* wurde angefragt.", parse_mode="Markdown")
         else:
-            await update.message.reply_text("Unerwarteter Fehler aufgetreten. Bitte versuche es erneut")
+            await status_message.edit_text("Unerwarteter Fehler aufgetreten. Bitte versuche es erneut.")
 
         # Clear media_info after adding the media
         context.user_data.pop('media_info', None)
     else:
-        await update.message.reply_text("Keine Metadaten Ergebnisse gefunden. Bitte versuche es erneut.")
+        # If no media_info found, send a message about the missing metadata
+        if update.message:
+            await update.message.reply_text("Keine Metadaten Ergebnisse gefunden. Bitte versuche es erneut.")
+        else:
+            await update.callback_query.message.reply_text("Keine Metadaten Ergebnisse gefunden. Bitte versuche es erneut.")
 
 # Function to fetch additional details of the movie/TV show from TMDb
 async def fetch_media_details(media_type, media_id):
@@ -332,7 +337,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
 
     # Now check if the media already exists in Radarr or Sonarr
     # Send status message that it's checking if the media exists
-    checking_status_message = await update.callback_query.message.reply_text("📂 Überprüfe ob der Titel bereits vorhanden ist...")
+    checking_status_message = await update.callback_query.message.reply_text("👀 Überprüfe ob der Titel bereits vorhanden ist...")
     
     if media_type == 'movie':
         if await check_movie_in_radarr(media_id):
