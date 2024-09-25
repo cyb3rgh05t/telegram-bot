@@ -330,13 +330,15 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
     else:
         await status_message.edit_text(text=message, parse_mode="Markdown")
 
-    # Check if the media already exists in Radarr or Sonarr
-    media_title_escaped = escape_markdown_v2(media_title)
+    # Now check if the media already exists in Radarr or Sonarr
+    # Send status message that it's checking if the media exists
+    checking_status_message = await update.callback_query.message.reply_text("📂 Überprüfe ob der Titel bereits vorhanden ist...")
+    
     if media_type == 'movie':
         if await check_movie_in_radarr(media_id):
-            await update.callback_query.message.reply_text( 
-            text=f"✅ Der Film *{media_title}* ist bereits bei StreamNet TV vorhanden.", 
-            parse_mode="Markdown"
+            await checking_status_message.edit_text(
+                text=f"✅ Der Film *{media_title}* ist bereits bei StreamNet TV vorhanden.", 
+                parse_mode="Markdown"
             )
         else:
             await ask_to_add_media(update, context, media_title, 'movie')
@@ -349,23 +351,21 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
 
         tvdb_id = external_ids_data.get('tvdb_id')
         if not tvdb_id:
-            await update.callback_query.message.reply_text(
-            text=f"🆘 Keine TVDB ID gefunden für die Serie *{media_title}*.", 
-            parse_mode="Markdown"
+            await checking_status_message.edit_text(
+                text=f"🆘 Keine TVDB ID gefunden für die Serie *{media_title}*.", 
+                parse_mode="Markdown"
             )
             logger.error(f"No TVDB ID found for the series '{media_title}'")
             return
 
         if await check_series_in_sonarr(tvdb_id):
-            await update.callback_query.message.reply_text(
-            text=f"✅ Die Serie *{media_title}* ist bereits bei StreamNet TV vorhanden.", 
-            parse_mode="Markdown"
+            await checking_status_message.edit_text(
+                text=f"✅ Die Serie *{media_title}* ist bereits bei StreamNet TV vorhanden.", 
+                parse_mode="Markdown"
             )
         else:
             await ask_to_add_media(update, context, media_title, 'tv')
             context.user_data['media_info'] = {'title': media_title, 'media_type': 'tv', 'tvdb_id': tvdb_id}
-
-
 
 
 # Search for a movie or TV show using TMDB API with multiple results handling
