@@ -323,11 +323,15 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
     full_release_date = media_details.get('release_date', media_details.get('first_air_date', 'N/A'))
     release_year_detailed = full_release_date[:4] if full_release_date != 'N/A' else 'N/A'
 
-    # Prepare the message with media details and star rating
+     # Generate the TMDb URL
+    tmdb_url = f"https://www.themoviedb.org/{'movie' if media_type == 'movie' else 'tv'}/{media_id}"
+
+    # Prepare the message with media details, star rating, and the TMDb URL
     message = (
         f"🎬 *{media_title}* ({release_year_detailed}) \n\n"
         f"{star_rating} - {rating}/10\n"
-        f"\n{media_details.get('overview', 'No summary available.')}"
+        f"{media_details.get('overview', 'No summary available.')}\n\n"
+        f"[Weitere Infos bei TMDb]({tmdb_url})"  # Adding the TMDb URL link at the bottom
     )
 
     # Send media details regardless of existence in Sonarr/Radarr
