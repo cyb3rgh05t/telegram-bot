@@ -230,10 +230,10 @@ async def add_media_response(update: Update, context: ContextTypes.DEFAULT_TYPE)
         # Handle TV shows (Sonarr) or movies (Radarr)
         if media_type == 'tv':
             await add_series_to_sonarr(title, update, context)
-            await status_message.edit_text(f"Die Serie *{title}* wurde angefragt.", parse_mode="Markdown")
+            #await status_message.edit_text(f"Die Serie *{title}* wurde angefragt.", parse_mode="Markdown")
         elif media_type == 'movie':
             await add_movie_to_radarr(title, update, context)
-            await status_message.edit_text(f"Der Film *{title}* wurde angefragt.", parse_mode="Markdown")
+            #await status_message.edit_text(f"Der Film *{title}* wurde angefragt.", parse_mode="Markdown")
         else:
             await status_message.edit_text("Unerwarteter Fehler aufgetreten. Bitte versuche es erneut.")
 
