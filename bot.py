@@ -215,17 +215,16 @@ async def add_media_response(update: Update, context: ContextTypes.DEFAULT_TYPE)
     if media_info:
         title = media_info['title']
         media_type = media_info['media_type']
-        title_escaped = escape_markdown_v2(title)
 
         # Show typing indicator while adding the media
         await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
         await asyncio.sleep(0.5)  # Small delay to make sure the typing action is visible
 
         # Check whether the update is from a normal message or a callback query
-        if update.message:
-            status_message = await update.message.reply_text("👀 Anfrage läuft, bitte warten...")
-        else:
-            status_message = await update.callback_query.message.reply_text("👀 Anfrage läuft, bitte warten...")
+        #if update.message:
+        #    status_message = await update.message.reply_text("👀 Anfrage läuft, bitte warten...")
+        #else:
+        #    status_message = await update.callback_query.message.reply_text("👀 Anfrage läuft, bitte warten...")
 
         # Handle TV shows (Sonarr) or movies (Radarr)
         if media_type == 'tv':
@@ -235,7 +234,11 @@ async def add_media_response(update: Update, context: ContextTypes.DEFAULT_TYPE)
             await add_movie_to_radarr(title, update, context)
             #await status_message.edit_text(f"Der Film *{title}* wurde angefragt.", parse_mode="Markdown")
         else:
-            await status_message.edit_text("Unerwarteter Fehler aufgetreten. Bitte versuche es erneut.")
+        # If no media_info found, send a message about the missing metadata
+         if update.message:
+            await update.message.reply_text("Unerwarteter Fehler aufgetreten. Bitte versuche es erneut.")
+         else:
+            await update.callback_query.message.reply_text("Unerwarteter Fehler aufgetreten. Bitte versuche es erneut.")
 
         # Clear media_info after adding the media
         context.user_data.pop('media_info', None)
