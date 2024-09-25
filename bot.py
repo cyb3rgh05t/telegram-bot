@@ -369,8 +369,15 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
                 parse_mode="Markdown"
             )
         else:
+            # Update the status message to indicate the media is being added
+            await checking_status_message.edit_text("‼️ Titel wurde nicht gefunden, Anfrage läuft...")
+
+            # Ask the user whether they want to add the media
             await ask_to_add_media(update, context, media_title, 'tv')
+    
+            # Store media information for later confirmation
             context.user_data['media_info'] = {'title': media_title, 'media_type': 'tv', 'tvdb_id': tvdb_id}
+
 
 
 # Search for a movie or TV show using TMDB API with multiple results handling
