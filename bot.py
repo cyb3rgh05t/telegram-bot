@@ -185,7 +185,6 @@ async def check_series_in_sonarr(series_tvdb_id):
         logger.error(f"Unexpected error while checking Sonarr: {e}")
         return False
 
-
 # Function to check if the movie is already in Radarr
 async def check_movie_in_radarr(movie_tmdb_id):
     """Check if the movie is already in Radarr by TMDb ID."""
@@ -206,7 +205,6 @@ async def check_movie_in_radarr(movie_tmdb_id):
     except Exception as e:
         logger.error(f"Unexpected error while checking Radarr: {e}")
         return False
-
 
 # Add media to Sonarr or Radarr after user confirmation
 async def add_media_response(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -329,7 +327,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
     # Prepare the message with media details, star rating, and the TMDb URL
     message = (
         f"🎬 *{media_title}* ({release_year_detailed}) \n\n"
-        f"{star_rating} - {rating}/10\n"
+        f"{star_rating} - {rating}/10\n\n"
         f"{media_details.get('overview', 'No summary available.')}\n\n"
         f"[Weitere Infos bei TMDb]({tmdb_url})"  # Adding the TMDb URL link at the bottom
     )
@@ -400,9 +398,6 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
 
             # Store media information for later confirmation
             context.user_data['media_info'] = {'title': media_title, 'media_type': 'tv', 'tvdb_id': tvdb_id}
-
-
-
 
 # Search for a movie or TV show using TMDB API with multiple results handling
 async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -479,7 +474,6 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         logger.error(f"An unexpected error occurred: {e}")
         await status_message.edit_text("🆘 Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es später erneut.")
 
-
 # Handle user's confirmation (yes/no)
 async def handle_user_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     media_info = context.user_data.get('media_info')
@@ -501,7 +495,6 @@ async def handle_user_confirmation(update: Update, context: ContextTypes.DEFAULT
             await update.message.reply_text("Bitte antworte mit 'yes' oder 'no'.")
     else:
         await update.message.reply_text("Kein Film oder Serie angegeben. Bitte suche zuerst nach einem Film oder Serie.")
-
 
 # Function to ask the user whether they want to add media
 async def ask_to_add_media(update: Update, context: ContextTypes.DEFAULT_TYPE, media_title: str, media_type: str):
@@ -535,7 +528,6 @@ async def ask_to_add_media(update: Update, context: ContextTypes.DEFAULT_TYPE, m
             parse_mode="Markdown",
             reply_markup=reply_markup
         )
-
 
 # Handle the user's choice when they press an InlineKeyboard button
 async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -588,8 +580,6 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
         # Handle other general messages
         if night_mode_active or await night_mode_checker(context):
             await restrict_night_mode(update, context)
-
-
 
 # Function to get quality profile ID by name from Sonarr
 async def get_quality_profile_id(sonarr_url, api_key, profile_name):
@@ -701,7 +691,6 @@ async def add_series_to_sonarr(series_name, update: Update, context: ContextType
                 logger.error(f"Failed to add series '{series_name}' to Sonarr. Status code: {response.status}")
                 await status_message.edit_text(f"🆘 Anfragen der Serie *{series_name}* gescheitert.\nStatus code: *{response.status_code}*", parse_mode="Markdown")
 
-
 # Function to get quality profile ID by name from Radarr
 async def get_radarr_quality_profile_id(radarr_url, api_key, profile_name):
     try:
@@ -797,7 +786,6 @@ async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.
             else:
                 logger.error(f"Failed to add movie '{movie_name}' to Radarr. Status code: {response.status}")
                 await status_message.edit_text(f"🆘 Anfragen des Films *{movie_name}* gescheitert.\nStatus code: *{response.status_code}*", parse_mode="Markdown")
-
 
 # Command to set the group ID
 async def set_group_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -907,12 +895,12 @@ async def main() -> None:
     application = ApplicationBuilder().token(TOKEN).build()
 
     # Register the command handler
-    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("start","hallo" start))
     application.add_handler(CommandHandler("set_group_id", set_group_id))
     application.add_handler(CommandHandler("set_language", set_language))
     application.add_handler(CommandHandler("enable_night_mode", enable_night_mode))
     application.add_handler(CommandHandler("disable_night_mode", disable_night_mode))
-    application.add_handler(CommandHandler("search", search_media))
+    application.add_handler(CommandHandler("search", "suche", search_media))
     
     # Register callback query handler for buttons
     application.add_handler(CallbackQueryHandler(handle_add_media_callback))
