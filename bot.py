@@ -532,7 +532,7 @@ async def ask_to_add_media(update: Update, context: ContextTypes.DEFAULT_TYPE, m
         reply_markup=reply_markup
     )
 
-# Callback query handler for handling media selection or confirmation
+# Updated function for handling media callback
 async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query  # Access the callback query object
     await query.answer()  # Acknowledge the callback query
@@ -550,10 +550,14 @@ async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAUL
             media_details = await fetch_media_details(media_type, media_id)
             logger.info(f"Fetched media details for {media_type} with ID {media_id}")
 
-            # Prompt the user to confirm adding this media
+            # Prompt the user to confirm adding this media, ensuring query.message exists
             if query.message:
                 await prompt_user_to_confirm_addition(query.message, context, media_details)
             else:
+                # If query.message is None, reply to the user's latest message
+                await query.from_user.send_message(
+                    text="Fehler: Kann nicht bestätigen, keine Nachricht verfügbar."
+                )
                 logger.error("Query message is None, cannot reply with media details.")
 
         except Exception as e:
@@ -561,6 +565,9 @@ async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAUL
             if query.message:
                 await query.message.edit_text("Fehler beim Abrufen der Mediendetails. Bitte versuche es später erneut.")
             else:
+                await query.from_user.send_message(
+                    text="Fehler beim Abrufen der Mediendetails. Bitte versuche es später erneut."
+                )
                 logger.error("Query message is None, cannot edit the message.")
 
     # If the callback data is in the form 'confirm_movie_27205_yes', it means the user is confirming the addition
@@ -594,6 +601,11 @@ async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAUL
                         parse_mode="Markdown"
                     )
             else:
+                # If query.message is None, notify the user via direct message
+                await query.from_user.send_message(
+                    text=f"Die Anfrage für *{media_title}* wurde abgebrochen.",
+                    parse_mode="Markdown"
+                )
                 logger.error("Query message is None, cannot edit the message.")
 
         except Exception as e:
@@ -601,6 +613,9 @@ async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAUL
             if query.message:
                 await query.message.edit_text("Fehler beim Abrufen der Mediendetails. Bitte versuche es später erneut.")
             else:
+                await query.from_user.send_message(
+                    text="Fehler beim Abrufen der Mediendetails. Bitte versuche es später erneut."
+                )
                 logger.error("Query message is None, cannot edit the message.")
 
     else:
@@ -609,6 +624,9 @@ async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAUL
         if query.message:
             await query.message.edit_text("Fehlerhafte Auswahl. Bitte versuche es erneut.")
         else:
+            await query.from_user.send_message(
+                text="Fehlerhafte Auswahl. Bitte versuche es erneut."
+            )
             logger.error("Query message is None, cannot edit the message.")
 
 # Function to prompt user to confirm media addition
@@ -622,11 +640,21 @@ async def prompt_user_to_confirm_addition(message, context: ContextTypes.DEFAULT
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await message.reply_text(
-        f"Willst du *{media_title}* anfragen?",
-        parse_mode="Markdown",
-        reply_markup=reply_markup
-    )
+    if message:  # Check if the message exists
+        await message.reply_text(
+            f"Willst du *{media_title}* anfragen?",
+            parse_mode="Markdown",
+            reply_markup=reply_markup
+        )
+    else:
+        # If message is None, notify the user via direct message
+        await message.from_user.send_message(
+            f"Willst du *{media_title}* anfragen?",
+            parse_mode="Markdown",
+            reply_markup=reply_markup
+        )
+        logger.error("Message object is None, replying via direct message instead.")
+
 
 # Message handler for general text
 async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
