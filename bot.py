@@ -284,7 +284,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
     # Get the user's selected media from user_data
     media = context.user_data.get('selected_media')
     if not media:
-        await update.message.reply_text("Ungültige Auswahl. Bitte versuche es erneut.")
+        await update.callback_query.message.reply_text("Ungültige Auswahl. Bitte versuche es erneut.")
         logger.error("No selected media found in user data.")
         return
 
@@ -297,7 +297,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         media_details = await fetch_media_details(media_type, media_id)
         logger.info(f"Fetched media details for {media_title} (TMDb ID: {media_id})")
     except Exception as e:
-        await update.message.reply_text("Fehler beim laden der Metadaten. Bitte versuche es später erneut.")
+        await update.callback_query.message.reply_text("Fehler beim Laden der Metadaten. Bitte versuche es später erneut.")
         logger.error(f"Failed to fetch media details: {e}")
         return
 
@@ -319,15 +319,15 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
     # Send media details regardless of existence in Sonarr/Radarr
     if media_details.get('poster_path'):
         poster_url = f"https://image.tmdb.org/t/p/w500{media_details['poster_path']}"
-        await update.message.reply_photo(photo=poster_url, caption=message, parse_mode="Markdown")
+        await update.callback_query.message.reply_photo(photo=poster_url, caption=message, parse_mode="Markdown")
     else:
-        await update.message.reply_text(text=message, parse_mode="Markdown")
+        await update.callback_query.message.reply_text(text=message, parse_mode="Markdown")
 
     # Check if the media already exists in Radarr or Sonarr
     media_title_escaped = escape_markdown_v2(media_title)
     if media_type == 'movie':
         if await check_movie_in_radarr(media_id):
-            await update.message.reply_text( 
+            await update.callback_query.message.reply_text( 
             text=f"😎 Der Film *{media_title}* ist bereits bei StreamNet TV vorhanden.", 
             parse_mode="Markdown"
             )
@@ -342,7 +342,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
 
         tvdb_id = external_ids_data.get('tvdb_id')
         if not tvdb_id:
-            await update.message.reply_text(
+            await update.callback_query.message.reply_text(
             text=f"🆘 Keine TVDB ID gefunden für die Serie *{media_title}*.", 
             parse_mode="Markdown"
             )
@@ -350,13 +350,14 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
             return
 
         if await check_series_in_sonarr(tvdb_id):
-            await update.message.reply_text(
+            await update.callback_query.message.reply_text(
             text=f"😎 Die Serie *{media_title}* ist bereits bei StreamNet TV vorhanden.", 
             parse_mode="Markdown"
             )
         else:
             await ask_to_add_media(update, context, media_title, 'tv')
             context.user_data['media_info'] = {'title': media_title, 'media_type': 'tv', 'tvdb_id': tvdb_id}
+
 
 
 # Search for a movie or TV show using TMDB API with multiple results handling
