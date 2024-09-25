@@ -895,7 +895,7 @@ async def main() -> None:
     application = ApplicationBuilder().token(TOKEN).build()
 
     # Register the command handler
-    application.add_handler(CommandHandler("start","hallo" start))
+    application.add_handler(CommandHandler("start", "hallo", start))
     application.add_handler(CommandHandler("set_group_id", set_group_id))
     application.add_handler(CommandHandler("set_language", set_language))
     application.add_handler(CommandHandler("enable_night_mode", enable_night_mode))
