@@ -472,7 +472,6 @@ async def ask_to_add_media(update: Update, context: ContextTypes.DEFAULT_TYPE, m
 
     # Show typing indicator while adding the movie
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
-    # Allow the typing indicator to be shown for a short period
     await asyncio.sleep(0.5)  # Small delay to make sure the typing action is visible
 
     # Create "Yes" and "No" buttons
@@ -483,13 +482,24 @@ async def ask_to_add_media(update: Update, context: ContextTypes.DEFAULT_TYPE, m
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
+    media_title_escaped = escape_markdown_v2(media_title)
 
-    # Send the message with buttons
-    await update.message.reply_text(
-        f"Willst du *{media_title}* anfragen?",
-        parse_mode="Markdown",
-        reply_markup=reply_markup
-    )
+    # Check if the message is coming from a callback query or a normal update
+    if update.message:
+        # This handles a regular message update
+        await update.message.reply_text(
+            f"Willst du *{media_title}* anfragen?",
+            parse_mode="Markdown",
+            reply_markup=reply_markup
+        )
+    else:
+        # This handles a callback query
+        await update.callback_query.message.reply_text(
+            f"Willst du *{media_title}* anfragen?",
+            parse_mode="Markdown",
+            reply_markup=reply_markup
+        )
+
 
 # Handle the user's choice when they press an InlineKeyboard button
 async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
