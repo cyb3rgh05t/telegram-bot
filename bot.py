@@ -287,6 +287,13 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         logger.error("No selected media found in user data.")
         return
 
+    # Show the typing indicator while the bot is working
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
+    await asyncio.sleep(0.5)  # Small delay to make sure the typing action is visible
+
+    # Send a progress message
+    status_message = await update.callback_query.message.reply_text("📄 Metadaten werden geladen, bitte warten...")
+
     media_title = media['title'] if media['media_type'] == 'movie' else media['name']
     media_type = media['media_type']
     media_id = media['id']
@@ -296,7 +303,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         media_details = await fetch_media_details(media_type, media_id)
         logger.info(f"Fetched media details for {media_title} (TMDb ID: {media_id})")
     except Exception as e:
-        await update.callback_query.message.reply_text("Fehler beim Laden der Metadaten. Bitte versuche es später erneut.")
+        await status_message.edit_text("Fehler beim Laden der Metadaten. Bitte versuche es später erneut.")
         logger.error(f"Failed to fetch media details: {e}")
         return
 
@@ -318,15 +325,17 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
     # Send media details regardless of existence in Sonarr/Radarr
     if media_details.get('poster_path'):
         poster_url = f"https://image.tmdb.org/t/p/w500{media_details['poster_path']}"
+        await status_message.edit_text(text="🎬 Metadaten geladen!", parse_mode="Markdown")
         await update.callback_query.message.reply_photo(photo=poster_url, caption=message, parse_mode="Markdown")
     else:
-        await update.callback_query.message.reply_text(text=message, parse_mode="Markdown")
+        await status_message.edit_text(text=message, parse_mode="Markdown")
 
     # Check if the media already exists in Radarr or Sonarr
+    media_title_escaped = escape_markdown_v2(media_title)
     if media_type == 'movie':
         if await check_movie_in_radarr(media_id):
             await update.callback_query.message.reply_text( 
-            text=f"😎 Der Film *{media_title}* ist bereits bei StreamNet TV vorhanden.", 
+            text=f"✅ Der Film *{media_title}* ist bereits bei StreamNet TV vorhanden.", 
             parse_mode="Markdown"
             )
         else:
@@ -349,12 +358,13 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
 
         if await check_series_in_sonarr(tvdb_id):
             await update.callback_query.message.reply_text(
-            text=f"😎 Die Serie *{media_title}* ist bereits bei StreamNet TV vorhanden.", 
+            text=f"✅ Die Serie *{media_title}* ist bereits bei StreamNet TV vorhanden.", 
             parse_mode="Markdown"
             )
         else:
             await ask_to_add_media(update, context, media_title, 'tv')
             context.user_data['media_info'] = {'title': media_title, 'media_type': 'tv', 'tvdb_id': tvdb_id}
+
 
 
 
@@ -609,7 +619,7 @@ async def add_series_to_sonarr(series_name, update: Update, context: ContextType
         logger.info(f"Series '{series_name}' already exists in Sonarr, skipping addition.")
         await status_message.edit_text(
         chat_id=update.effective_chat.id, 
-        text=f"😎 Die Serie *{series_name}* ist bereits bei StreamNet TV vorhanden.", 
+        text=f"✅ Die Serie *{series_name}* ist bereits bei StreamNet TV vorhanden.", 
         parse_mode="Markdown"
         )
         return
