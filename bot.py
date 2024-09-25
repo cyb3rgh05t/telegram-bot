@@ -549,22 +549,25 @@ async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAUL
             media_details = await fetch_media_details(media_type, media_id)
             logger.info(f"Fetched media details for {media_type} with ID {media_id}")
 
-            # Prompt the user to confirm adding this media, ensuring query.message exists
+            # Prompt the user to confirm adding this media, but ensure query.message exists
             if query.message:
                 await prompt_user_to_confirm_addition(query.message, context, media_details)
             else:
-                # If query.message is None, reply to the user's latest message
-                await query.from_user.send_message(
+                logger.error("Query message is None, sending a direct message to the user.")
+                # Send a direct message to the user instead of trying to edit the query message
+                await context.bot.send_message(
+                    chat_id=query.from_user.id,
                     text="Fehler: Kann nicht bestätigen, keine Nachricht verfügbar."
                 )
-                logger.error("Query message is None, cannot reply with media details.")
 
         except Exception as e:
             logger.error(f"Failed to fetch media details: {e}")
             if query.message:
                 await query.message.edit_text("Fehler beim Abrufen der Mediendetails. Bitte versuche es später erneut.")
             else:
-                await query.from_user.send_message(
+                # If query.message is None, notify the user via a direct message
+                await context.bot.send_message(
+                    chat_id=query.from_user.id,
                     text="Fehler beim Abrufen der Mediendetails. Bitte versuche es später erneut."
                 )
                 logger.error("Query message is None, cannot edit the message.")
@@ -600,19 +603,20 @@ async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAUL
                         parse_mode="Markdown"
                     )
             else:
-                # If query.message is None, notify the user via direct message
-                await query.from_user.send_message(
+                logger.error("Query message is None, sending confirmation as a direct message to the user.")
+                await context.bot.send_message(
+                    chat_id=query.from_user.id,
                     text=f"Die Anfrage für *{media_title}* wurde abgebrochen.",
                     parse_mode="Markdown"
                 )
-                logger.error("Query message is None, cannot edit the message.")
 
         except Exception as e:
             logger.error(f"Failed to fetch media details for confirmation: {e}")
             if query.message:
                 await query.message.edit_text("Fehler beim Abrufen der Mediendetails. Bitte versuche es später erneut.")
             else:
-                await query.from_user.send_message(
+                await context.bot.send_message(
+                    chat_id=query.from_user.id,
                     text="Fehler beim Abrufen der Mediendetails. Bitte versuche es später erneut."
                 )
                 logger.error("Query message is None, cannot edit the message.")
@@ -623,7 +627,8 @@ async def handle_add_media_callback(update: Update, context: ContextTypes.DEFAUL
         if query.message:
             await query.message.edit_text("Fehlerhafte Auswahl. Bitte versuche es erneut.")
         else:
-            await query.from_user.send_message(
+            await context.bot.send_message(
+                chat_id=query.from_user.id,
                 text="Fehlerhafte Auswahl. Bitte versuche es erneut."
             )
             logger.error("Query message is None, cannot edit the message.")
@@ -647,13 +652,13 @@ async def prompt_user_to_confirm_addition(message, context: ContextTypes.DEFAULT
         )
     else:
         # If message is None, notify the user via direct message
-        await message.from_user.send_message(
-            f"Willst du *{media_title}* anfragen?",
+        logger.error("Message object is None, sending confirmation via direct message.")
+        await context.bot.send_message(
+            chat_id=message.from_user.id,
+            text=f"Willst du *{media_title}* anfragen?",
             parse_mode="Markdown",
             reply_markup=reply_markup
         )
-        logger.error("Message object is None, replying via direct message instead.")
-
 
 # Message handler for general text
 async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
