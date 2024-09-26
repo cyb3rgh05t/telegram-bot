@@ -14,6 +14,7 @@ from telegram.constants import ChatAction
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, CallbackQueryHandler, ContextTypes
 import pytz
+import sys
 
 # Function to redact sensitive information like tokens and API keys
 def redact_sensitive_info(value, visible_chars=4):
@@ -24,6 +25,7 @@ def redact_sensitive_info(value, visible_chars=4):
 # Log all config entries, redacting sensitive information
 def log_config_entries(config):
     sensitive_keys = ['TOKEN', 'API_KEY', 'SECRET', 'KEY']  # Keys to redact
+    logger.info(f"============================================")
     logger.info("Logging all configuration entries:")
     
     for section, entries in config.items():
@@ -35,29 +37,31 @@ def log_config_entries(config):
                 logger.info(f"  {key}: {value}")
         else:
             logger.info(f"{section}: {entries}")
+    logger.info(f"============================================")
+
 
 # Function to check and log paths
 def check_and_log_paths():
     # Check if config directory exists
     if not os.path.exists(CONFIG_DIR):
         os.makedirs(CONFIG_DIR)
-        logger.info(f"=====================================================")
+        logger.info(f"")
         logger.info(f"Config directory '{CONFIG_DIR}' not found. Created the directory.")
-        logger.info(f"=====================================================")
+        logger.info(f"")
     else:
-        logger.info(f"=====================================================")
+        logger.info(f"")
         logger.info(f"Config directory '{CONFIG_DIR}' already exists.")
-        logger.info(f"=====================================================")
+        logger.info(f"")
 
     # Check if database file exists
     if not os.path.exists(DATABASE_FILE):
-        logger.info(f"=====================================================")
+        logger.info(f"")
         logger.info(f"Database file '{DATABASE_FILE}' does not exist. It will be created automatically.")
-        logger.info(f"=====================================================")
+        logger.info(f"")
     else:
-        logger.info(f"=====================================================")
+        logger.info(f"")
         logger.info(f"Database file '{DATABASE_FILE}' already exists.")
-        logger.info(f"=====================================================")
+        logger.info(f"")
 
 # Apply nest_asyncio to handle running loops
 nest_asyncio.apply()
@@ -65,6 +69,9 @@ nest_asyncio.apply()
 # Load bot configuration from config/config.json
 CONFIG_DIR = "config"
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'config.json')
+
+# Path for SQLite database file in the config folder
+DATABASE_FILE = os.path.join(CONFIG_DIR, "group_data.db")
 
 with open(CONFIG_FILE, 'r') as config_file:
     config = json.load(config_file)
@@ -120,38 +127,29 @@ def load_version_info(file_path):
         logger.error(f"Failed to load version info: {e}")
     return version_info
 
-# Log all configuration entries
-log_config_entries(config)
-
-# Path for SQLite database file in the config folder
-DATABASE_FILE = os.path.join(CONFIG_DIR, "group_data.db")
-
-# Check and log the paths for config and database
-check_and_log_paths()
-
 # Log the successful retrieval of the token with only first and last 4 characters visible
 if TOKEN:
     redacted_token = redact_sensitive_info(TOKEN)
-    logger.info(f"=====================================================")
+    logger.info(f"")
     logger.info(f"Token retrieved successfully:")
     logger.info(f"{redacted_token}")
-    logger.info(f"=====================================================")
+    logger.info(f"")
 else:
-    logger.error(f"=====================================================")
-    logger.error("Failed to retrieve bot token from config.")
-    logger.error(f"=====================================================")
+    logger.error(f"")
+    logger.error("Failed to retrieve bot token from config. <-----")
+    logger.error(f"")
 
 # Timezone configuration
 try:
     TIMEZONE_OBJ = ZoneInfo(TIMEZONE)
-    logger.info(f"=====================================================")
+    logger.info(f"")
     logger.info(f"Timezone is set to '{TIMEZONE}'.")
-    logger.info(f"=====================================================")
+    logger.info(f"")
 except Exception as e:
-    logger.error(f"=====================================================")
-    logger.error(f"Invalid timezone '{TIMEZONE}' in config.json.")
+    logger.error(f"")
+    logger.error(f"Invalid timezone '{TIMEZONE}' in config.json. <-----")
     logger.error(f"Defaulting to 'Europe/Berlin'. {e}")
-    logger.error(f"=====================================================")
+    logger.error(f"")
     TIMEZONE_OBJ = ZoneInfo("Europe/Berlin")
 
 # Initialize SQLite connection and create table for storing group ID and language
@@ -172,11 +170,11 @@ def load_group_id():
         cursor.execute("SELECT group_chat_id, language FROM group_data WHERE id=1")
         row = cursor.fetchone()
     if row:
-        logger.info(f"=====================================================")
+        logger.info(f"")
         logger.info(f"Loaded existing Group Chat ID: {row[0]}")
-        logger.info(f"=====================================================")
+        logger.info(f"")
         logger.info(f"Loaded existing Tmdb Language: {row[1]}")
-        logger.info(f"=====================================================")
+        logger.info(f"")
         return row[0], row[1]
     return None, DEFAULT_LANGUAGE
 
@@ -191,13 +189,13 @@ def save_group_id(group_chat_id, language):
 init_db()
 GROUP_CHAT_ID, LANGUAGE = load_group_id()
 if GROUP_CHAT_ID is None:
-    logger.info(f"=====================================================")
-    logger.info("Group Chat ID not set. Please use /set_group_id.")
-    logger.info(f"=====================================================")
+    logger.info(f"")
+    logger.info("Group Chat ID not set. Please use /set_group_id. <-----")
+    logger.info(f"")
 else:
-    logger.info(f"=====================================================")
+    logger.info(f"")
     logger.info(f"Group Chat ID is already set to: {GROUP_CHAT_ID}")
-    logger.info(f"=====================================================")
+    logger.info(f"")
 
 # Global variable to track if night mode is active
 night_mode_active = False
@@ -981,6 +979,7 @@ async def main() -> None:
 
     # Print the logo at startup
     print_logo()
+    sys.stdout.flush()  # Ensure the logo output is flushed to the console
     
     try:
         # Load version info and log it
@@ -999,6 +998,12 @@ async def main() -> None:
            logger.info(f"https://github.com/cyb3rgh05t/telegram_bot")
            logger.info(f"")
            logger.info(f"=====================================================")
+
+           # Log all configuration entries
+           log_config_entries(config)
+
+           # Check and log the paths for config and database
+           check_and_log_paths()
 
            application = ApplicationBuilder().token(TOKEN).build()
 
