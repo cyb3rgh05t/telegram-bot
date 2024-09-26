@@ -918,11 +918,11 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 # Start bot function
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
-    await update.message.reply_html(
-        rf"Hi {user.mention_html()}!\n\n"
-        "Willkommen bei StreamNet TV\n"
-        "Ich bin Mr.StreamNet - der Butler des Hauses.\n\n"
-        "Ich stehe dir zur Verfügung, um deine Medienanfragen zu verwalten und vieles Mehr.\n"
+    await update.message.reply_markdown_v2(
+        rf"Hi {user.mention_markdown_v2()}!{chr(10)}"  # New line using chr(10)
+        "Willkommen bei StreamNet TV{chr(10)}"
+        "Ich bin Mr.StreamNet - der Butler des Hauses.{chr(10)}"
+        "Ich stehe dir zur Verfügung, um deine Medienanfragen zu verwalten und vieles Mehr.{chr(10)}"
         'Wenn du Hilfe benötigst, klicke bitte <a href="tg://resolve?domain=help">hier</a>.',
         reply_markup=ReplyKeyboardRemove()
     )
