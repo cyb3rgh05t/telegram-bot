@@ -125,27 +125,6 @@ def load_version_info(file_path):
         logger.error(f"Failed to load version info: {e}")
     return version_info
 
-async def main() -> None:
-    # Print the logo at startup
-    print_logo()
-
-    # Load version info and log it
-    version_info = load_version_info('version.txt')
-
-    # Log bot information
-    if version_info:
-        logger.info(f"=====================================================")
-        logger.info(f"")
-        logger.info(f"Bot Version: {version_info.get('Version', 'Unknown')}")
-        logger.info(f"Author: {version_info.get('Author', 'Unknown')}")
-        logger.info(f"")
-        logger.info(f"=====================================================")
-        logger.info(f"")
-        logger.info(f"To support this project, please visite")
-        logger.info(f"https://github.com/cyb3rgh05t/telegram_bot")
-        logger.info(f"")
-        logger.info(f"=====================================================")
-
 # Log all configuration entries
 log_config_entries(config)
 
@@ -974,6 +953,27 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 # Main bot function
 async def main() -> None:
+
+    # Print the logo at startup
+    print_logo()
+
+    # Load version info and log it
+    version_info = load_version_info('version.txt')
+
+    # Log bot information
+    if version_info:
+        logger.info(f"=====================================================")
+        logger.info(f"")
+        logger.info(f"Bot Version: {version_info.get('Version', 'Unknown')}")
+        logger.info(f"Author: {version_info.get('Author', 'Unknown')}")
+        logger.info(f"")
+        logger.info(f"=====================================================")
+        logger.info(f"")
+        logger.info(f"To support this project, please visite")
+        logger.info(f"https://github.com/cyb3rgh05t/telegram_bot")
+        logger.info(f"")
+        logger.info(f"=====================================================")
+
     application = ApplicationBuilder().token(TOKEN).build()
 
     # Register the command handler
