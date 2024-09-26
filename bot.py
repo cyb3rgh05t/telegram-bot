@@ -25,10 +25,10 @@ def redact_sensitive_info(value, visible_chars=4):
 # Log all config entries, redacting sensitive information
 def log_config_entries(config):
     sensitive_keys = ['TOKEN', 'API_KEY', 'SECRET', 'KEY']  # Keys to redact
-    logger(f"=====================================================")
-    logger(f"")
+    logger.info(f"=====================================================")
+    logger.info(f"")
     logger.info("Logging all configuration entries:")
-    logger(f"")
+    logger.info(f"")
     
     for section, entries in config.items():
         if isinstance(entries, dict):
@@ -39,8 +39,8 @@ def log_config_entries(config):
                 logger.info(f"  {key}: {value}")
         else:
             logger.info(f"{section}: {entries}")
-    logger(f"")
-    logger(f"=====================================================")
+    logger.info(f"")
+    logger.info(f"=====================================================")
 
 # Function to load version and author info from a file
 def load_version_info(file_path):
@@ -59,21 +59,21 @@ def check_and_log_paths():
     # Check if config directory exists
     if not os.path.exists(CONFIG_DIR):
         os.makedirs(CONFIG_DIR)
-        logger(f"")
+        logger.info(f"")
         logger.info(f"Config directory '{CONFIG_DIR}' not found. Created the directory.")
     else:
-        logger(f"")
+        logger.info(f"")
         logger.info(f"Config directory '{CONFIG_DIR}' already exists.")
 
     # Check if database file exists
     if not os.path.exists(DATABASE_FILE):
-        logger(f"")
+        logger.info(f"")
         logger.info(f"Database file '{DATABASE_FILE}' does not exist. It will be created automatically.")
-        logger(f"")
+        logger.info(f"")
     else:
-        logger(f"")
+        logger.info(f"")
         logger.info(f"Database file '{DATABASE_FILE}' already exists.")
-        logger(f"")
+        logger.info(f"")
 
 # Apply nest_asyncio to handle running loops
 nest_asyncio.apply()
@@ -129,21 +129,21 @@ logger = logging.getLogger(__name__)
 # Log the successful retrieval of the token with only first and last 4 characters visible
 if TOKEN:
     redacted_token = redact_sensitive_info(TOKEN)
-    logger(f"=====================================================")
-    logger(f"")
+    logger.info(f"=====================================================")
+    logger.info(f"")
     logger.info(f"Token retrieved successfully:")
     logger.info(f"{redacted_token}")
 else:
-    logger(f"")
+    logger.error(f"")
     logger.error("Failed to retrieve bot token from config. <-----")
 
 # Timezone configuration
 try:
     TIMEZONE_OBJ = ZoneInfo(TIMEZONE)
-    logger(f"")
+    logger.info(f"")
     logger.info(f"Timezone is set to '{TIMEZONE}'.")
 except Exception as e:
-    logger(f"")
+    logger.error(f"")
     logger.error(f"Invalid timezone '{TIMEZONE}' in config.json. <-----")
     logger.error(f"Defaulting to 'Europe/Berlin'. {e}")
     TIMEZONE_OBJ = ZoneInfo("Europe/Berlin")
@@ -184,10 +184,10 @@ def save_group_id(group_chat_id, language):
 init_db()
 GROUP_CHAT_ID, LANGUAGE = load_group_id()
 if GROUP_CHAT_ID is None:
-    logger(f"")
+    logger.info(f"")
     logger.info("Group Chat ID not set. Please use /set_group_id. <-----")
 else:
-    logger(f"")
+    logger.info(f"")
     logger.info(f"Group Chat ID is already set to: {GROUP_CHAT_ID}")
 
 # Global variable to track if night mode is active
