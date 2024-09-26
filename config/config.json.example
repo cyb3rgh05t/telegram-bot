@@ -4,6 +4,16 @@
         "TIMEZONE": "Europe/Berlin",
         "LOG_LEVEL": "INFO"
     },
+    "commands": {
+    "START": "start",
+    "WELCOME": "welcome",
+    "NIGHTMODE_ENABLE": "night_mode_enable",
+    "NIGHTMODE_DISABLE": "night_mode_disable",
+    "TMDB_LANGUAGE": "set_language",
+    "SET_GROUP_ID": "set_group_id",
+    "HELP": "help",
+    "SEARCH": "search"
+    },
     "welcome": {
         "IMAGE_URL": "URL_TO_YOUR_WELCOME_IMAGE",
         "BUTTON_URL": "URL_TO_YOUR_BUTTON"
