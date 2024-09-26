@@ -120,7 +120,7 @@ SEARCH_COMMAND = config.get("commands").get("SEARCH", "search")
 
 # Configure logging
 logging.basicConfig(
-    format='%(levelname)s - %(message)s',
+    format='%(levelname)s   %(message)s',
     level=getattr(logging, LOG_LEVEL, logging.INFO)
 )
 
@@ -130,7 +130,6 @@ logger = logging.getLogger(__name__)
 if TOKEN:
     redacted_token = redact_sensitive_info(TOKEN)
     logger.info(f"=====================================================")
-    logger.info(f"")
     logger.info(f"Token retrieved successfully:")
     logger.info(f"{redacted_token}")
 else:
@@ -187,10 +186,14 @@ if GROUP_CHAT_ID is None:
     logger.info(f"")
     logger.info("Group Chat ID not set. Please use /set_group_id. <-----")
     logger.info(f"=====================================================")
+    logger.info(f"=====================================================")
+
 else:
     logger.info(f"")
     logger.info(f"Group Chat ID is already set to: {GROUP_CHAT_ID}")
     logger.info(f"=====================================================")
+    logger.info(f"=====================================================")
+
 
 # Global variable to track if night mode is active
 night_mode_active = False
@@ -994,11 +997,11 @@ async def main() -> None:
            logger.info(f"")
            logger.info(f"=====================================================")
 
-           # Log all configuration entries
-           log_config_entries(config)
-
            # Check and log the paths for config and database
            check_and_log_paths()
+
+           # Log all configuration entries
+           log_config_entries(config)
 
            application = ApplicationBuilder().token(TOKEN).build()
 
