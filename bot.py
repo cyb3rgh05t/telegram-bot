@@ -895,25 +895,52 @@ async def welcome_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE
             reply_markup=keyboard
         )
 
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+
 # Help command function
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    help_text = (
-        "Hier sind die Befehle, die du verwenden kannst:\n\n"
-        f'<a href="tg://resolve?domain=start">/start</a> - Willkommensnachricht\n'
-        f'<a href="tg://resolve?domain=welcome">/welcome [user]</a> - Manuelle Willkommensnachricht beim Beitritt (Standard: automatisch)\n'
-        f'<a href="tg://resolve?domain=set_group_id">/set_group_id</a> - Setze die Gruppen-ID (für den Nachtmodus)\n'
-        f'<a href="tg://resolve?domain=set_language">/set_language [code]</a> - Setze die bevorzugte TMDB-Sprache für Mediensuchanfragen\n'
-        f'<a href="tg://resolve?domain=enable_night_mode">/enable_night_mode</a> - Aktiviere den Nachtmodus\n'
-        f'<a href="tg://resolve?domain=disable_night_mode">/disable_night_mode</a> - Deaktiviere den Nachtmodus\n'
-        f'<a href="tg://resolve?domain=search">/search [title]</a> - Suche nach einem Film oder einer TV-Show\n\n'
-        #"/media_info [type] [title] - Get detailed media info\n"
-        #"/add_media [type] [title] - Add media to Sonarr/Radarr\n"
-        #"/check_media [type] [title] - Check if media is available\n"
-        #"/feedback [message] - Send feedback about the bot\n"
-        #"/about - Information about the bot"
-        f'Für weitere Hilfe klicke <a href="tg://resolve?domain=help">hier</a>, um den /help-Befehl erneut zu verwenden.'
+    keyboard = [
+        [InlineKeyboardButton("/start - Willkommensnachricht", callback_data="copy_start")],
+        [InlineKeyboardButton("/welcome [user] - Manuelle Willkommensnachricht beim Beitritt (Standard: automatisch)", callback_data="copy_welcome")],
+        [InlineKeyboardButton("/set_group_id - Setze die Gruppen-ID (für den Nachtmodus)", callback_data="copy_set_group_id")],
+        [InlineKeyboardButton("/set_language [code] - Setze die bevorzugte TMDB-Sprache für Mediensuchanfragen", callback_data="copy_set_language")],
+        [InlineKeyboardButton("/enable_night_mode - Aktiviere den Nachtmodus", callback_data="copy_enable_night_mode")],
+        [InlineKeyboardButton("/disable_night_mode - Deaktiviere den Nachtmodus", callback_data="copy_disable_night_mode")],
+        [InlineKeyboardButton("/search [title] - Suche nach einem Film oder einer TV-Show", callback_data="copy_search")],
+    ]
+    
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.message.reply_text(
+        "Hier sind die Befehle, die du verwenden kannst:\n"
+        "Klicke auf einen Befehl, um ihn zu kopieren:",
+        reply_markup=reply_markup
     )
-    await update.message.reply_html(help_text)
+
+# Handle callback query for copying commands
+async def handle_copy_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()  # Acknowledge the callback
+    
+    command_map = {
+        "copy_start": "/start - Willkommensnachricht",
+        "copy_welcome": "/welcome [user] - Manuelle Willkommensnachricht beim Beitritt (Standard: automatisch)",
+        "copy_set_group_id": "/set_group_id - Setze die Gruppen-ID (für den Nachtmodus)",
+        "copy_set_language": "/set_language [code] - Setze die bevorzugte TMDB-Sprache für Mediensuchanfragen",
+        "copy_enable_night_mode": "/enable_night_mode - Aktiviere den Nachtmodus",
+        "copy_disable_night_mode": "/disable_night_mode - Deaktiviere den Nachtmodus",
+        "copy_search": "/search [title] - Suche nach einem Film oder einer TV-Show",
+    }
+    
+    command = command_map.get(query.data)
+    if command:
+        await query.edit_message_text(
+            text=f"Hier ist der Befehl, den du kopieren kannst: `{command.split(' - ')[0]}`\n\n"
+                 f"Beschreibung: {command.split(' - ')[1]}\n\n"
+                 "Tippe einfach auf den Befehl und halte ihn gedrückt, um ihn zu kopieren.",
+            parse_mode="MarkdownV2"
+        )
+
 
 # Start bot function
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -924,7 +951,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "Willkommen bei StreamNet TV\n"
         "Ich bin Mr.StreamNet - der Butler des Hauses.\n\n"
         "Ich stehe dir zur Verfügung, um deine Medienanfragen zu verwalten und vieles Mehr.\n"
-        'Wenn du Hilfe benötigst, klicke bitte <a href="tg://resolve?domain=help">hier</a>.',
+        'Wenn du Hilfe benötigst, benutze den befehl /help im EingabeFeld.',
         reply_markup=ReplyKeyboardRemove()
     )
 
@@ -943,8 +970,9 @@ async def main() -> None:
     application.add_handler(CommandHandler(NIGHT_MODE_DISABLE_COMMAND, disable_night_mode))
     application.add_handler(CommandHandler(SEARCH_COMMAND, search_media))
     
-    # Register callback query handler for buttons
-    application.add_handler(CallbackQueryHandler(handle_add_media_callback))
+    # Register callback query handlers for buttons
+    application.add_handler(CallbackQueryHandler(handle_copy_command, pattern='^copy_'))
+    application.add_handler(CallbackQueryHandler(handle_add_media_callback, pattern='^add_'))
 
     # Register the message handler for new members
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_members))
