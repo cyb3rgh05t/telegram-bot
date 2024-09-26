@@ -899,52 +899,18 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 # Help command function
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    keyboard = [
-        [InlineKeyboardButton("/start - Willkommensnachricht", callback_data="copy_start")],
-        [InlineKeyboardButton("/welcome [user] - Manuelle Willkommensnachricht beim Beitritt (Standard: automatisch)", callback_data="copy_welcome")],
-        [InlineKeyboardButton("/set_group_id - Setze die Gruppen-ID (für den Nachtmodus)", callback_data="copy_set_group_id")],
-        [InlineKeyboardButton("/set_language [code] - Setze die bevorzugte TMDB-Sprache für Mediensuchanfragen", callback_data="copy_set_language")],
-        [InlineKeyboardButton("/enable_night_mode - Aktiviere den Nachtmodus", callback_data="copy_enable_night_mode")],
-        [InlineKeyboardButton("/disable_night_mode - Deaktiviere den Nachtmodus", callback_data="copy_disable_night_mode")],
-        [InlineKeyboardButton("/search [title] - Suche nach einem Film oder einer TV-Show", callback_data="copy_search")],
-    ]
-    
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await update.message.reply_text(
-        "Hier sind die Befehle, die du verwenden kannst:\n"
-        "Klicke auf einen Befehl, um ihn zu kopieren:",
-        reply_markup=reply_markup
+    help_text = (
+        "Hier sind die Befehle, die du verwenden kannst:\n\n"
+        "/start  - Willkommensnachricht\n"
+        "/welcome [user]  - Manuelle Willkommensnachricht beim Beitritt (standard: auto)\n"
+        "/set_group_id  - Setze die Gruppen-ID (für den Nachtmodus)\n"
+        "/set_language [code]  - Setze die bevorzugte TMDB-Sprache für Mediensuche (standard: eng)\n"
+        "/enable_night_mode  - Aktiviere den Nachtmodus\n"
+        "/disable_night_mode - Deaktiviere den Nachtmodus\n"
+        "/search [title] - Suche nach einem Film oder einer TV-Show\n"
+        "Um einen Befehl auszuführen, tippe ihn einfach in den Chat ein oder kopiere und füge ihn ein."
     )
-
-async def handle_copy_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    await query.answer()  # Acknowledge the callback
-    
-    command_map = {
-        "copy_start": "/start - Willkommensnachricht",
-        "copy_welcome": "/welcome [user] - Manuelle Willkommensnachricht beim Beitritt (Standard: automatisch)",
-        "copy_set_group_id": "/set_group_id - Setze die Gruppen-ID (für den Nachtmodus)",
-        "copy_set_language": "/set_language [code] - Setze die bevorzugte TMDB-Sprache für Mediensuchanfragen",
-        "copy_enable_night_mode": "/enable_night_mode - Aktiviere den Nachtmodus",
-        "copy_disable_night_mode": "/disable_night_mode - Deaktiviere den Nachtmodus",
-        "copy_search": "/search [title] - Suche nach einem Film oder einer TV-Show",
-    }
-    
-    command = command_map.get(query.data)
-    if command:
-        # Escape any special characters for MarkdownV2
-        command_text = command.split(' - ')[0].replace('.', '\\.')  # Escape the dot
-        command_description = command.split(' - ')[1].replace('.', '\\.')  # Escape the dot
-        
-        await query.edit_message_text(
-            text=f"Hier ist der Befehl, den du kopieren kannst: `{command_text}`\n\n"
-                 f"Beschreibung: {command_description}\n\n"
-                 "Tippe einfach auf den Befehl und halte ihn gedrückt, um ihn zu kopieren.",
-            parse_mode="MarkdownV2"
-        )
-
-
+    await update.message.reply_text(help_text)
 
 # Start bot function
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -955,10 +921,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "Willkommen bei StreamNet TV\n"
         "Ich bin Mr.StreamNet - der Butler des Hauses.\n\n"
         "Ich stehe dir zur Verfügung, um deine Medienanfragen zu verwalten und vieles Mehr.\n"
-        'Wenn du Hilfe benötigst, benutze/klicke auf den Befehl /help .',
+        'Wenn du Hilfe benötigst, benutze/klicke auf den Befehl  /help .',
         reply_markup=ReplyKeyboardRemove()
     )
-
 
 # Main bot function
 async def main() -> None:
@@ -975,8 +940,7 @@ async def main() -> None:
     application.add_handler(CommandHandler(SEARCH_COMMAND, search_media))
     
     # Register callback query handlers for buttons
-    application.add_handler(CallbackQueryHandler(handle_copy_command, pattern='^copy_'))
-    application.add_handler(CallbackQueryHandler(handle_add_media_callback, pattern='^add_'))
+    application.add_handler(CallbackQueryHandler(handle_add_media_callback))
 
     # Register the message handler for new members
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_members))
