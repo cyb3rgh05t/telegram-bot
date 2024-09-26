@@ -1,3 +1,8 @@
+# virtual env
 .venv
+
+# configs
 config/config.json
+
+# database
 config/group_data.db

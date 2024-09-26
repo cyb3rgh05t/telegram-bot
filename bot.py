@@ -61,22 +61,35 @@ CONFIG_FILE = os.path.join(CONFIG_DIR, 'config.json')
 with open(CONFIG_FILE, 'r') as config_file:
     config = json.load(config_file)
 
-
+# BOT
 TOKEN = config.get("bot").get("TOKEN")
 TIMEZONE = config.get("bot").get("TIMEZONE", "Europe/Berlin")
+LOG_LEVEL = config.get("bot").get("LOG_LEVEL", "INFO").upper()
+# WELCOME
 IMAGE_URL = config.get("welcome").get("IMAGE_URL")
 BUTTON_URL = config.get("welcome").get("BUTTON_URL")
-LOG_LEVEL = config.get("bot").get("LOG_LEVEL", "INFO").upper()
+# TMDB
 TMDB_API_KEY = config.get("tmdb").get("API_KEY")
+DEFAULT_LANGUAGE = config.get("tmdb").get("DEFAULT_LANGUAGE")
+# SONARR
 SONARR_URL = config.get("sonarr").get("URL")
 SONARR_API_KEY = config.get("sonarr").get("API_KEY")
 SONARR_QUALITY_PROFILE_NAME = config.get("sonarr").get("QUALITY_PROFILE_NAME")
 SONARR_ROOT_FOLDER_PATH = config.get("sonarr").get("ROOT_FOLDER_PATH")
+# RADARR
 RADARR_URL = config.get("radarr").get("URL")
 RADARR_API_KEY = config.get("radarr").get("API_KEY")
 RADARR_QUALITY_PROFILE_NAME = config.get("radarr").get("QUALITY_PROFILE_NAME")
 RADARR_ROOT_FOLDER_PATH = config.get("radarr").get("ROOT_FOLDER_PATH")
-DEFAULT_LANGUAGE = config.get("tmdb").get("DEFAULT_LANGUAGE")
+# COMMANDS
+START_COMMAND = config.get("COMMANDS").get("START", "start")
+WELCOME_COMMAND = config.get("bot").get("COMMANDS").get("WELCOME", "welcome")
+NIGHT_MODE_ENABLE_COMMAND = config.get("COMMANDS").get("NIGHT_MODE_ENABLE", "enable_night_mode")
+NIGHT_MODE_DISABLE_COMMAND = config.get("COMMANDS").get("NIGHT_MODE_DISABLE", "disable_night_mode")
+TMDB_LANGUAGE_COMMAND = config.get("COMMANDS").get("TMDB_LANGUAGE", "set_language")
+SET_GROUP_ID_COMMAND = config.get("COMMANDS").get("SET_GROUP_ID", "set_group_id")
+HELP_COMMAND = config.get("COMMANDS").get("HELP", "help")
+SEARCH_COMMAND = config.get("COMMANDS").get("SEARCH", "search")
 
 # Configure logging
 logging.basicConfig(
@@ -882,25 +895,52 @@ async def welcome_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE
             reply_markup=keyboard
         )
 
+# Help command function
+async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    help_text = (
+        "Hier sind die Befehle, die du verwenden kannst:\n"
+        f'<a href="tg://resolve?domain=start">/start</a> - Willkommensnachricht\n'
+        f'<a href="tg://resolve?domain=welcome">/welcome [user]</a> - Manuelle Willkommensnachricht beim Beitritt (Standard: automatisch)\n'
+        f'<a href="tg://resolve?domain=set_group_id">/set_group_id</a> - Setze die Gruppen-ID (für den Nachtmodus)\n'
+        f'<a href="tg://resolve?domain=set_language">/set_language [code]</a> - Setze die bevorzugte TMDB-Sprache für Mediensuchanfragen\n'
+        f'<a href="tg://resolve?domain=enable_night_mode">/enable_night_mode</a> - Aktiviere den Nachtmodus\n'
+        f'<a href="tg://resolve?domain=disable_night_mode">/disable_night_mode</a> - Deaktiviere den Nachtmodus\n'
+        f'<a href="tg://resolve?domain=search">/search [title]</a> - Suche nach einem Film oder einer TV-Show\n\n'
+        #"/media_info [type] [title] - Get detailed media info\n"
+        #"/add_media [type] [title] - Add media to Sonarr/Radarr\n"
+        #"/check_media [type] [title] - Check if media is available\n"
+        #"/feedback [message] - Send feedback about the bot\n"
+        #"/about - Information about the bot"
+        f'Für weitere Hilfe klicke <a href="tg://resolve?domain=help">hier</a>, um den /help-Befehl erneut zu verwenden.'
+    )
+    await update.message.reply_html(help_text)
+
 # Start bot function
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     await update.message.reply_html(
-        rf"Hi {user.mention_html()}! Willkomen bei StreamNet TV, ich bin Mr.StreamNet - der Butler der Gruppe.",
+        rf"Hi {user.mention_html()}!<br><br>"
+        "Willkommen bei StreamNet TV<br>"
+        "Ich bin Mr.StreamNet - der Butler des Hauses.<br><br>"
+        "Ich stehe dir zur Verfügung, um deine Medienanfragen zu verwalten und vieles Mehr.<br>"
+        'Wenn du Hilfe benötigst, klicke bitte <a href="tg://resolve?domain=help">hier</a>.',
         reply_markup=ReplyKeyboardRemove()
     )
+
 
 # Main bot function
 async def main() -> None:
     application = ApplicationBuilder().token(TOKEN).build()
 
     # Register the command handler
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("set_group_id", set_group_id))
-    application.add_handler(CommandHandler("set_language", set_language))
-    application.add_handler(CommandHandler("enable_night_mode", enable_night_mode))
-    application.add_handler(CommandHandler("disable_night_mode", disable_night_mode))
-    application.add_handler(CommandHandler("search", search_media))
+    application.add_handler(CommandHandler(START_COMMAND, start))
+    application.add_handler(CommandHandler(HELP_COMMAND, help))
+    application.add_handler(CommandHandler(WELCOME_COMMAND, welcome_new_members))
+    application.add_handler(CommandHandler(SET_GROUP_ID_COMMAND, set_group_id))
+    application.add_handler(CommandHandler(TMDB_LANGUAGE_COMMAND, set_language))
+    application.add_handler(CommandHandler(NIGHT_MODE_ENABLE_COMMAND, enable_night_mode))
+    application.add_handler(CommandHandler(NIGHT_MODE_DISABLE_COMMAND, disable_night_mode))
+    application.add_handler(CommandHandler(SEARCH_COMMAND, search_media))
     
     # Register callback query handler for buttons
     application.add_handler(CallbackQueryHandler(handle_add_media_callback))
