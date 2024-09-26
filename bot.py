@@ -975,63 +975,69 @@ def print_logo():
                                                                                 
     """
     print(logo)
-    
+
 # Main bot function
 async def main() -> None:
 
     # Print the logo at startup
     print_logo()
-
-    # Load version info and log it
-    version_info = load_version_info('version.txt')
-
-    # Log bot information
-    if version_info:
-        logger.info(f"=====================================================")
-        logger.info(f"")
-        logger.info(f"Bot Version: {version_info.get('Version', 'Unknown')}")
-        logger.info(f"Author: {version_info.get('Author', 'Unknown')}")
-        logger.info(f"")
-        logger.info(f"=====================================================")
-        logger.info(f"")
-        logger.info(f"To support this project, please visite")
-        logger.info(f"https://github.com/cyb3rgh05t/telegram_bot")
-        logger.info(f"")
-        logger.info(f"=====================================================")
-
-    application = ApplicationBuilder().token(TOKEN).build()
-
-    # Register the command handler
-    application.add_handler(CommandHandler(START_COMMAND, start))
-    application.add_handler(CommandHandler(HELP_COMMAND, help))
-    application.add_handler(CommandHandler(WELCOME_COMMAND, welcome_new_members))
-    application.add_handler(CommandHandler(SET_GROUP_ID_COMMAND, set_group_id))
-    application.add_handler(CommandHandler(TMDB_LANGUAGE_COMMAND, set_language))
-    application.add_handler(CommandHandler(NIGHT_MODE_ENABLE_COMMAND, enable_night_mode))
-    application.add_handler(CommandHandler(NIGHT_MODE_DISABLE_COMMAND, disable_night_mode))
-    application.add_handler(CommandHandler(SEARCH_COMMAND, search_media))
     
-    # Register callback query handlers for buttons
-    application.add_handler(CallbackQueryHandler(handle_add_media_callback))
+    try:
+        # Load version info and log it
+        version_info = load_version_info('version.txt')
 
-    # Register the message handler for new members
-    application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_members))
+        # Log bot information
+        if version_info:
+           logger.info(f"=====================================================")
+           logger.info(f"")
+           logger.info(f"Bot Version: {version_info.get('Version', 'Unknown')}")
+           logger.info(f"Author: {version_info.get('Author', 'Unknown')}")
+           logger.info(f"")
+           logger.info(f"=====================================================")
+           logger.info(f"")
+           logger.info(f"To support this project, please visite")
+           logger.info(f"https://github.com/cyb3rgh05t/telegram_bot")
+           logger.info(f"")
+           logger.info(f"=====================================================")
 
-    # Start the night mode checker task with max_instances set to 1
-    application.job_queue.run_repeating(night_mode_checker, interval=300, first=0)
+           application = ApplicationBuilder().token(TOKEN).build()
 
-    # Register the message handler for user confirmation and general messages
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
+           # Register the command handler
+           application.add_handler(CommandHandler(START_COMMAND, start))
+           application.add_handler(CommandHandler(HELP_COMMAND, help))
+           application.add_handler(CommandHandler(WELCOME_COMMAND, welcome_new_members))
+           application.add_handler(CommandHandler(SET_GROUP_ID_COMMAND, set_group_id))
+           application.add_handler(CommandHandler(TMDB_LANGUAGE_COMMAND, set_language))
+           application.add_handler(CommandHandler(NIGHT_MODE_ENABLE_COMMAND, enable_night_mode))
+           application.add_handler(CommandHandler(NIGHT_MODE_DISABLE_COMMAND, disable_night_mode))
+           application.add_handler(CommandHandler(SEARCH_COMMAND, search_media))
+    
+           # Register callback query handlers for buttons
+           application.add_handler(CallbackQueryHandler(handle_add_media_callback))
 
-    # Start the Bot
-    logger.info("Bot started polling.")
-    await application.run_polling()
+           # Register the message handler for new members
+           application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_members))
 
+           # Start the night mode checker task with max_instances set to 1
+           application.job_queue.run_repeating(night_mode_checker, interval=300, first=0)
+
+           # Register the message handler for user confirmation and general messages
+           application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
+
+           # Start the Bot
+           logger.info("Bot started polling.")
+           await application.run_polling()
+    except Exception as e:
+        logger.error(f"An error occurred: {e}")
+    finally:
+        logger.info("Shutting down the bot...")
+
+        
 if __name__ == '__main__':
     try:
         logger.info("Starting the bot...")
         asyncio.run(main())
     except KeyboardInterrupt:
-        logger.info("Bot stopped gracefully.")
+        logger.info("Bot stopped by user.")
     except Exception as e:
-        logger.error(f"An unexpected error occurred during startup: {e}")
+        logger.error(f"An unexpected error occurred: {e}")
