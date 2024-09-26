@@ -24,8 +24,6 @@ def redact_sensitive_info(value, visible_chars=4):
 # Log all config entries, redacting sensitive information
 def log_config_entries(config):
     sensitive_keys = ['TOKEN', 'API_KEY', 'SECRET', 'KEY']  # Keys to redact
-    logger.info(f"=====================================================")
-    logger.info(f"")
     logger.info("Logging all configuration entries:")
     
     for section, entries in config.items():
@@ -35,12 +33,8 @@ def log_config_entries(config):
                 if any(sensitive_key in key.upper() for sensitive_key in sensitive_keys):
                     value = redact_sensitive_info(value)
                 logger.info(f"  {key}: {value}")
-                logger.info(f"")
-                logger.info(f"=====================================================")
         else:
             logger.info(f"{section}: {entries}")
-            logger.info(f"")
-            logger.info(f"=====================================================")
 
 # Function to check and log paths
 def check_and_log_paths():
@@ -48,29 +42,21 @@ def check_and_log_paths():
     if not os.path.exists(CONFIG_DIR):
         os.makedirs(CONFIG_DIR)
         logger.info(f"=====================================================")
-        logger.info(f"")
         logger.info(f"Config directory '{CONFIG_DIR}' not found. Created the directory.")
-        logger.info(f"")
         logger.info(f"=====================================================")
     else:
         logger.info(f"=====================================================")
-        logger.info(f"")
         logger.info(f"Config directory '{CONFIG_DIR}' already exists.")
-        logger.info(f"")
         logger.info(f"=====================================================")
 
     # Check if database file exists
     if not os.path.exists(DATABASE_FILE):
         logger.info(f"=====================================================")
-        logger.info(f"")
         logger.info(f"Database file '{DATABASE_FILE}' does not exist. It will be created automatically.")
-        logger.info(f"")
         logger.info(f"=====================================================")
     else:
         logger.info(f"=====================================================")
-        logger.info(f"")
         logger.info(f"Database file '{DATABASE_FILE}' already exists.")
-        logger.info(f"")
         logger.info(f"=====================================================")
 
 # Apply nest_asyncio to handle running loops
@@ -121,18 +107,6 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-def print_logo():
-    logo = r"""
- 
-███╗   ███╗██████╗    ███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗███╗   ██╗███████╗████████╗
-████╗ ████║██╔══██╗   ██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║████╗  ██║██╔════╝╚══██╔══╝
-██╔████╔██║██████╔╝   ███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║██╔██╗ ██║█████╗     ██║   
-██║╚██╔╝██║██╔══██╗   ╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║██║╚██╗██║██╔══╝     ██║   
-██║ ╚═╝ ██║██║  ██║██╗███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║██║ ╚████║███████╗   ██║   
-╚═╝     ╚═╝╚═╝  ╚═╝╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝   
-                                                                                                     
-    """
-    print(logo)
 
 # Function to load version and author info from a file
 def load_version_info(file_path):
@@ -159,23 +133,25 @@ check_and_log_paths()
 if TOKEN:
     redacted_token = redact_sensitive_info(TOKEN)
     logger.info(f"=====================================================")
-    logger.info(f"")
-    logger.info(f"Token retrieved successfully: {redacted_token}")
-    logger.info(f"")
+    logger.info(f"Token retrieved successfully:")
+    logger.info(f"{redacted_token}")
     logger.info(f"=====================================================")
 else:
     logger.error(f"=====================================================")
-    logger.error(f"")
     logger.error("Failed to retrieve bot token from config.")
-    logger.error(f"")
     logger.error(f"=====================================================")
 
 # Timezone configuration
 try:
     TIMEZONE_OBJ = ZoneInfo(TIMEZONE)
+    logger.info(f"=====================================================")
     logger.info(f"Timezone is set to '{TIMEZONE}'.")
+    logger.info(f"=====================================================")
 except Exception as e:
-    logger.error(f"Invalid timezone '{TIMEZONE}' in config.json. Defaulting to 'Europe/Berlin'. {e}")
+    logger.error(f"=====================================================")
+    logger.error(f"Invalid timezone '{TIMEZONE}' in config.json.")
+    logger.error(f"Defaulting to 'Europe/Berlin'. {e}")
+    logger.error(f"=====================================================")
     TIMEZONE_OBJ = ZoneInfo("Europe/Berlin")
 
 # Initialize SQLite connection and create table for storing group ID and language
@@ -197,13 +173,9 @@ def load_group_id():
         row = cursor.fetchone()
     if row:
         logger.info(f"=====================================================")
-        logger.info(f"")
         logger.info(f"Loaded existing Group Chat ID: {row[0]}")
-        logger.info(f"")
         logger.info(f"=====================================================")
-        logger.info(f"")
         logger.info(f"Loaded existing Tmdb Language: {row[1]}")
-        logger.info(f"")
         logger.info(f"=====================================================")
         return row[0], row[1]
     return None, DEFAULT_LANGUAGE
@@ -220,15 +192,11 @@ init_db()
 GROUP_CHAT_ID, LANGUAGE = load_group_id()
 if GROUP_CHAT_ID is None:
     logger.info(f"=====================================================")
-    logger.info(f"")
     logger.info("Group Chat ID not set. Please use /set_group_id.")
-    logger.info(f"")
     logger.info(f"=====================================================")
 else:
     logger.info(f"=====================================================")
-    logger.info(f"")
     logger.info(f"Group Chat ID is already set to: {GROUP_CHAT_ID}")
-    logger.info(f"")
     logger.info(f"=====================================================")
 
 # Global variable to track if night mode is active
@@ -995,6 +963,19 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         reply_markup=ReplyKeyboardRemove()
     )
 
+def print_logo():
+    logo = r"""
+
+  __  __      ____  _                            _   _      _   
+ |  \/  |_ __/ ___|| |_ _ __ ___  __ _ _ __ ___ | \ | | ___| |_ 
+ | |\/| | '__\___ \| __| '__/ _ \/ _` | '_ ` _ \|  \| |/ _ \ __|
+ | |  | | |_  ___) | |_| | |  __/ (_| | | | | | | |\  |  __/ |_ 
+ |_|  |_|_(_)|____/ \__|_|  \___|\__,_|_| |_| |_|_| \_|\___|\__|
+                                                                
+                                                                                
+    """
+    print(logo)
+    
 # Main bot function
 async def main() -> None:
 
