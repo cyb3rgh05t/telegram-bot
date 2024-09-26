@@ -919,7 +919,7 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     await update.message.reply_markdown_v2(
-        rf"Hi {user.mention_markdown_v2()}!{chr(10)}"  # New line using chr(10)
+        rf"Hi {user.mention_markdown_v2()} \!{chr(10)}"  # Escape '!' and add new line
         "Willkommen bei StreamNet TV{chr(10)}"
         "Ich bin Mr.StreamNet - der Butler des Hauses.{chr(10)}"
         "Ich stehe dir zur Verfügung, um deine Medienanfragen zu verwalten und vieles Mehr.{chr(10)}"
