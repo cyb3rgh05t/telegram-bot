@@ -82,14 +82,14 @@ RADARR_API_KEY = config.get("radarr").get("API_KEY")
 RADARR_QUALITY_PROFILE_NAME = config.get("radarr").get("QUALITY_PROFILE_NAME")
 RADARR_ROOT_FOLDER_PATH = config.get("radarr").get("ROOT_FOLDER_PATH")
 # COMMANDS
-START_COMMAND = config.get("COMMANDS").get("START", "start")
-WELCOME_COMMAND = config.get("bot").get("COMMANDS").get("WELCOME", "welcome")
-NIGHT_MODE_ENABLE_COMMAND = config.get("COMMANDS").get("NIGHT_MODE_ENABLE", "enable_night_mode")
-NIGHT_MODE_DISABLE_COMMAND = config.get("COMMANDS").get("NIGHT_MODE_DISABLE", "disable_night_mode")
-TMDB_LANGUAGE_COMMAND = config.get("COMMANDS").get("TMDB_LANGUAGE", "set_language")
-SET_GROUP_ID_COMMAND = config.get("COMMANDS").get("SET_GROUP_ID", "set_group_id")
-HELP_COMMAND = config.get("COMMANDS").get("HELP", "help")
-SEARCH_COMMAND = config.get("COMMANDS").get("SEARCH", "search")
+START_COMMAND = config.get("commands").get("START", "start")
+WELCOME_COMMAND = config.get("commands").get("WELCOME", "welcome")
+NIGHT_MODE_ENABLE_COMMAND = config.get("commands").get("NIGHT_MODE_ENABLE", "enable_night_mode")
+NIGHT_MODE_DISABLE_COMMAND = config.get("commands").get("NIGHT_MODE_DISABLE", "disable_night_mode")
+TMDB_LANGUAGE_COMMAND = config.get("commands").get("TMDB_LANGUAGE", "set_language")
+SET_GROUP_ID_COMMAND = config.get("commands").get("SET_GROUP_ID", "set_group_id")
+HELP_COMMAND = config.get("commands").get("HELP", "help")
+SEARCH_COMMAND = config.get("commands").get("SEARCH", "search")
 
 # Configure logging
 logging.basicConfig(
