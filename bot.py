@@ -919,10 +919,10 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     await update.message.reply_html(
-        rf"Hi {user.mention_html()}!<br><br>"
-        "Willkommen bei StreamNet TV<br>"
-        "Ich bin Mr.StreamNet - der Butler des Hauses.<br><br>"
-        "Ich stehe dir zur Verfügung, um deine Medienanfragen zu verwalten und vieles Mehr.<br>"
+        rf"Hi {user.mention_html()}!\n\n"
+        "Willkommen bei StreamNet TV\n"
+        "Ich bin Mr.StreamNet - der Butler des Hauses.\n\n"
+        "Ich stehe dir zur Verfügung, um deine Medienanfragen zu verwalten und vieles Mehr.\n"
         'Wenn du Hilfe benötigst, klicke bitte <a href="tg://resolve?domain=help">hier</a>.',
         reply_markup=ReplyKeyboardRemove()
     )
