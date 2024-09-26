@@ -898,7 +898,7 @@ async def welcome_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE
 # Help command function
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     help_text = (
-        "Hier sind die Befehle, die du verwenden kannst:\n"
+        "Hier sind die Befehle, die du verwenden kannst:\n\n"
         f'<a href="tg://resolve?domain=start">/start</a> - Willkommensnachricht\n'
         f'<a href="tg://resolve?domain=welcome">/welcome [user]</a> - Manuelle Willkommensnachricht beim Beitritt (Standard: automatisch)\n'
         f'<a href="tg://resolve?domain=set_group_id">/set_group_id</a> - Setze die Gruppen-ID (für den Nachtmodus)\n'
