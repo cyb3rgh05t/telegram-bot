@@ -917,7 +917,6 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         reply_markup=reply_markup
     )
 
-# Handle callback query for copying commands
 async def handle_copy_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()  # Acknowledge the callback
@@ -934,12 +933,17 @@ async def handle_copy_command(update: Update, context: ContextTypes.DEFAULT_TYPE
     
     command = command_map.get(query.data)
     if command:
+        # Escape any special characters for MarkdownV2
+        command_text = command.split(' - ')[0].replace('.', '\\.')  # Escape the dot
+        command_description = command.split(' - ')[1].replace('.', '\\.')  # Escape the dot
+        
         await query.edit_message_text(
-            text=f"Hier ist der Befehl, den du kopieren kannst: `{command.split(' - ')[0]}`\n\n"
-                 f"Beschreibung: {command.split(' - ')[1]}\n\n"
+            text=f"Hier ist der Befehl, den du kopieren kannst: `{command_text}`\n\n"
+                 f"Beschreibung: {command_description}\n\n"
                  "Tippe einfach auf den Befehl und halte ihn gedrückt, um ihn zu kopieren.",
             parse_mode="MarkdownV2"
         )
+
 
 
 # Start bot function
@@ -951,7 +955,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "Willkommen bei StreamNet TV\n"
         "Ich bin Mr.StreamNet - der Butler des Hauses.\n\n"
         "Ich stehe dir zur Verfügung, um deine Medienanfragen zu verwalten und vieles Mehr.\n"
-        'Wenn du Hilfe benötigst, benutze den befehl /help im EingabeFeld.',
+        'Wenn du Hilfe benötigst, benutze/klicke auf den Befehl /help .',
         reply_markup=ReplyKeyboardRemove()
     )
 
