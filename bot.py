@@ -863,11 +863,11 @@ async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             LANGUAGE = language_code
             save_group_id(GROUP_CHAT_ID, LANGUAGE)
             logger.info(f"Language set to: {LANGUAGE} by user {update.message.from_user.id}")
-            await update.message.reply_text(f"Language set to: {LANGUAGE}")
+            await update.message.reply_text(f"TMDB Language gesetzt: {LANGUAGE}")
         else:
-            await update.message.reply_text("Ungültiger Language Code. Bitte benutze einen 2-letter Language Code (e.g., 'en', 'de').")
+            await update.message.reply_text("Ungültiger Language Code. Bitte benutze Language Code (e.g., 'en', 'de').")
     else:
-        await update.message.reply_text("Bitte gebe eine Language Code ein (e.g., 'en', 'de').")
+        await update.message.reply_text("Bitte gebe einen TMDB Language Code ein (e.g., 'en', 'de').")
 
 # Function to welcome new members
 async def welcome_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -902,12 +902,12 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     help_text = (
         "Hier sind die Befehle, die du verwenden kannst:\n\n"
         "/start  - Willkommensnachricht\n"
-        "/welcome [user]  - Manuelle Willkommensnachricht beim Beitritt (standard: auto)\n"
+        #"/welcome [user]  - Manuelle Willkommensnachricht beim Beitritt (standard: auto)\n"
         "/set_group_id  - Setze die Gruppen-ID (für den Nachtmodus)\n"
-        "/set_language [code]  - Setze die bevorzugte TMDB-Sprache für Mediensuche (standard: eng)\n"
+        "/set_language [code]  - TMDB-Sprache für Mediensuche (standard: eng)\n"
         "/enable_night_mode  - Aktiviere den Nachtmodus\n"
         "/disable_night_mode - Deaktiviere den Nachtmodus\n"
-        "/search [title] - Suche nach einem Film oder einer TV-Show\n"
+        "/search [title] - Suche nach einem Film oder einer TV-Show\n\n"
         "Um einen Befehl auszuführen, tippe ihn einfach in den Chat ein oder kopiere und füge ihn ein."
     )
     await update.message.reply_text(help_text)
