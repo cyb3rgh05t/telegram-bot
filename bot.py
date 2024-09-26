@@ -166,9 +166,9 @@ def load_group_id():
         cursor.execute("SELECT group_chat_id, language FROM group_data WHERE id=1")
         row = cursor.fetchone()
     if row:
-        logger(f"")
+        logger.info(f"")
         logger.info(f"Loaded existing Group Chat ID: {row[0]}")
-        logger(f"")
+        logger.info(f"")
         logger.info(f"Loaded existing Tmdb Language: {row[1]}")
         return row[0], row[1]
     return None, DEFAULT_LANGUAGE
