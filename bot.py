@@ -167,8 +167,6 @@ async def log_config_entries(config):
     sensitive_keys = ['TOKEN', 'API_KEY', 'SECRET', 'KEY']  # Keys to redact
     await log_message_async("=====================================================")
     logger.info("Logging all configuration entries:")
-    await log_message_async(f"")
-    
     for section, entries in config.items():
         if isinstance(entries, dict):
             logger.info(f"Section [{section}]:")
@@ -1112,7 +1110,7 @@ async def main() -> None:
            # Register the message handler for user confirmation and general messages
            application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
 
-           # Start the Bot
+            # Start the Bot
            logger.info("Bot started polling.")
            await application.run_polling()
     except asyncio.CancelledError:
@@ -1126,10 +1124,24 @@ if __name__ == '__main__':
     try:
         logger.info("Starting the bot...")
         log_message("=====================================================")
-        asyncio.run(main())
+
+        # Create the event loop
+        loop = asyncio.get_event_loop()
+
+        # Attach signal handlers for SIGINT and SIGTERM
+        signals = (signal.SIGINT, signal.SIGTERM)
+        for sig in signals:
+            loop.add_signal_handler(sig, lambda s=sig: asyncio.create_task(shutdown(sig)))
+
+        # Run the main function until complete
+        loop.run_until_complete(main())
     except KeyboardInterrupt:
         logger.info("Bot stopped by user.")
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
     finally:
         logger.info("Shutting down the bot...")
+        # Run the shutdown handler to safely close remaining tasks
+        loop.run_until_complete(shutdown("Final Shutdown"))
+        loop.close()
+        logger.info("Event loop closed. Bot has shut down successfully.")
