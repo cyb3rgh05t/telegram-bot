@@ -166,7 +166,6 @@ def log_message(message):
 async def log_config_entries(config):
     sensitive_keys = ['TOKEN', 'API_KEY', 'SECRET', 'KEY']  # Keys to redact
     await log_message_async("=====================================================")
-    await log_message_async("")
     logger.info("Logging all configuration entries:")
     await log_message_async(f"")
     
@@ -179,7 +178,6 @@ async def log_config_entries(config):
                 logger.info(f"  {key}: {value}")
         else:
             logger.info(f"{section}: {entries}")
-    await log_message_async("")
     await log_message_async("=====================================================")
 
 def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
@@ -1059,15 +1057,15 @@ async def main() -> None:
         # Log bot information asynchronously to ensure order
         if version_info:
            await log_message_async("=====================================================")
-           await log_message_async("")
+           # await log_message_async("")
            await log_message_async(f"Bot Version: {version_info.get('Version', 'Unknown')}")
            await log_message_async(f"Author: {version_info.get('Author', 'Unknown')}")
-           await log_message_async("")
+           # await log_message_async("")
            await log_message_async("=====================================================")
-           await log_message_async("")
+           # await log_message_async("")
            await log_message_async(f"To support this project, please visit")
            await log_message_async(f"https://github.com/cyb3rgh05t/telegram_bot")
-           await log_message_async("")
+           # await log_message_async("")
            await log_message_async("=====================================================")
 
            # Check and log the paths for config and database
