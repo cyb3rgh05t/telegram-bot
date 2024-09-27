@@ -1125,25 +1125,10 @@ async def main() -> None:
 if __name__ == '__main__':
     try:
         logger.info("Starting the bot...")
-        log_message("=====================================================")
-
-        # Create the event loop
-        loop = asyncio.get_event_loop()
-
-        # Attach signal handlers for SIGINT and SIGTERM
-        signals = (signal.SIGINT, signal.SIGTERM)
-        for sig in signals:
-            loop.add_signal_handler(sig, lambda s=sig: asyncio.create_task(shutdown(sig)))
-
-        # Run the main function until complete
-        loop.run_until_complete(main())
+        asyncio.run(main())
     except KeyboardInterrupt:
         logger.info("Bot stopped by user.")
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
     finally:
         logger.info("Shutting down the bot...")
-        # Run the shutdown handler to safely close remaining tasks
-        loop.run_until_complete(shutdown("Final Shutdown"))
-        loop.close()
-        logger.info("Event loop closed. Bot has shut down successfully.")
