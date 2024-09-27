@@ -61,36 +61,36 @@ def load_version_info(file_path):
     return version_info
 
 # Function to check and log paths
-def check_and_log_paths():
+async def check_and_log_paths():
     # Check if config directory exists
     logger.info(f"Checking directories.....")
     if not os.path.exists(CONFIG_DIR):
         os.makedirs(CONFIG_DIR)
-        log_message("")
+        await log_message_async("")
         logger.warning(f"Config directory '{CONFIG_DIR}' not found.")
         logger.info(f"Creating config directory....")
         logger.info(f"Directory {CONFIG_DIR} created.")
     else:
-        log_message("")
+        await log_message_async("")
         logger.info(f"Config directory '{CONFIG_DIR}' already exists.")
     
     # Check if database directory exists
     if not os.path.exists(DATABASE_DIR):
         os.makedirs(DATABASE_DIR)
-        log_message("")
+        await log_message_async("")
         logger.warning(f"Database directory '{DATABASE_DIR}' not found.")
         logger.info(f"Creating database directory....")
         logger.info(f"Directory {DATABASE_DIR} created.")
     else:
-        log_message("")
+        await log_message_async("")
         logger.info(f"Config directory '{DATABASE_DIR}' already exists.")
 
     # Check if database file exists
     if not os.path.exists(DATABASE_FILE):
-        log_message("")
+        await log_message_async("")
         logger.info(f"Database file '{DATABASE_FILE}' does not exist. It will be created automatically.")
     else:
-        log_message("")
+        await log_message_async("")
         logger.info(f"Database file '{DATABASE_FILE}' already exists.")
 
 # Load bot configuration from config/config.json
@@ -165,12 +165,12 @@ def log_message(message):
 
 
 # Log all config entries, redacting sensitive information
-def log_config_entries(config):
+async def log_config_entries(config):
     sensitive_keys = ['TOKEN', 'API_KEY', 'SECRET', 'KEY']  # Keys to redact
-    log_message("=====================================================")
-    log_message("")
+    await log_message_async("=====================================================")
+    await log_message_async("")
     logger.info("Logging all configuration entries:")
-    log_message(f"")
+    await log_message_async(f"")
     
     for section, entries in config.items():
         if isinstance(entries, dict):
@@ -181,10 +181,10 @@ def log_config_entries(config):
                 logger.info(f"  {key}: {value}")
         else:
             logger.info(f"{section}: {entries}")
-    log_message("")
-    log_message("=====================================================")
+    await log_message_async("")
+    await log_message_async("=====================================================")
 
-def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
+async def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
     """
     Configures the bot by logging the token and setting up the timezone.
 
@@ -198,9 +198,7 @@ def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
     # Log the successful retrieval of the token with only the first and last 4 characters visible
     if TOKEN:
         redacted_token = redact_sensitive_info(TOKEN)
-        log_message("")
-        logger.info(f"Token retrieved successfully:")
-        logger.info(redacted_token)
+        logger.info(f"Token retrieved: {redacted_token}")
     else:
         logger.error(f"Failed to retrieve bot token from config. <-----")
         raise ValueError("Bot token is missing or invalid.")
@@ -208,12 +206,11 @@ def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
     # Timezone configuration
     try:
         TIMEZONE_OBJ = ZoneInfo(TIMEZONE)
-        log_message("")
         logger.info(f"Timezone is set to '{TIMEZONE}'.")
     except Exception as e:
-        log_message("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        await log_message_async("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         logger.error(f"Invalid timezone '{TIMEZONE}' in config.json. <-----")
-        log_message("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        await log_message_async("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         logger.error(f"Defaulting to 'Europe/Berlin'. Error: {e}")
         TIMEZONE_OBJ = ZoneInfo("Europe/Berlin")
 
@@ -237,7 +234,7 @@ def init_db():
         conn.commit()
 
 # Load group chat ID and language from database
-def load_group_id():
+async def load_group_id():
     with sqlite3.connect(DATABASE_FILE) as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT group_chat_id, language FROM group_data WHERE id=1")
@@ -247,18 +244,16 @@ def load_group_id():
     return None, DEFAULT_LANGUAGE
 
 # Log group_id and language if present
-def log_group_id():
+async def log_group_id():
     with sqlite3.connect(DATABASE_FILE) as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT group_chat_id, language FROM group_data WHERE id=1")
         row = cursor.fetchone()
     if row:
-        log_message("")
+        await log_message_async("")
         logger.info(f"Loaded existing Group Chat ID: {row[0]}")
-        log_message("")
         logger.info(f"Loaded existing Tmdb Language: {row[1]}")
-        log_message("")
-        log_message("=====================================================")
+        await log_message_async("=====================================================")
         return row[0], row[1]
     return None, DEFAULT_LANGUAGE
 
