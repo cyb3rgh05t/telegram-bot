@@ -212,6 +212,12 @@ night_mode_active = False
 night_mode_lock = asyncio.Lock()
 task_lock = asyncio.Lock()
 
+# Timezone configuration
+try:
+    TIMEZONE_OBJ = ZoneInfo(TIMEZONE)
+except Exception as e:
+    TIMEZONE_OBJ = ZoneInfo("Europe/Berlin")
+
 # Get the current time in the desired timezone
 def get_current_time():
     return datetime.now(TIMEZONE_OBJ)
