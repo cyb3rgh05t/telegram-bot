@@ -127,10 +127,10 @@ console_format = logging.Formatter('[%(asctime)s] [%(levelname)s]   %(message)s'
 console_handler.setFormatter(console_format)
 logger.addHandler(console_handler)
 
-# Create a simple log message function to handle plain text messages
 def log_message(message):
     """Print a plain text message without log level or metadata."""
-    print(message)  # This will only print the message
+    print(f"DEBUG: log_message called with: {message}")  # Debug print
+    print(message, flush=True)  # Actual message print
 
 def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
     """
@@ -1020,17 +1020,17 @@ async def main() -> None:
 
         # Log bot information
         if version_info:
-           log_message(f"=====================================================")
-           log_message(f"")
+           log_message("=====================================================")
+           log_message("")
            log_message(f"Bot Version: {version_info.get('Version', 'Unknown')}")
            log_message(f"Author: {version_info.get('Author', 'Unknown')}")
-           log_message(f"")
-           log_message(f"=====================================================")
-           log_message(f"")
+           log_message("")
+           log_message("=====================================================")
+           log_message("")
            log_message(f"To support this project, please visite")
            log_message(f"https://github.com/cyb3rgh05t/telegram_bot")
-           log_message(f"")
-           log_message(f"=====================================================")
+           log_message("")
+           log_message("=====================================================")
 
            # Check and log the paths for config and database
            check_and_log_paths()
