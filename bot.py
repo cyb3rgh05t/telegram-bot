@@ -242,7 +242,7 @@ def load_group_id():
     return None, DEFAULT_LANGUAGE
 
 # Log group_id and language if present
-def log_group_id():
+async def log_group_id():
     with sqlite3.connect(DATABASE_FILE) as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT group_chat_id, language FROM group_data WHERE id=1")
@@ -250,7 +250,7 @@ def log_group_id():
     if row:
         logger.info(f"Loaded existing Group Chat ID: {row[0]}")
         logger.info(f"Loaded existing Tmdb Language: {row[1]}")
-        log_message("=====================================================")
+        await log_message_async("=====================================================")
         return row[0], row[1]
     return None, DEFAULT_LANGUAGE
 
@@ -1090,7 +1090,7 @@ async def main() -> None:
                await log_message_async("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
            else:
                # Load group chat ID and language from database
-               log_group_id()
+               await log_group_id()
 
            application = ApplicationBuilder().token(TOKEN).build()
 
