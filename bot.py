@@ -232,7 +232,7 @@ def init_db():
         conn.commit()
 
 # Load group chat ID and language from database
-def load_group_id():
+async def load_group_id():
     with sqlite3.connect(DATABASE_FILE) as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT group_chat_id, language FROM group_data WHERE id=1")
@@ -1083,7 +1083,7 @@ async def main() -> None:
 
            # Initialize the group chat ID and language
            init_db()
-           GROUP_CHAT_ID = load_group_id()
+           GROUP_CHAT_ID = await load_group_id()
            if GROUP_CHAT_ID is None:
                await log_message_async("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                logger.warning("Group Chat ID not set. Please use /set_group_id. <-----")
@@ -1128,8 +1128,8 @@ async def main() -> None:
 
 if __name__ == '__main__':
     try:
-        log_message("=====================================================")
         logger.info("Starting the bot...")
+        log_message("=====================================================")
         asyncio.run(main())
     except KeyboardInterrupt:
         logger.info("Bot stopped by user.")
