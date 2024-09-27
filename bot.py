@@ -117,23 +117,20 @@ SEARCH_COMMAND = config.get("commands").get("SEARCH", "search")
 # Set LOG_LEVEL dynamically or use a default value if not set (e.g., 'INFO')
 LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO').upper()
 
-# Create the root logger
+# Create the root logger and set its level
 logger = logging.getLogger("custom_logger")
-logger.setLevel(getattr(logging, LOG_LEVEL, logging.INFO))  # Set dynamic log level
+logger.setLevel(getattr(logging, LOG_LEVEL, logging.INFO))
 
-# Create a console handler with detailed format
+# Create console handler with detailed format
 console_handler = logging.StreamHandler()
 console_format = logging.Formatter('[%(asctime)s] [%(levelname)s]   %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 console_handler.setFormatter(console_format)
 logger.addHandler(console_handler)
 
-# Create a simple text-only logger function
-def log_message(msg):
-    """Log a simple text message without level or metadata."""
-    print(msg)  # Directly print the message without logging level or metadata
-
-# Override the logger's `call` method to handle plain text logging
-logger.__call__ = log_message
+# Create a simple log message function to handle plain text messages
+def log_message(message):
+    """Print a plain text message without log level or metadata."""
+    print(message)  # This will only print the message
 
 def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
     """
@@ -1023,17 +1020,17 @@ async def main() -> None:
 
         # Log bot information
         if version_info:
-           logger(f"=====================================================")
-           logger(f"")
-           logger(f"Bot Version: {version_info.get('Version', 'Unknown')}")
-           logger(f"Author: {version_info.get('Author', 'Unknown')}")
-           logger(f"")
-           logger(f"=====================================================")
-           logger(f"")
-           logger(f"To support this project, please visite")
-           logger(f"https://github.com/cyb3rgh05t/telegram_bot")
-           logger(f"")
-           logger(f"=====================================================")
+           log_message(f"=====================================================")
+           log_message(f"")
+           log_message(f"Bot Version: {version_info.get('Version', 'Unknown')}")
+           log_message(f"Author: {version_info.get('Author', 'Unknown')}")
+           log_message(f"")
+           log_message(f"=====================================================")
+           log_message(f"")
+           log_message(f"To support this project, please visite")
+           log_message(f"https://github.com/cyb3rgh05t/telegram_bot")
+           log_message(f"")
+           log_message(f"=====================================================")
 
            # Check and log the paths for config and database
            check_and_log_paths()
