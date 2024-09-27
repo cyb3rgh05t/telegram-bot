@@ -1065,12 +1065,14 @@ async def main() -> None:
            await log_message_async(f"https://github.com/cyb3rgh05t/telegram_bot")
            # await log_message_async("")
            await log_message_async("=====================================================")
-
+           
+           # Log all configuration entries
+           await log_config_entries(config)
            # Check and log the paths for config and database
            await check_and_log_paths()
 
            # Log all configuration entries
-           await log_config_entries(config)
+           # await log_config_entries(config)
 
            # Log the successful retrieval of the token and timezone
            configure_bot(TOKEN, TIMEZONE="Europe/Berlin")
