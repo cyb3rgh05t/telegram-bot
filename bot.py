@@ -163,12 +163,12 @@ def log_message(message):
 
 
 # Log all config entries, redacting sensitive information
-def log_config_entries(config):
+async def log_config_entries(config):
     sensitive_keys = ['TOKEN', 'API_KEY', 'SECRET', 'KEY']  # Keys to redact
-    log_message("=====================================================")
-    log_message("")
+    await log_message_async("=====================================================")
+    await log_message_async("")
     logger.info("Logging all configuration entries:")
-    log_message(f"")
+    await log_message_async(f"")
     
     for section, entries in config.items():
         if isinstance(entries, dict):
@@ -179,8 +179,8 @@ def log_config_entries(config):
                 logger.info(f"  {key}: {value}")
         else:
             logger.info(f"{section}: {entries}")
-    log_message("")
-    log_message("=====================================================")
+    await log_message_async("")
+    await log_message_async("=====================================================")
 
 def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
     """
@@ -1076,7 +1076,7 @@ async def main() -> None:
            await check_and_log_paths()
 
            # Log all configuration entries
-           log_config_entries(config)
+           await log_config_entries(config)
 
            # Log the successful retrieval of the token and timezone
            configure_bot(TOKEN, TIMEZONE="Europe/Berlin")
