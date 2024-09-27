@@ -1023,7 +1023,7 @@ async def main() -> None:
            #Log the successful retrieval of the token and timezone
            configure_bot(TOKEN, TIMEZONE="Europe/Berlin")
 
-           set_group_id()
+           load_group_id()
 
            init_db()
 
