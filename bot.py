@@ -17,10 +17,11 @@ import pytz
 import sys
 
 # Check ist conig.json is present..
-config_file = "config.json"
+CONFIG_DIR = "config"
+CONFIG_FILE = os.path.join(CONFIG_DIR, 'config.json')
 
-if not os.path.isfile(config_file):
-    print(f"ERROR: '{config_file}' not found. Please create the configuration file before starting the bot.")
+if not os.path.isfile(CONFIG_FILE):
+    print(f"ERROR: '{CONFIG_FILE}' not found. Please create the configuration file before starting the bot.")
     sys.exit(1)  # Exit with status code 1
 
 # Function to redact sensitive information like tokens and API keys
