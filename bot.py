@@ -126,26 +126,37 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# Log the successful retrieval of the token with only first and last 4 characters visible
-if TOKEN:
-    redacted_token = redact_sensitive_info(TOKEN)
-    logger.info(f"=====================================================")
-    logger.info(f"Token retrieved successfully:")
-    logger.info(f"{redacted_token}")
-else:
-    logger.error(f"")
-    logger.error("Failed to retrieve bot token from config. <-----")
+def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
+    """
+    Configures the bot by logging the token and setting up the timezone.
 
-# Timezone configuration
-try:
-    TIMEZONE_OBJ = ZoneInfo(TIMEZONE)
-    logger.info(f"")
-    logger.info(f"Timezone is set to '{TIMEZONE}'.")
-except Exception as e:
-    logger.error(f"")
-    logger.error(f"Invalid timezone '{TIMEZONE}' in config.json. <-----")
-    logger.error(f"Defaulting to 'Europe/Berlin'. {e}")
-    TIMEZONE_OBJ = ZoneInfo("Europe/Berlin")
+    Parameters:
+    - TOKEN (str): The bot token.
+    - TIMEZONE (str): Timezone string for the bot. Defaults to 'Europe/Berlin'.
+
+    Returns:
+    - TIMEZONE_OBJ (ZoneInfo): Configured timezone object.
+    """
+    # Log the successful retrieval of the token with only the first and last 4 characters visible
+    if TOKEN:
+        redacted_token = redact_sensitive_info(TOKEN)
+        logger.info("=" * 50)
+        logger.info("Token retrieved successfully:")
+        logger.info(redacted_token)
+    else:
+        logger.error("Failed to retrieve bot token from config. <-----")
+        raise ValueError("Bot token is missing or invalid.")
+
+    # Timezone configuration
+    try:
+        TIMEZONE_OBJ = ZoneInfo(TIMEZONE)
+        logger.info(f"Timezone is set to '{TIMEZONE}'.")
+    except Exception as e:
+        logger.error(f"Invalid timezone '{TIMEZONE}' in config.json. <-----")
+        logger.error(f"Defaulting to 'Europe/Berlin'. Error: {e}")
+        TIMEZONE_OBJ = ZoneInfo("Europe/Berlin")
+
+    return TIMEZONE_OBJ
 
 # Initialize SQLite connection and create table for storing group ID and language
 def init_db():
@@ -1002,6 +1013,9 @@ async def main() -> None:
 
            # Log all configuration entries
            log_config_entries(config)
+
+           #Log the successful retrieval of the token and timezone
+           configure_bot(TOKEN, TIMEZONE="Europe/Berlin")
 
            application = ApplicationBuilder().token(TOKEN).build()
 
