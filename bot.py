@@ -114,13 +114,26 @@ SET_GROUP_ID_COMMAND = config.get("commands").get("SET_GROUP_ID", "set_group_id"
 HELP_COMMAND = config.get("commands").get("HELP", "help")
 SEARCH_COMMAND = config.get("commands").get("SEARCH", "search")
 
-# Configure logging
-logging.basicConfig(
-    format='%(levelname)s   %(message)s',
-    level=getattr(logging, LOG_LEVEL, logging.INFO)
-)
+# Set LOG_LEVEL dynamically or use a default value if not set (e.g., 'INFO')
+LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO').upper()
 
-logger = logging.getLogger(__name__)
+# Create the root logger
+logger = logging.getLogger("custom_logger")
+logger.setLevel(getattr(logging, LOG_LEVEL, logging.INFO))  # Set dynamic log level
+
+# Create a console handler with detailed format
+console_handler = logging.StreamHandler()
+console_format = logging.Formatter('[%(asctime)s] [%(levelname)s]   %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+console_handler.setFormatter(console_format)
+logger.addHandler(console_handler)
+
+# Create a simple text-only logger function
+def log_message(msg):
+    """Log a simple text message without level or metadata."""
+    print(msg)  # Directly print the message without logging level or metadata
+
+# Override the logger's `call` method to handle plain text logging
+logger.__call__ = log_message
 
 def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
     """
@@ -178,11 +191,17 @@ def log_config_entries(config):
 def init_db():
     with sqlite3.connect(DATABASE_FILE) as conn:
         cursor = conn.cursor()
+        # Create the table without a default value
         cursor.execute('''CREATE TABLE IF NOT EXISTS group_data (
                             id INTEGER PRIMARY KEY,
                             group_chat_id INTEGER,
-                            language TEXT DEFAULT 'en'
+                            language TEXT
                           )''')
+        
+        # Check if the column is empty and update with the dynamic default value
+        default_language = config.get("tmdb").get("DEFAULT_LANGUAGE")
+        cursor.execute('''UPDATE group_data SET language = ? WHERE language IS NULL''', (default_language,))
+        
         conn.commit()
 
 # Load group chat ID and language from database
@@ -198,6 +217,8 @@ def load_group_id():
         logger.info(f"Loaded existing Tmdb Language: {row[1]}")
         return row[0], row[1]
     return None, DEFAULT_LANGUAGE
+
+LANGUAGE = DEFAULT_LANGUAGE
 
 # Save group chat ID and language to database
 def save_group_id(group_chat_id, language):
@@ -1002,17 +1023,17 @@ async def main() -> None:
 
         # Log bot information
         if version_info:
-           logger.info(f"=====================================================")
-           logger.info(f"")
-           logger.info(f"Bot Version: {version_info.get('Version', 'Unknown')}")
-           logger.info(f"Author: {version_info.get('Author', 'Unknown')}")
-           logger.info(f"")
-           logger.info(f"=====================================================")
-           logger.info(f"")
-           logger.info(f"To support this project, please visite")
-           logger.info(f"https://github.com/cyb3rgh05t/telegram_bot")
-           logger.info(f"")
-           logger.info(f"=====================================================")
+           logger(f"=====================================================")
+           logger(f"")
+           logger(f"Bot Version: {version_info.get('Version', 'Unknown')}")
+           logger(f"Author: {version_info.get('Author', 'Unknown')}")
+           logger(f"")
+           logger(f"=====================================================")
+           logger(f"")
+           logger(f"To support this project, please visite")
+           logger(f"https://github.com/cyb3rgh05t/telegram_bot")
+           logger(f"")
+           logger(f"=====================================================")
 
            # Check and log the paths for config and database
            check_and_log_paths()
@@ -1030,9 +1051,9 @@ async def main() -> None:
              logger.info(f"")
              logger.info("Group Chat ID not set. Please use /set_group_id. <-----")
              logger.info(f"")
-
-           # Load group chat ID and language from database
-           load_group_id()
+           else:
+             # Load group chat ID and language from database
+             load_group_id()
 
            application = ApplicationBuilder().token(TOKEN).build()
 
