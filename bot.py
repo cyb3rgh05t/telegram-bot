@@ -33,6 +33,21 @@ def redact_sensitive_info(value, visible_chars=4):
 # Apply nest_asyncio to handle running loops
 nest_asyncio.apply()
 
+# Global reference for the application instance
+application = None
+
+# Shutdown handler to gracefully close the event loop
+async def shutdown(signal_name):
+    logger.info(f"Received {signal_name}, shutting down the bot...")
+    if application:
+        await application.shutdown()  # Shutdown Telegram application safely
+    tasks = [task for task in asyncio.all_tasks() if task is not asyncio.current_task()]
+    for task in tasks:
+        task.cancel()
+    await asyncio.gather(*tasks, return_exceptions=True)  # Wait for all tasks to finish
+    await asyncio.sleep(0.1)  # Give some time for tasks to properly finish
+    logger.info("Bot has been shut down successfully.")
+
 # Function to load version and author info from a file
 def load_version_info(file_path):
     version_info = {}
@@ -136,6 +151,7 @@ def log_message(message):
     """Print a plain text message without log level or metadata."""
     #print(f"DEBUG: log_message called with: {message}")  # Debug print
     print(message, flush=True)  # Actual message print
+
 
 # Log all config entries, redacting sensitive information
 def log_config_entries(config):
@@ -1016,19 +1032,20 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 def print_logo():
     logo = r"""
+ 
+███╗   ███╗██████╗    ███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗███╗   ██╗███████╗████████╗
+████╗ ████║██╔══██╗   ██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║████╗  ██║██╔════╝╚══██╔══╝
+██╔████╔██║██████╔╝   ███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║██╔██╗ ██║█████╗     ██║   
+██║╚██╔╝██║██╔══██╗   ╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║██║╚██╗██║██╔══╝     ██║   
+██║ ╚═╝ ██║██║  ██║██╗███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║██║ ╚████║███████╗   ██║   
+╚═╝     ╚═╝╚═╝  ╚═╝╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝   
 
-  __  __      ____  _                            _   _      _   
- |  \/  |_ __/ ___|| |_ _ __ ___  __ _ _ __ ___ | \ | | ___| |_ 
- | |\/| | '__\___ \| __| '__/ _ \/ _` | '_ ` _ \|  \| |/ _ \ __|
- | |  | | |_  ___) | |_| | |  __/ (_| | | | | | | |\  |  __/ |_ 
- |_|  |_|_(_)|____/ \__|_|  \___|\__,_|_| |_| |_|_| \_|\___|\__|
-                                                                
-                                                                                
     """
     print(logo)
 
-# Main bot function
+# Main Function
 async def main() -> None:
+    global application
 
     # Print the logo at startup
     print_logo()
@@ -1047,7 +1064,7 @@ async def main() -> None:
            log_message("")
            log_message("=====================================================")
            log_message("")
-           log_message(f"To support this project, please visite")
+           log_message(f"To support this project, please visit")
            log_message(f"https://github.com/cyb3rgh05t/telegram_bot")
            log_message("")
            log_message("=====================================================")
@@ -1058,23 +1075,23 @@ async def main() -> None:
            # Log all configuration entries
            log_config_entries(config)
 
-           #Log the successful retrieval of the token and timezone
+           # Log the successful retrieval of the token and timezone
            configure_bot(TOKEN, TIMEZONE="Europe/Berlin")
 
            # Initialize the group chat ID and language
            init_db()
            GROUP_CHAT_ID = load_group_id()
            if GROUP_CHAT_ID is None:
-             log_message("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-             logger.warning("Group Chat ID not set. Please use /set_group_id. <-----")
-             log_message("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+               log_message("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+               logger.warning("Group Chat ID not set. Please use /set_group_id. <-----")
+               log_message("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
            else:
-             # Load group chat ID and language from database
-             log_group_id()
+               # Load group chat ID and language from database
+               log_group_id()
 
            application = ApplicationBuilder().token(TOKEN).build()
 
-           # Register the command handler
+           # Register the command handlers
            application.add_handler(CommandHandler(START_COMMAND, start))
            application.add_handler(CommandHandler(HELP_COMMAND, help))
            application.add_handler(CommandHandler(WELCOME_COMMAND, welcome_new_members))
@@ -1083,7 +1100,7 @@ async def main() -> None:
            application.add_handler(CommandHandler(NIGHT_MODE_ENABLE_COMMAND, enable_night_mode))
            application.add_handler(CommandHandler(NIGHT_MODE_DISABLE_COMMAND, disable_night_mode))
            application.add_handler(CommandHandler(SEARCH_COMMAND, search_media))
-    
+
            # Register callback query handlers for buttons
            application.add_handler(CallbackQueryHandler(handle_add_media_callback))
 
@@ -1099,17 +1116,35 @@ async def main() -> None:
            # Start the Bot
            logger.info("Bot started polling.")
            await application.run_polling()
+    except asyncio.CancelledError:
+        logger.info("Main function was cancelled.")
     except Exception as e:
         logger.error(f"An error occurred: {e}")
     finally:
         logger.info("Shutting down the bot...")
 
-        
 if __name__ == '__main__':
     try:
         logger.info("Starting the bot...")
-        asyncio.run(main())
+        log_message("=====================================================")
+
+        # Create the event loop
+        loop = asyncio.get_event_loop()
+
+        # Attach signal handlers for SIGINT and SIGTERM
+        signals = (signal.SIGINT, signal.SIGTERM)
+        for sig in signals:
+            loop.add_signal_handler(sig, lambda s=sig: asyncio.create_task(shutdown(sig)))
+
+        # Run the main function until complete
+        loop.run_until_complete(main())
     except KeyboardInterrupt:
         logger.info("Bot stopped by user.")
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
+    finally:
+        logger.info("Shutting down the bot...")
+        # Run the shutdown handler to safely close remaining tasks
+        loop.run_until_complete(shutdown("Final Shutdown"))
+        loop.close()
+        logger.info("Event loop closed. Bot has shut down successfully.")
