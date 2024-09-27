@@ -191,19 +191,19 @@ def save_group_id(group_chat_id, language):
         conn.commit()
 
 # Initialize the group chat ID and language
-init_db()
-GROUP_CHAT_ID, LANGUAGE = load_group_id()
-if GROUP_CHAT_ID is None:
-    logger.info(f"")
-    logger.info("Group Chat ID not set. Please use /set_group_id. <-----")
-    logger.info(f"=====================================================")
-    logger.info(f"=====================================================")
+def init_db():
+    GROUP_CHAT_ID, LANGUAGE = load_group_id()
+    if GROUP_CHAT_ID is None:
+        logger.info(f"")
+        logger.info("Group Chat ID not set. Please use /set_group_id. <-----")
+        logger.info(f"=====================================================")
+        logger.info(f"=====================================================")
 
-else:
-    logger.info(f"")
-    logger.info(f"Group Chat ID is already set to: {GROUP_CHAT_ID}")
-    logger.info(f"=====================================================")
-    logger.info(f"=====================================================")
+    else:
+        logger.info(f"")
+        logger.info(f"Group Chat ID is already set to: {GROUP_CHAT_ID}")
+        logger.info(f"=====================================================")
+        logger.info(f"=====================================================")
 
 
 # Global variable to track if night mode is active
