@@ -66,31 +66,31 @@ def check_and_log_paths():
     logger.info(f"Checking directories.....")
     if not os.path.exists(CONFIG_DIR):
         os.makedirs(CONFIG_DIR)
-        log_message("")
-        logger.warning(f"Config directory '{CONGIG_DIR}' not found.")
+        log_message_async("")
+        logger.warning(f"Config directory '{CONFIG_DIR}' not found.")
         logger.info(f"Creating config directory....")
         logger.info(f"Directory {CONFIG_DIR} created.")
     else:
-        log_message("")
+        log_message_async("")
         logger.info(f"Config directory '{CONFIG_DIR}' already exists.")
     
     # Check if database directory exists
     if not os.path.exists(DATABASE_DIR):
         os.makedirs(DATABASE_DIR)
-        log_message("")
+        log_message_async("")
         logger.warning(f"Database directory '{DATABASE_DIR}' not found.")
         logger.info(f"Creating database directory....")
         logger.info(f"Directory {DATABASE_DIR} created.")
     else:
-        log_message("")
+        log_message_async("")
         logger.info(f"Config directory '{DATABASE_DIR}' already exists.")
 
     # Check if database file exists
     if not os.path.exists(DATABASE_FILE):
-        log_message("")
+        log_message_async("")
         logger.info(f"Database file '{DATABASE_FILE}' does not exist. It will be created automatically.")
     else:
-        log_message("")
+        log_message_async("")
         logger.info(f"Database file '{DATABASE_FILE}' already exists.")
 
 # Load bot configuration from config/config.json
@@ -147,6 +147,17 @@ console_format = logging.Formatter('[%(asctime)s] [%(levelname)s]   %(message)s'
 console_handler.setFormatter(console_format)
 logger.addHandler(console_handler)
 
+# Create an asyncio lock for sequential logging
+log_lock = asyncio.Lock()
+
+# Modify the log_message function to use the asyncio lock
+async def log_message_async(message):
+    """Log a message with asyncio lock to maintain order."""
+    async with log_lock:
+        print(message)
+        sys.stdout.flush()  # Ensure the message is flushed to the console immediately
+
+
 def log_message(message):
     """Print a plain text message without log level or metadata."""
     #print(f"DEBUG: log_message called with: {message}")  # Debug print
@@ -156,10 +167,10 @@ def log_message(message):
 # Log all config entries, redacting sensitive information
 def log_config_entries(config):
     sensitive_keys = ['TOKEN', 'API_KEY', 'SECRET', 'KEY']  # Keys to redact
-    log_message("=====================================================")
-    log_message("")
+    log_message_async("=====================================================")
+    log_message_async("")
     logger.info("Logging all configuration entries:")
-    log_message(f"")
+    log_message_async(f"")
     
     for section, entries in config.items():
         if isinstance(entries, dict):
@@ -170,8 +181,8 @@ def log_config_entries(config):
                 logger.info(f"  {key}: {value}")
         else:
             logger.info(f"{section}: {entries}")
-    log_message("")
-    log_message("=====================================================")
+    log_message_async("")
+    log_message_async("=====================================================")
 
 def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
     """
@@ -187,7 +198,7 @@ def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
     # Log the successful retrieval of the token with only the first and last 4 characters visible
     if TOKEN:
         redacted_token = redact_sensitive_info(TOKEN)
-        log_message("")
+        log_message_async("")
         logger.info(f"Token retrieved successfully:")
         logger.info(redacted_token)
     else:
@@ -197,12 +208,12 @@ def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
     # Timezone configuration
     try:
         TIMEZONE_OBJ = ZoneInfo(TIMEZONE)
-        log_message("")
+        log_message_async("")
         logger.info(f"Timezone is set to '{TIMEZONE}'.")
     except Exception as e:
-        log_message("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        log_message_async("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         logger.error(f"Invalid timezone '{TIMEZONE}' in config.json. <-----")
-        log_message("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        log_message_async("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         logger.error(f"Defaulting to 'Europe/Berlin'. Error: {e}")
         TIMEZONE_OBJ = ZoneInfo("Europe/Berlin")
 
@@ -242,12 +253,12 @@ def log_group_id():
         cursor.execute("SELECT group_chat_id, language FROM group_data WHERE id=1")
         row = cursor.fetchone()
     if row:
-        log_message("")
+        log_message_async("")
         logger.info(f"Loaded existing Group Chat ID: {row[0]}")
-        log_message("")
+        log_message_async("")
         logger.info(f"Loaded existing Tmdb Language: {row[1]}")
-        log_message("")
-        log_message("=====================================================")
+        log_message_async("")
+        log_message_async("=====================================================")
         return row[0], row[1]
     return None, DEFAULT_LANGUAGE
 
@@ -1043,7 +1054,7 @@ def print_logo():
     """
     print(logo)
 
-# Main Function
+# Main bot Function
 async def main() -> None:
     global application
 
@@ -1055,19 +1066,19 @@ async def main() -> None:
         # Load version info and log it
         version_info = load_version_info('version.txt')
 
-        # Log bot information
+        # Log bot information asynchronously to ensure order
         if version_info:
-           log_message("=====================================================")
-           log_message("")
-           log_message(f"Bot Version: {version_info.get('Version', 'Unknown')}")
-           log_message(f"Author: {version_info.get('Author', 'Unknown')}")
-           log_message("")
-           log_message("=====================================================")
-           log_message("")
-           log_message(f"To support this project, please visit")
-           log_message(f"https://github.com/cyb3rgh05t/telegram_bot")
-           log_message("")
-           log_message("=====================================================")
+           await log_message_async("=====================================================")
+           await log_message_async("")
+           await log_message_async(f"Bot Version: {version_info.get('Version', 'Unknown')}")
+           await log_message_async(f"Author: {version_info.get('Author', 'Unknown')}")
+           await log_message_async("")
+           await log_message_async("=====================================================")
+           await log_message_async("")
+           await log_message_async(f"To support this project, please visit")
+           await log_message_async(f"https://github.com/cyb3rgh05t/telegram_bot")
+           await log_message_async("")
+           await log_message_async("=====================================================")
 
            # Check and log the paths for config and database
            check_and_log_paths()
@@ -1082,9 +1093,9 @@ async def main() -> None:
            init_db()
            GROUP_CHAT_ID = load_group_id()
            if GROUP_CHAT_ID is None:
-               log_message("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+               await log_message_async("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                logger.warning("Group Chat ID not set. Please use /set_group_id. <-----")
-               log_message("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+               await log_message_async("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
            else:
                # Load group chat ID and language from database
                log_group_id()
@@ -1125,26 +1136,12 @@ async def main() -> None:
 
 if __name__ == '__main__':
     try:
+        log_message_async("=====================================================")
         logger.info("Starting the bot...")
-        log_message("=====================================================")
-
-        # Create the event loop
-        loop = asyncio.get_event_loop()
-
-        # Attach signal handlers for SIGINT and SIGTERM
-        signals = (signal.SIGINT, signal.SIGTERM)
-        for sig in signals:
-            loop.add_signal_handler(sig, lambda s=sig: asyncio.create_task(shutdown(sig)))
-
-        # Run the main function until complete
-        loop.run_until_complete(main())
+        asyncio.run(main())
     except KeyboardInterrupt:
         logger.info("Bot stopped by user.")
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
     finally:
         logger.info("Shutting down the bot...")
-        # Run the shutdown handler to safely close remaining tasks
-        loop.run_until_complete(shutdown("Final Shutdown"))
-        loop.close()
-        logger.info("Event loop closed. Bot has shut down successfully.")
