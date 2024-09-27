@@ -1076,16 +1076,16 @@ async def main() -> None:
            await log_message_async("=====================================================")
 
            # Check and log the paths for config and database
-           check_and_log_paths()
+           await check_and_log_paths()
 
            # Log all configuration entries
-           log_config_entries(config)
+           await log_config_entries(config)
 
            # Log the successful retrieval of the token and timezone
-           configure_bot(TOKEN, TIMEZONE="Europe/Berlin")
+           await configure_bot(TOKEN, TIMEZONE="Europe/Berlin")
 
            # Initialize the group chat ID and language
-           init_db()
+           await init_db()
            GROUP_CHAT_ID = load_group_id()
            if GROUP_CHAT_ID is None:
                await log_message_async("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
