@@ -1023,6 +1023,10 @@ async def main() -> None:
            #Log the successful retrieval of the token and timezone
            configure_bot(TOKEN, TIMEZONE="Europe/Berlin")
 
+           set_group_id()
+
+           init_db()
+
            application = ApplicationBuilder().token(TOKEN).build()
 
            # Register the command handler
