@@ -165,12 +165,12 @@ def log_message(message):
 
 
 # Log all config entries, redacting sensitive information
-async def log_config_entries(config):
+def log_config_entries(config):
     sensitive_keys = ['TOKEN', 'API_KEY', 'SECRET', 'KEY']  # Keys to redact
-    await log_message_async("=====================================================")
-    await log_message_async("")
+    log_message("=====================================================")
+    log_message("")
     logger.info("Logging all configuration entries:")
-    await log_message_async(f"")
+    log_message(f"")
     
     for section, entries in config.items():
         if isinstance(entries, dict):
@@ -181,10 +181,10 @@ async def log_config_entries(config):
                 logger.info(f"  {key}: {value}")
         else:
             logger.info(f"{section}: {entries}")
-    await log_message_async("")
-    await log_message_async("=====================================================")
+    log_message("")
+    log_message("=====================================================")
 
-async def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
+def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
     """
     Configures the bot by logging the token and setting up the timezone.
 
@@ -208,9 +208,9 @@ async def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
         TIMEZONE_OBJ = ZoneInfo(TIMEZONE)
         logger.info(f"Timezone is set to '{TIMEZONE}'.")
     except Exception as e:
-        await log_message_async("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        log_message("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         logger.error(f"Invalid timezone '{TIMEZONE}' in config.json. <-----")
-        await log_message_async("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        log_message("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         logger.error(f"Defaulting to 'Europe/Berlin'. Error: {e}")
         TIMEZONE_OBJ = ZoneInfo("Europe/Berlin")
 
@@ -234,7 +234,7 @@ def init_db():
         conn.commit()
 
 # Load group chat ID and language from database
-async def load_group_id():
+def load_group_id():
     with sqlite3.connect(DATABASE_FILE) as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT group_chat_id, language FROM group_data WHERE id=1")
@@ -244,16 +244,16 @@ async def load_group_id():
     return None, DEFAULT_LANGUAGE
 
 # Log group_id and language if present
-async def log_group_id():
+def log_group_id():
     with sqlite3.connect(DATABASE_FILE) as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT group_chat_id, language FROM group_data WHERE id=1")
         row = cursor.fetchone()
     if row:
-        await log_message_async("")
+        log_message("")
         logger.info(f"Loaded existing Group Chat ID: {row[0]}")
         logger.info(f"Loaded existing Tmdb Language: {row[1]}")
-        await log_message_async("=====================================================")
+        log_message("=====================================================")
         return row[0], row[1]
     return None, DEFAULT_LANGUAGE
 
@@ -1079,13 +1079,13 @@ async def main() -> None:
            await check_and_log_paths()
 
            # Log all configuration entries
-           await log_config_entries(config)
+           log_config_entries(config)
 
            # Log the successful retrieval of the token and timezone
-           await configure_bot(TOKEN, TIMEZONE="Europe/Berlin")
+           configure_bot(TOKEN, TIMEZONE="Europe/Berlin")
 
            # Initialize the group chat ID and language
-           await init_db()
+           init_db()
            GROUP_CHAT_ID = load_group_id()
            if GROUP_CHAT_ID is None:
                await log_message_async("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
