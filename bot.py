@@ -70,8 +70,8 @@ async def check_and_log_paths():
         logger.warning(f"Config directory '{CONFIG_DIR}' not found.")
         logger.info(f"Creating config directory....")
         logger.info(f"Directory {CONFIG_DIR} created.")
-    else:
         await log_message_async("")
+    else:
         logger.info(f"Config directory '{CONFIG_DIR}' already exists.")
     
     # Check if database directory exists
@@ -81,16 +81,14 @@ async def check_and_log_paths():
         logger.warning(f"Database directory '{DATABASE_DIR}' not found.")
         logger.info(f"Creating database directory....")
         logger.info(f"Directory {DATABASE_DIR} created.")
-    else:
         await log_message_async("")
+    else:
         logger.info(f"Config directory '{DATABASE_DIR}' already exists.")
 
     # Check if database file exists
     if not os.path.exists(DATABASE_FILE):
-        await log_message_async("")
-        logger.info(f"Database file '{DATABASE_FILE}' does not exist. It will be created automatically.")
+        logger.warning(f"Database file '{DATABASE_FILE}' does not exist. It will be created automatically.")
     else:
-        await log_message_async("")
         logger.info(f"Database file '{DATABASE_FILE}' already exists.")
 
 # Load bot configuration from config/config.json
@@ -250,7 +248,6 @@ def log_group_id():
         cursor.execute("SELECT group_chat_id, language FROM group_data WHERE id=1")
         row = cursor.fetchone()
     if row:
-        log_message("")
         logger.info(f"Loaded existing Group Chat ID: {row[0]}")
         logger.info(f"Loaded existing Tmdb Language: {row[1]}")
         log_message("=====================================================")
