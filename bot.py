@@ -48,29 +48,34 @@ def load_version_info(file_path):
 # Function to check and log paths
 def check_and_log_paths():
     # Check if config directory exists
+    logger.info(f"Checking directories.....")
     if not os.path.exists(CONFIG_DIR):
         os.makedirs(CONFIG_DIR)
-        logger.info(f"")
-        logger.info(f"Config directory '{CONFIG_DIR}' not found. Created the directory.")
+        log_message("")
+        logger.warning(f"Config directory '{CONGIG_DIR}' not found.")
+        logger.info(f"Creating config directory....")
+        logger.info(f"Directory {CONFIG_DIR} created.")
     else:
-        logger.info(f"")
+        log_message("")
         logger.info(f"Config directory '{CONFIG_DIR}' already exists.")
     
     # Check if database directory exists
     if not os.path.exists(DATABASE_DIR):
         os.makedirs(DATABASE_DIR)
-        logger.info(f"")
-        logger.info(f"Database directory '{DATABASE_DIR}' not found. Created the directory.")
+        log_message("")
+        logger.warning(f"Database directory '{DATABASE_DIR}' not found.")
+        logger.info(f"Creating database directory....")
+        logger.info(f"Directory {DATABASE_DIR} created.")
     else:
-        logger.info(f"")
+        log_message("")
         logger.info(f"Config directory '{DATABASE_DIR}' already exists.")
 
     # Check if database file exists
     if not os.path.exists(DATABASE_FILE):
-        logger.info(f"")
+        log_message("")
         logger.info(f"Database file '{DATABASE_FILE}' does not exist. It will be created automatically.")
     else:
-        logger.info(f"")
+        log_message("")
         logger.info(f"Database file '{DATABASE_FILE}' already exists.")
 
 # Load bot configuration from config/config.json
@@ -129,8 +134,28 @@ logger.addHandler(console_handler)
 
 def log_message(message):
     """Print a plain text message without log level or metadata."""
-    print(f"DEBUG: log_message called with: {message}")  # Debug print
+    #print(f"DEBUG: log_message called with: {message}")  # Debug print
     print(message, flush=True)  # Actual message print
+
+# Log all config entries, redacting sensitive information
+def log_config_entries(config):
+    sensitive_keys = ['TOKEN', 'API_KEY', 'SECRET', 'KEY']  # Keys to redact
+    log_message("=====================================================")
+    log_message("")
+    logger.info("Logging all configuration entries:")
+    log_message(f"")
+    
+    for section, entries in config.items():
+        if isinstance(entries, dict):
+            logger.info(f"Section [{section}]:")
+            for key, value in entries.items():
+                if any(sensitive_key in key.upper() for sensitive_key in sensitive_keys):
+                    value = redact_sensitive_info(value)
+                logger.info(f"  {key}: {value}")
+        else:
+            logger.info(f"{section}: {entries}")
+    log_message("")
+    log_message("=====================================================")
 
 def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
     """
@@ -146,7 +171,7 @@ def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
     # Log the successful retrieval of the token with only the first and last 4 characters visible
     if TOKEN:
         redacted_token = redact_sensitive_info(TOKEN)
-        logger.info(f"=" * 50)
+        log_message("")
         logger.info(f"Token retrieved successfully:")
         logger.info(redacted_token)
     else:
@@ -156,33 +181,16 @@ def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
     # Timezone configuration
     try:
         TIMEZONE_OBJ = ZoneInfo(TIMEZONE)
+        log_message("")
         logger.info(f"Timezone is set to '{TIMEZONE}'.")
     except Exception as e:
+        log_message("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         logger.error(f"Invalid timezone '{TIMEZONE}' in config.json. <-----")
+        log_message("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         logger.error(f"Defaulting to 'Europe/Berlin'. Error: {e}")
         TIMEZONE_OBJ = ZoneInfo("Europe/Berlin")
 
     return TIMEZONE_OBJ
-
-# Log all config entries, redacting sensitive information
-def log_config_entries(config):
-    sensitive_keys = ['TOKEN', 'API_KEY', 'SECRET', 'KEY']  # Keys to redact
-    logger.info(f"=" *50)
-    logger.info(f"")
-    logger.info("Logging all configuration entries:")
-    logger.info(f"")
-    
-    for section, entries in config.items():
-        if isinstance(entries, dict):
-            logger.info(f"Section [{section}]:")
-            for key, value in entries.items():
-                if any(sensitive_key in key.upper() for sensitive_key in sensitive_keys):
-                    value = redact_sensitive_info(value)
-                logger.info(f"  {key}: {value}")
-        else:
-            logger.info(f"{section}: {entries}")
-    logger.info(f"")
-    logger.info(f"=====================================================")
 
 # Initialize SQLite connection and create table for storing group ID and language
 def init_db():
@@ -208,10 +216,22 @@ def load_group_id():
         cursor.execute("SELECT group_chat_id, language FROM group_data WHERE id=1")
         row = cursor.fetchone()
     if row:
-        logger.info(f"")
+        return row[0], row[1]
+    return None, DEFAULT_LANGUAGE
+
+# Log group_id and language if present
+def log_group_id():
+    with sqlite3.connect(DATABASE_FILE) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT group_chat_id, language FROM group_data WHERE id=1")
+        row = cursor.fetchone()
+    if row:
+        log_message("")
         logger.info(f"Loaded existing Group Chat ID: {row[0]}")
-        logger.info(f"")
+        log_message("")
         logger.info(f"Loaded existing Tmdb Language: {row[1]}")
+        log_message("")
+        log_message("=====================================================")
         return row[0], row[1]
     return None, DEFAULT_LANGUAGE
 
@@ -1045,12 +1065,12 @@ async def main() -> None:
            init_db()
            GROUP_CHAT_ID = load_group_id()
            if GROUP_CHAT_ID is None:
-             logger.info(f"")
-             logger.info("Group Chat ID not set. Please use /set_group_id. <-----")
-             logger.info(f"")
+             log_message("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+             logger.warning("Group Chat ID not set. Please use /set_group_id. <-----")
+             log_message("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
            else:
              # Load group chat ID and language from database
-             load_group_id()
+             log_group_id()
 
            application = ApplicationBuilder().token(TOKEN).build()
 
