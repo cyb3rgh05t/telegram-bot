@@ -10,6 +10,7 @@ import logging
 import requests
 import time
 import aiohttp
+import telegram.error
 from telegram.constants import ChatAction
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, CallbackQueryHandler, ContextTypes
@@ -933,25 +934,34 @@ async def disable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE)
 # Night mode checker
 async def night_mode_checker(context):
     global night_mode_active
-    now = get_current_time()
-    #GROUP_CHAT_ID = context.job.context  # Get custom data (GROUP_CHAT_ID) from context    
+    global GROUP_CHAT_ID
+    
+    # Check if GROUP_CHAT_ID is defined and valid
     if not GROUP_CHAT_ID:
-        logger.error("Group Chat ID is not defined.")
+        logger.error("Group Chat ID is not defined. Please set it using /set_group_id command.")
         return
     
-    logger.info(f"Current time (UTC+2): {now.strftime('%Y-%m-%d %H:%M:%S')}")
-    logger.info(f"Night mode checker started")
+    logger.info(f"Night mode checker started for GROUP_CHAT_ID: {GROUP_CHAT_ID}")
+    
+    now = get_current_time()
     if now.hour == 16 and not night_mode_active:
         night_mode_active = True
         logger.info("Night mode activated at midnight.")
-        await context.bot.send_message(chat_id=GROUP_CHAT_ID, 
-                                       text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff Team braucht auch mal eine Pause 😴😪🥱💤🛌🏼")
+        try:
+            await context.bot.send_message(chat_id=GROUP_CHAT_ID,
+                                           text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff Team braucht auch mal eine Pause 😴😪🥱💤🛌🏼")
+        except telegram.error.BadRequest as e:
+            logger.error(f"Failed to send night mode activation message: {e}")
     elif now.hour == 17 and night_mode_active:
         night_mode_active = False
         logger.info("Night mode deactivated at 7:00 AM.")
-        await context.bot.send_message(chat_id=GROUP_CHAT_ID, 
-                                       text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
-    logger.info(f"Night mode checker finished")
+        try:
+            await context.bot.send_message(chat_id=GROUP_CHAT_ID,
+                                           text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
+        except telegram.error.BadRequest as e:
+            logger.error(f"Failed to send night mode deactivation message: {e}")
+    logger.info(f"Night mode checker finished for GROUP_CHAT_ID: {GROUP_CHAT_ID}")
+
 
 # Restrict messages during night mode
 async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
