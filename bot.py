@@ -93,6 +93,7 @@ async def check_and_log_paths():
     # Check if database file exists
     if not os.path.exists(DATABASE_FILE):
         logger.warning(f"Database file '{DATABASE_FILE}' does not exist. It will be created automatically.")
+        await log_message_async("")
     else:
         logger.info(f"Database file '{DATABASE_FILE}' already exists.")
 
@@ -184,16 +185,8 @@ async def log_config_entries(config):
     await log_message_async("=====================================================")
 
 def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
-    """
-    Configures the bot by logging the token and setting up the timezone.
-
-    Parameters:
-    - TOKEN (str): The bot token.
-    - TIMEZONE (str): Timezone string for the bot. Defaults to 'Europe/Berlin'.
-
-    Returns:
-    - TIMEZONE_OBJ (ZoneInfo): Configured timezone object.
-    """
+    logger.info(f"=====================================================")
+    logger.info(f"Checking for constants....")
     # Log the successful retrieval of the token with only the first and last 4 characters visible
     if TOKEN:
         redacted_token = redact_sensitive_info(TOKEN)
@@ -207,10 +200,10 @@ def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
         TIMEZONE_OBJ = ZoneInfo(TIMEZONE)
         logger.info(f"Timezone is set to '{TIMEZONE}'.")
     except Exception as e:
-        log_message("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        logger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         logger.error(f"Invalid timezone '{TIMEZONE}' in config.json. <-----")
-        log_message("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        logger.error(f"Defaulting to 'Europe/Berlin'. Error: {e}")
+        logger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        logger.info(f"Defaulting to 'Europe/Berlin'. Error: {e}")
         TIMEZONE_OBJ = ZoneInfo("Europe/Berlin")
 
     return TIMEZONE_OBJ
@@ -235,8 +228,18 @@ def init_db():
 def initialize_group_data():
     global GROUP_CHAT_ID, LANGUAGE
     group_chat_id, language = load_group_data()
+    
     GROUP_CHAT_ID = group_chat_id  # Only assign the chat ID
     LANGUAGE = language
+
+    if GROUP_CHAT_ID is None:
+        logger.warning("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        logger.warning("Group Chat ID is not set. Please use /set_group_id to initialize it.")
+        logger.warning("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    else:
+        logger.info(f"Group Chat ID is set to: {GROUP_CHAT_ID}")
+        logger.info(f"TMDB Language is set to: {LANGUAGE}")
+
 
 # Load group chat ID and language from database
 def load_group_data():
@@ -245,22 +248,6 @@ def load_group_data():
         cursor.execute("SELECT group_chat_id, language FROM group_data WHERE id=1")
         row = cursor.fetchone()
     if row:
-        return row[0], row[1]
-    return None, DEFAULT_LANGUAGE
-
-
-
-
-# Log group_id and language if present
-async def log_group_data():
-    with sqlite3.connect(DATABASE_FILE) as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT group_chat_id, language FROM group_data WHERE id=1")
-        row = cursor.fetchone()
-    if row:
-        logger.info(f"Loaded existing Group Chat ID: {row[0]}")
-        logger.info(f"Loaded existing Tmdb Language: {row[1]}")
-        await log_message_async("=====================================================")
         return row[0], row[1]
     return None, DEFAULT_LANGUAGE
 
@@ -941,39 +928,59 @@ async def disable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE)
         logger.info(f"Night mode disabled by user {update.message.from_user.id}.")
         await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
 
-# Night mode checker
+# Global variable to store the message ID of the night mode message
+night_mode_message_id = None
+
+# Night mode checker function
 async def night_mode_checker(context):
-    global night_mode_active
-    global GROUP_CHAT_ID
+    global night_mode_active, GROUP_CHAT_ID, night_mode_message_id
 
     # Ensure GROUP_CHAT_ID is only the chat ID (integer) and not a tuple
     if isinstance(GROUP_CHAT_ID, tuple):
         GROUP_CHAT_ID = GROUP_CHAT_ID[0]  # Extract only the chat ID part
-
+    now = get_current_time()
+    logger.info(f"Current time (UTC+2): {now.strftime('%Y-%m-%d %H:%M:%S')}")
     logger.info(f"Night mode checker started for GROUP_CHAT_ID: {GROUP_CHAT_ID}")
 
     if not GROUP_CHAT_ID:
-        logger.error("Group Chat ID is not defined. Please set it using /set_group_id command.")
+        logger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        logger.error("Missing Group Chat ID. Please set it using /set_group_id")
+        logger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         return
-    
+
     now = get_current_time()
-    if now.hour == 16 and not night_mode_active:
+    if now.hour == 0 and not night_mode_active:
+        # Activate night mode
         night_mode_active = True
-        logger.info("Night mode activated at midnight.")
+        logger.info("Night mode activated.")
+
+        # Send the initial night mode activation message and store its ID
         try:
-            await context.bot.send_message(chat_id=GROUP_CHAT_ID,
-                                           text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff Team braucht auch mal eine Pause 😴😪🥱💤🛌🏼")
+            message = await context.bot.send_message(chat_id=GROUP_CHAT_ID,
+                                                     text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff Team braucht auch mal eine Pause 😴😪🥱💤🛌🏼")
+            night_mode_message_id = message.message_id
         except telegram.error.BadRequest as e:
             logger.error(f"Failed to send night mode activation message: {e}")
-    elif now.hour == 18 and night_mode_active:
+
+    elif now.hour == 7 and night_mode_active:
+        # Deactivate night mode
         night_mode_active = False
-        logger.info("Night mode deactivated at 7:00 AM.")
+        logger.info("Night mode deactivated.")
+
+        # Edit the previously sent message
         try:
-            await context.bot.send_message(chat_id=GROUP_CHAT_ID,
-                                           text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
+            if night_mode_message_id:
+                await context.bot.edit_message_text(chat_id=GROUP_CHAT_ID,
+                                                    message_id=night_mode_message_id,
+                                                    text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
+                night_mode_message_id = None  # Reset message ID after editing
+            else:
+                logger.warning("No night mode message found to edit.")
         except telegram.error.BadRequest as e:
-            logger.error(f"Failed to send night mode deactivation message: {e}")
+            logger.error(f"Failed to edit night mode deactivation message: {e}")
+
     logger.info(f"Night mode checker finished for GROUP_CHAT_ID: {GROUP_CHAT_ID}")
+
 
 
 # Restrict messages during night mode
@@ -1095,6 +1102,8 @@ async def main() -> None:
            await log_message_async(f"https://github.com/cyb3rgh05t/telegram_bot")
            # await log_message_async("")
            await log_message_async("=====================================================")
+
+           logger.info("Starting the bot...")
            
            # Log all configuration entries
            await log_config_entries(config)
@@ -1104,19 +1113,10 @@ async def main() -> None:
 
            # Log the successful retrieval of the token and timezone
            configure_bot(TOKEN, TIMEZONE="Europe/Berlin")
-
-           initialize_group_data()
-
-           # Initialize the group chat ID and language
+           
+           # Initialize Database
            init_db()
-           GROUP_CHAT_ID = load_group_data()
-           if GROUP_CHAT_ID is None:
-               await log_message_async("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-               logger.warning("Group Chat ID not set. Please use /set_group_id. <-----")
-               await log_message_async("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-           else:
-               # Load group chat ID and language from database
-               await log_group_data()
+           initialize_group_data()
 
            application = ApplicationBuilder().token(TOKEN).build()
 
@@ -1142,7 +1142,9 @@ async def main() -> None:
            # Register the message handler for user confirmation and general messages
            application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
 
-            # Start the Bot
+           # Start the Bot
+           await log_message_async("=====================================================")
+           logger.info("******* Configuration check done *******")
            logger.info("Bot started polling.")
            await application.run_polling()
     except asyncio.CancelledError:
@@ -1154,7 +1156,6 @@ async def main() -> None:
 
 if __name__ == '__main__':
     try:
-        logger.info("Starting the bot...")
         asyncio.run(main())
     except KeyboardInterrupt:
         logger.info("Bot stopped by user.")
