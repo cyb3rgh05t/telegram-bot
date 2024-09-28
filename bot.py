@@ -932,24 +932,21 @@ async def disable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 # Night mode checker
 async def night_mode_checker(context):
-
     global night_mode_active
     now = get_current_time()
-
-    # Ensure GROUP_CHAT_ID is available
-    group_chat_id = context.job.context.get('group_chat_id')  # Get from context if available
-
-    if not group_chat_id:
+    #GROUP_CHAT_ID = context.job.context  # Get custom data (GROUP_CHAT_ID) from context    
+    if not GROUP_CHAT_ID:
         logger.error("Group Chat ID is not defined.")
         return
+    
     logger.info(f"Current time (UTC+2): {now.strftime('%Y-%m-%d %H:%M:%S')}")
     logger.info(f"Night mode checker started")
-    if now.hour == 0 and not night_mode_active:
+    if now.hour == 16 and not night_mode_active:
         night_mode_active = True
         logger.info("Night mode activated at midnight.")
         await context.bot.send_message(chat_id=GROUP_CHAT_ID, 
                                        text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff Team braucht auch mal eine Pause 😴😪🥱💤🛌🏼")
-    elif now.hour == 7 and night_mode_active:
+    elif now.hour == 17 and night_mode_active:
         night_mode_active = False
         logger.info("Night mode deactivated at 7:00 AM.")
         await context.bot.send_message(chat_id=GROUP_CHAT_ID, 
@@ -1115,7 +1112,7 @@ async def main() -> None:
            application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_members))
 
            # Start the night mode checker task with max_instances set to 1
-           application.job_queue.run_repeating(night_mode_checker, interval=300, first=0, context={"group_chat_id": GROUP_CHAT_ID})
+           application.job_queue.run_repeating(night_mode_checker, interval=300, first=0)
 
            # Register the message handler for user confirmation and general messages
            application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
