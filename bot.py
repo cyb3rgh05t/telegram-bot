@@ -932,8 +932,16 @@ async def disable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 # Night mode checker
 async def night_mode_checker(context):
+
     global night_mode_active
     now = get_current_time()
+
+    # Ensure GROUP_CHAT_ID is available
+    group_chat_id = context.job.context.get('group_chat_id')  # Get from context if available
+
+    if not group_chat_id:
+        logger.error("Group Chat ID is not defined.")
+        return
     logger.info(f"Current time (UTC+2): {now.strftime('%Y-%m-%d %H:%M:%S')}")
     logger.info(f"Night mode checker started")
     if now.hour == 0 and not night_mode_active:
@@ -1001,8 +1009,6 @@ async def welcome_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE
             caption=welcome_message,
             reply_markup=keyboard
         )
-
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 # Help command function
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1109,7 +1115,7 @@ async def main() -> None:
            application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_members))
 
            # Start the night mode checker task with max_instances set to 1
-           application.job_queue.run_repeating(night_mode_checker, interval=300, first=0)
+           application.job_queue.run_repeating(night_mode_checker, interval=300, first=0, context={"group_chat_id": GROUP_CHAT_ID})
 
            # Register the message handler for user confirmation and general messages
            application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
