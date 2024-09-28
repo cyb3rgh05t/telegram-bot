@@ -5,4 +5,5 @@
 config/config.json
 
 # database
-database/group_data.db
+*.db
+/database
