@@ -36,6 +36,9 @@ nest_asyncio.apply()
 # Global reference for the application instance
 application = None
 
+# Define GROUP_CHAT_ID as a global variable at the beginning of the script
+GROUP_CHAT_ID = None  # Default value or placeholder
+
 # Shutdown handler to gracefully close the event loop
 async def shutdown(signal_name):
     logger.info(f"Received {signal_name}, shutting down the bot...")
@@ -1043,6 +1046,7 @@ def print_logo():
 # Main Function
 async def main() -> None:
     global application
+    global GROUP_CHAT_ID
 
     # Print the logo at startup
     print_logo()
@@ -1068,11 +1072,9 @@ async def main() -> None:
            
            # Log all configuration entries
            await log_config_entries(config)
+
            # Check and log the paths for config and database
            await check_and_log_paths()
-
-           # Log all configuration entries
-           # await log_config_entries(config)
 
            # Log the successful retrieval of the token and timezone
            configure_bot(TOKEN, TIMEZONE="Europe/Berlin")
