@@ -37,8 +37,9 @@ nest_asyncio.apply()
 # Global reference for the application instance
 application = None
 
-# Define GROUP_CHAT_ID as a global variable at the beginning of the script
-GROUP_CHAT_ID = None  # Default value or placeholder
+# Global reference for the group data
+GROUP_CHAT_ID = None
+LANGUAGE = None
 
 # Shutdown handler to gracefully close the event loop
 async def shutdown(signal_name):
@@ -231,8 +232,14 @@ def init_db():
         
         conn.commit()
 
+def initialize_group_data():
+    global GROUP_CHAT_ID, LANGUAGE
+    group_chat_id, language = load_group_data()
+    GROUP_CHAT_ID = group_chat_id  # Only assign the chat ID
+    LANGUAGE = language
+
 # Load group chat ID and language from database
-def load_group_id():
+def load_group_data():
     with sqlite3.connect(DATABASE_FILE) as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT group_chat_id, language FROM group_data WHERE id=1")
@@ -241,8 +248,11 @@ def load_group_id():
         return row[0], row[1]
     return None, DEFAULT_LANGUAGE
 
+
+
+
 # Log group_id and language if present
-async def log_group_id():
+async def log_group_data():
     with sqlite3.connect(DATABASE_FILE) as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT group_chat_id, language FROM group_data WHERE id=1")
@@ -935,13 +945,16 @@ async def disable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def night_mode_checker(context):
     global night_mode_active
     global GROUP_CHAT_ID
-    
-    # Check if GROUP_CHAT_ID is defined and valid
+
+    # Ensure GROUP_CHAT_ID is only the chat ID (integer) and not a tuple
+    if isinstance(GROUP_CHAT_ID, tuple):
+        GROUP_CHAT_ID = GROUP_CHAT_ID[0]  # Extract only the chat ID part
+
+    logger.info(f"Night mode checker started for GROUP_CHAT_ID: {GROUP_CHAT_ID}")
+
     if not GROUP_CHAT_ID:
         logger.error("Group Chat ID is not defined. Please set it using /set_group_id command.")
         return
-    
-    logger.info(f"Night mode checker started for GROUP_CHAT_ID: {GROUP_CHAT_ID}")
     
     now = get_current_time()
     if now.hour == 16 and not night_mode_active:
@@ -952,7 +965,7 @@ async def night_mode_checker(context):
                                            text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff Team braucht auch mal eine Pause 😴😪🥱💤🛌🏼")
         except telegram.error.BadRequest as e:
             logger.error(f"Failed to send night mode activation message: {e}")
-    elif now.hour == 17 and night_mode_active:
+    elif now.hour == 18 and night_mode_active:
         night_mode_active = False
         logger.info("Night mode deactivated at 7:00 AM.")
         try:
@@ -1092,16 +1105,18 @@ async def main() -> None:
            # Log the successful retrieval of the token and timezone
            configure_bot(TOKEN, TIMEZONE="Europe/Berlin")
 
+           initialize_group_data()
+
            # Initialize the group chat ID and language
            init_db()
-           GROUP_CHAT_ID = load_group_id()
+           GROUP_CHAT_ID = load_group_data()
            if GROUP_CHAT_ID is None:
                await log_message_async("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                logger.warning("Group Chat ID not set. Please use /set_group_id. <-----")
                await log_message_async("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
            else:
                # Load group chat ID and language from database
-               await log_group_id()
+               await log_group_data()
 
            application = ApplicationBuilder().token(TOKEN).build()
 
