@@ -18,6 +18,10 @@
         "IMAGE_URL": "URL_TO_YOUR_WELCOME_IMAGE",
         "BUTTON_URL": "URL_TO_YOUR_BUTTON"
     },
+    "nightmode": {
+    "NIGHTMODE_START": "00:00",
+    "NIGHTMODE_END": "08:00"
+  },
     "tmdb": {
         "API_KEY": "YOUR_TMDB_API_KEY"
 		"DEFAULT_LANGUAGE": "en"

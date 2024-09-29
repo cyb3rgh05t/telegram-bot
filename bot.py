@@ -88,12 +88,11 @@ async def check_and_log_paths():
         logger.info(f"Directory {DATABASE_DIR} created.")
         await log_message_async("")
     else:
-        logger.info(f"Config directory '{DATABASE_DIR}' already exists.")
+        logger.info(f"Database directory '{DATABASE_DIR}' already exists.")
 
     # Check if database file exists
     if not os.path.exists(DATABASE_FILE):
         logger.warning(f"Database file '{DATABASE_FILE}' does not exist. It will be created automatically.")
-        await log_message_async("")
     else:
         logger.info(f"Database file '{DATABASE_FILE}' already exists.")
 
@@ -115,6 +114,9 @@ LOG_LEVEL = config.get("bot").get("LOG_LEVEL", "INFO").upper()
 # WELCOME
 IMAGE_URL = config.get("welcome").get("IMAGE_URL")
 BUTTON_URL = config.get("welcome").get("BUTTON_URL")
+# NIGHTMODE
+NIGHTMODE_START = config.get("nightmode").get("NIGHTMODE_START")
+NIGHTMODE_END = config.get("nightmode").get("NIGHTMODE_END")
 # TMDB
 TMDB_API_KEY = config.get("tmdb").get("API_KEY")
 DEFAULT_LANGUAGE = config.get("tmdb").get("DEFAULT_LANGUAGE")
@@ -188,7 +190,7 @@ def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
     # Log the successful retrieval of the token with only the first and last 4 characters visible
     if TOKEN:
         redacted_token = redact_sensitive_info(TOKEN)
-        logger.info(f"Token retrieved: {redacted_token}")
+        logger.info(f"Token retrieved: '{redacted_token}'")
     else:
         logger.error(f"Failed to retrieve bot token from config. <-----")
         raise ValueError("Bot token is missing or invalid.")
@@ -267,14 +269,16 @@ def initialize_group_data():
 
     if GROUP_CHAT_ID is None:
         logger.info("")
-        logger.warning("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        logger.warning("Group Chat ID is not set. Please use /set_group_id <-----")
-        logger.warning("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        logger.warning("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        logger.warning("Missing Group Chat ID....")
+        logger.warning("Group Chat ID is needed for Night Mode")
+        logger.warning("Please set it using /set_group_id <-----")
+        logger.warning("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         logger.info("")
-        logger.info(f"TMDb Language is set to: {LANGUAGE}")
+        logger.info(f"TMDb Language is set to: '{LANGUAGE}'")
     else:
-        logger.info(f"Group Chat ID is set to: {GROUP_CHAT_ID}")
-        logger.info(f"TMDb Language is set to: {LANGUAGE}")
+        logger.info(f"Group Chat ID is set to: '{GROUP_CHAT_ID}'")
+        logger.info(f"TMDb Language is set to: '{LANGUAGE}'")
 
 # Load group name
 def get_group_name(group_chat_id):
@@ -326,7 +330,6 @@ def escape_markdown_v2(text):
 
 # Function to check if the series is already in Sonarr
 async def check_series_in_sonarr(series_tvdb_id):
-    """Check if the series is already in Sonarr by TVDB ID."""
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(f"{SONARR_URL}/api/v3/series", params={"apikey": SONARR_API_KEY}) as response:
@@ -347,7 +350,6 @@ async def check_series_in_sonarr(series_tvdb_id):
 
 # Function to check if the movie is already in Radarr
 async def check_movie_in_radarr(movie_tmdb_id):
-    """Check if the movie is already in Radarr by TMDb ID."""
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(f"{RADARR_URL}/api/v3/movie", params={"apikey": RADARR_API_KEY}) as response:
@@ -974,9 +976,9 @@ async def set_group_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
     username = update.message.from_user.username  # Get the username
     user_id = update.message.from_user.id
-    logger.info(f"Group chat ID set to: {GROUP_CHAT_ID} (Name: {group_name}) by user {username} (ID: {user_id})")
+    logger.info(f"Group chat ID set to: '{GROUP_CHAT_ID}' (Group Name: '{group_name}') by user '{username}' (ID: '{user_id}')")
     
-    await update.message.reply_text(f"Group chat ID set to: {GROUP_CHAT_ID} (Group Name: {group_name})")
+    await update.message.reply_text(f"Group chat ID set to: '{GROUP_CHAT_ID}' (Group Name: '{group_name}')")
 
 # Enable or disable night mode
 @admin_required
@@ -986,7 +988,7 @@ async def enable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         night_mode_active = True
         user_id =update.message.from_user.id
         username = update.message.from_user.username  # Get the username
-        logger.info(f"Night mode enabled by user {username} (ID: {user_id})")
+        logger.info(f"Night Mode enabled by user '{username}' (ID: '{user_id}')")
         await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff Team braucht auch mal eine Pause 😴😪🥱💤🛌🏼")
 
 @admin_required
@@ -996,10 +998,20 @@ async def disable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE)
         night_mode_active = False
         user_id =update.message.from_user.id
         username = update.message.from_user.username  # Get the username
-        logger.info(f"Night mode disabled by user {username} (ID: {user_id})")  # Log username
+        logger.info(f"Night Mode disabled by user '{username}' (ID: '{user_id}')")  # Log username
         await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
 
-# Global variable to store the message ID of the night mode message
+# Function to parse time from the config
+def get_night_mode_times():
+    start_time_str = NIGHTMODE_START
+    end_time_str = NIGHTMODE_END
+    
+    # Convert strings to time objects
+    start_time = datetime.strptime(start_time_str, "%H:%M").time()
+    end_time = datetime.strptime(end_time_str, "%H:%M").time()
+    return start_time, end_time
+
+# Night Mode checker function
 async def night_mode_checker(context):
     global night_mode_active, GROUP_CHAT_ID, night_mode_message_id
 
@@ -1010,43 +1022,76 @@ async def night_mode_checker(context):
     # Retrieve the group name
     group_name = get_group_name(GROUP_CHAT_ID)
 
-    now = get_current_time()
-    logger.info(f"Current time (UTC+2): {now.strftime('%Y-%m-%d %H:%M:%S')}")
-    logger.info(f"Night mode checker started for GROUP_CHAT_ID: {GROUP_CHAT_ID} (Group Name: {group_name})")
+    now = get_current_time().time()  # Get current time only
+    logger.info(f"Current time (UTC+2): {now.strftime('%H:%M:%S')}")
+
+    # Get night mode times from the config
+    night_mode_start, night_mode_end = get_night_mode_times()
+    logger.info(f"Night Mode set from '{night_mode_start}' to '{night_mode_end}'")
 
     if not GROUP_CHAT_ID:
-        logger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        logger.error("Missing Group Chat ID. Please set it using /set_group_id <-----")
-        logger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        logger.warning("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        logger.warning("Missing Group Chat ID....")
+        logger.warning("Group Chat ID is needed for Night Mode")
+        logger.warning("Please set it using /set_group_id <-----")
+        logger.warning("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         return
+    
+    logger.info(f"Night Mode checker started for Group Chat ID: '{GROUP_CHAT_ID}' and Group Name: '{group_name}'")
 
-    # Activate night mode if it’s currently not active and it's 5 PM
-    if now.hour == 17 and now.minute == 35 and not night_mode_active:
-        night_mode_active = True
-        logger.info(f"Night mode activated for GROUP_CHAT_ID: {GROUP_CHAT_ID} (Group Name: {group_name}).")
+    # Check if current time is within the night mode time
+    if night_mode_start < night_mode_end:
+        # Normal case: night mode doesn't cross midnight
+        if now >= night_mode_start and now < night_mode_end and not night_mode_active:
+            night_mode_active = True
+            logger.info(f"Night Mode activated for Group Chat ID: '{GROUP_CHAT_ID}' and Group Name: '{group_name}'")
 
-        # Send the initial night mode activation message and store its ID
-        try:
-            message = await context.bot.send_message(chat_id=GROUP_CHAT_ID,
-                                                     text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff Team braucht auch mal eine Pause 😴😪🥱💤🛌🏼")
-            night_mode_message_id = message.message_id
+            # Send the initial night mode activation message and store its ID
+            try:
+                message = await context.bot.send_message(chat_id=GROUP_CHAT_ID,
+                                                         text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff Team braucht auch mal eine Pause 😴😪🥱💤🛌🏼")
+                night_mode_message_id = message.message_id
 
-            # Store the message ID in the database
-            update_night_mode_message_id(GROUP_CHAT_ID, night_mode_message_id)
+                # Store the message ID in the database
+                update_night_mode_message_id(GROUP_CHAT_ID, night_mode_message_id)
 
-            # Update the database to set night_mode_active to 1 (True)
-            with sqlite3.connect(DATABASE_FILE) as conn:
-                cursor = conn.cursor()
-                cursor.execute("UPDATE group_data SET night_mode_active = ? WHERE group_chat_id = ?", (1, GROUP_CHAT_ID))
-                conn.commit()
+                # Update the database to set night_mode_active to 1 (True)
+                with sqlite3.connect(DATABASE_FILE) as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("UPDATE group_data SET night_mode_active = ? WHERE group_chat_id = ?", (1, GROUP_CHAT_ID))
+                    conn.commit()
 
-        except telegram.error.BadRequest as e:
-            logger.error(f"Failed to send night mode activation message: {e}")
+            except telegram.error.BadRequest as e:
+                logger.error(f"Failed to send night mode activation message: {e}")
 
-    # If night mode is active and it's 3 PM, deactivate it
-    elif now.hour == 17 and now.minute == 45 and night_mode_active:
+    else:
+        # Case where night mode crosses midnight
+        if (now >= night_mode_start or now < night_mode_end) and not night_mode_active:
+            night_mode_active = True
+            logger.info(f"Night Mode activated for Group Chat ID: '{GROUP_CHAT_ID}' and Group Name: '{group_name}'")
+
+            # Send activation message and store ID (same logic as above)
+            try:
+                message = await context.bot.send_message(chat_id=GROUP_CHAT_ID,
+                                                         text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff Team braucht auch mal eine Pause 😴😪🥱💤🛌🏼")
+                night_mode_message_id = message.message_id
+
+                # Store the message ID in the database
+                update_night_mode_message_id(GROUP_CHAT_ID, night_mode_message_id)
+
+                # Update the database to set night_mode_active to 1 (True)
+                with sqlite3.connect(DATABASE_FILE) as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("UPDATE group_data SET night_mode_active = ? WHERE group_chat_id = ?", (1, GROUP_CHAT_ID))
+                    conn.commit()
+
+            except telegram.error.BadRequest as e:
+                logger.error(f"Failed to send night mode activation message: {e}")
+
+    # If night mode is active and current time is past the end time, deactivate it
+    if night_mode_active and now >= night_mode_end:
         night_mode_active = False
-        logger.info(f"Night mode deactivated for GROUP_CHAT_ID: {GROUP_CHAT_ID} (Group Name: {group_name}).")
+        logger.info(f"Night Mode deactivated for Group Chat ID: '{GROUP_CHAT_ID}' and Group Name: '{group_name}'")
 
         # If there is a previous message ID, edit it instead of sending a new message
         try:
@@ -1066,11 +1111,12 @@ async def night_mode_checker(context):
                     conn.commit()
 
             else:
-                logger.warning(f"No night mode message found to edit for GROUP_CHAT_ID: {GROUP_CHAT_ID} (Group Name: {group_name}).")
-        except telegram.error.BadRequest as e:
-            logger.error(f"Failed to edit night mode deactivation message for GROUP_CHAT_ID: {GROUP_CHAT_ID} (Group Name: {group_name}): {e}")
+                logger.warning(f"No Night Mode message found to edit for Group Chat ID: '{GROUP_CHAT_ID}' and Group Name: '{group_name}'.")
 
-    logger.info(f"Night mode checker finished for GROUP_CHAT_ID: {GROUP_CHAT_ID} (Group Name: {group_name}).")
+        except telegram.error.BadRequest as e:
+            logger.error(f"Failed to edit Night Mode deactivation message for Group Chat ID: '{GROUP_CHAT_ID}' with Group Name: '{group_name}': {e}")
+
+    logger.info(f"Night Mode checker finished for Group Chat ID: '{GROUP_CHAT_ID}' and Group Name: '{group_name}'.")
 
 # Restrict messages during night mode
 async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1089,7 +1135,7 @@ async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE
 
             # If the user is not an admin, delete their message
             if not is_admin:
-                logger.info(f"Deleting message from non-admin user {username} (ID: {user_id}) due to night mode.")
+                logger.info(f"Deleting message from non-admin user '{username}' (ID: '{user_id}') due to night mode.")
                 
                 # Notify the user about the restriction
                 await update.message.reply_text("🛑 Sorry, solange der NACHTMODUS aktiviert ist (00:00 - 07:00 Uhr), kannst du keine Mitteilungen in der Gruppe oder in den Topics senden.")
@@ -1115,7 +1161,7 @@ async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             save_group_data(GROUP_CHAT_ID, LANGUAGE)
             user_id =update.message.from_user.id
             username = update.message.from_user.username
-            logger.info(f"Language set to: {LANGUAGE} by user {username} (ID: {user_id})")
+            logger.info(f"Language set to: '{LANGUAGE}' by user '{username}' (ID: '{user_id}')")
             await update.message.reply_text(f"TMDB Language gesetzt: {LANGUAGE}")
         else:
             await update.message.reply_text("Ungültiger Language Code. Bitte benutze Language Code (e.g., 'en', 'de').")
@@ -1125,7 +1171,7 @@ async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 # Function to welcome new members
 async def welcome_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     for member in update.message.new_chat_members:
-        logger.info(f"New member {member.full_name} joined the group.")
+        logger.info(f"New member '{member.full_name}' joined the group.")
         button = InlineKeyboardButton("StreamNet TV Store", url=BUTTON_URL)
         keyboard = InlineKeyboardMarkup([[button]])
 
@@ -1170,7 +1216,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         rf"Hi {user.mention_html()} !"
         "\n\n"
         "Willkommen bei StreamNet TV\n"
-        "Ich bin Mr.StreamNet - der Butler des Hauses.\n\n"
+        "Ich bin Mr.StreamNet - der Butler des StreamNet Club's.\n\n"
         "Ich stehe dir zur Verfügung, um deine Medienanfragen zu verwalten und vieles Mehr.\n"
         'Wenn du Hilfe benötigst, benutze/klicke auf den Befehl  /help .',
         reply_markup=ReplyKeyboardRemove()
@@ -1242,9 +1288,11 @@ async def main() -> None:
 
            # Log whether night mode is currently active
            if night_mode_active:
-              logger.info(f"Night mode is currently active for Group Chat ID: {GROUP_CHAT_ID} (Group Name: {group_name}) Message ID: {night_mode_message_id}")
+              logger.info(f"Night Mode set from '{NIGHTMODE_START}' to '{NIGHTMODE_END}'")
+              logger.info(f"Night Mode is currently active for Group Chat ID: '{GROUP_CHAT_ID}' and Group Name: '{group_name}' and Message ID: '{night_mode_message_id}'")
            else:
-              logger.info(f"Night mode is currently inactive for Group Chat ID: {GROUP_CHAT_ID} (Group Name: {group_name})")
+              logger.info(f"Night Mode set from '{NIGHTMODE_START}' to '{NIGHTMODE_END}'")
+              logger.info(f"Night Mode is currently inactive")
 
            application = ApplicationBuilder().token(TOKEN).build()
 
