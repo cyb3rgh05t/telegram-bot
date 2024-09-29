@@ -207,10 +207,12 @@ def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
     return TIMEZONE_OBJ
 
 # Initialize SQLite connection and create table for storing group ID and language
+import sqlite3
+
 def init_db():
     with sqlite3.connect(DATABASE_FILE) as conn:
         cursor = conn.cursor()
-        # Create the table with additional columns including group_name
+        # Create the table with additional columns including night_mode_active
         cursor.execute('''CREATE TABLE IF NOT EXISTS group_data (
                             id INTEGER PRIMARY KEY,
                             group_chat_id INTEGER,
@@ -218,6 +220,7 @@ def init_db():
                             message_id INTEGER,
                             user_id INTEGER,
                             night_mode_message_id INTEGER,
+                            night_mode_active BOOLEAN DEFAULT 0,
                             language TEXT
                           )''')
         
@@ -229,8 +232,8 @@ def init_db():
         count = cursor.fetchone()[0]
 
         if count == 0:  # Only insert if the table is empty
-            cursor.execute('''INSERT INTO group_data (group_chat_id, group_name, language) VALUES (?, ?, ?)''', 
-                           (None, "Unknown Group", default_language))
+            cursor.execute('''INSERT INTO group_data (group_chat_id, group_name, language, night_mode_active) VALUES (?, ?, ?, ?)''', 
+                           (None, "Default Group", default_language, False))
         
         conn.commit()
 
@@ -285,12 +288,22 @@ def get_group_name(group_chat_id):
 def update_night_mode_message_id(group_chat_id, message_id):
     with sqlite3.connect(DATABASE_FILE) as conn:
         cursor = conn.cursor()
-        cursor.execute('''UPDATE group_data SET night_mode_message_id = ? WHERE group_chat_id = ?''',
-                       (message_id, group_chat_id))
-        conn.commit()
+        try:
+            cursor.execute('''UPDATE group_data SET night_mode_message_id = ? WHERE group_chat_id = ?''', (message_id, group_chat_id))
+            conn.commit()
+            logger.info(f"Updated night mode message ID to {message_id} for GROUP_CHAT_ID: {group_chat_id}.")
+        except Exception as e:
+            logger.error(f"Failed to update night mode message ID for GROUP_CHAT_ID: {group_chat_id}. Error: {e}")
+
+def get_night_mode_info(group_chat_id):
+    with sqlite3.connect(DATABASE_FILE) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT night_mode_message_id, night_mode_active FROM group_data WHERE group_chat_id = ?", (group_chat_id,))
+        row = cursor.fetchone()
+        return row if row else (None, False)  # Return None and False if not found
 
 # Global variable to track if night mode is active
-night_mode_active = False
+# night_mode_active = False
 # Define global locks
 night_mode_lock = asyncio.Lock()
 task_lock = asyncio.Lock()
@@ -513,7 +526,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
                     external_ids_data = await response.json()
         except Exception as e:
             await checking_status_message.edit_text(
-                text=f"🆘 Fehler beim Abrufen der TVDB ID für die Serie *{media_title}*. {str(e)}", 
+                text=f"🛑 Fehler beim Abrufen der TVDB ID für die Serie *{media_title}*. {str(e)}", 
                 parse_mode="Markdown"
             )
             logger.error(f"Error fetching external IDs for series '{media_title}': {e}")
@@ -522,7 +535,7 @@ async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_T
         tvdb_id = external_ids_data.get('tvdb_id')
         if not tvdb_id:
             await checking_status_message.edit_text(
-                text=f"🆘 Keine TVDB ID gefunden für die Serie *{media_title}*.", 
+                text=f"🛑 Keine TVDB ID gefunden für die Serie *{media_title}*.", 
                 parse_mode="Markdown"
             )
             logger.error(f"No TVDB ID found for the series '{media_title}'")
@@ -575,7 +588,7 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
         if not media_data['results']:
             await status_message.edit_text(
-                text=f"🆘 Keine Ergebnisse gefunden für *{title}*. Bitte versuche einen anderen Titel.",
+                text=f"🛑 Keine Ergebnisse gefunden für *{title}*. Bitte versuche einen anderen Titel.",
                 parse_mode="Markdown"
             )
             return
@@ -613,10 +626,10 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
     except aiohttp.ClientError as http_err:
         logger.error(f"HTTP error occurred: {http_err}")
-        await status_message.edit_text("🆘 Ein HTTP Fehler ist beim laden der Metadaten von TMDB aufgetreten. Bitte versuche es später erneut.")
+        await status_message.edit_text("🛑 Ein HTTP Fehler ist beim laden der Metadaten von TMDB aufgetreten. Bitte versuche es später erneut.")
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
-        await status_message.edit_text("🆘 Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es später erneut.")
+        await status_message.edit_text("🛑 Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es später erneut.")
 
 # Handle user's confirmation (yes/no)
 async def handle_user_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -767,7 +780,7 @@ async def add_series_to_sonarr(series_name, update: Update, context: ContextType
 
     if not tmdb_data['results']:
         logger.error(f"No TMDb results found for the series '{series_name}'")
-        await status_message.edit_text(f"🆘 Keine TMDB Ergebnisse für die Serie *{series_name}* gefunden.", parse_mode="Markdown")
+        await status_message.edit_text(f"🛑 Keine TMDB Ergebnisse für die Serie *{series_name}* gefunden.", parse_mode="Markdown")
         return
 
     # Use the first search result for simplicity
@@ -783,7 +796,7 @@ async def add_series_to_sonarr(series_name, update: Update, context: ContextType
     tvdb_id = external_ids_data.get('tvdb_id')
     if not tvdb_id:
         logger.error(f"No TVDB ID found for the series '{series_name}'")
-        await status_message.edit_text(f"🆘 Keine TVDB ID für die Serie *{series_name}* gefunden.", parse_mode="Markdown")
+        await status_message.edit_text(f"🛑 Keine TVDB ID für die Serie *{series_name}* gefunden.", parse_mode="Markdown")
         return
 
     # Check if the series is already in Sonarr
@@ -796,7 +809,7 @@ async def add_series_to_sonarr(series_name, update: Update, context: ContextType
     quality_profile_id = await get_quality_profile_id(SONARR_URL, SONARR_API_KEY, SONARR_QUALITY_PROFILE_NAME)
     if quality_profile_id is None:
         logger.error("Quality profile not found in Sonarr.")
-        await status_message.edit_text("🆘 Quality Profil in Sonarr nicht gefunden.")
+        await status_message.edit_text("🛑 Quality Profil in Sonarr nicht gefunden.")
         return
 
     data = {
@@ -827,13 +840,13 @@ async def add_series_to_sonarr(series_name, update: Update, context: ContextType
                             await status_message.edit_text(f"✅ Die Serie *{series_name}* wurde angefragt. Manuelle Suche wurde gestartet.", parse_mode="Markdown")
                         else:
                             logger.error(f"Failed to start manual search for series '{series_name}'. Status code: {search_response.status_code}")
-                            await status_message.edit_text(f"🆘 Suche für die Serie *{series_name}* gescheitert.", parse_mode="Markdown")
+                            await status_message.edit_text(f"🛑 Suche für die Serie *{series_name}* gescheitert.", parse_mode="Markdown")
                 else:
                     logger.info(f"Search for series '{series_name}' started automatically.")
                     await status_message.edit_text(f"✅ Die Serie *{series_name}* wurde angefragt und die Suche wurde gestartet.", parse_mode="Markdown")
             else:
                 logger.error(f"Failed to add series '{series_name}' to Sonarr. Status code: {response.status}")
-                await status_message.edit_text(f"🆘 Anfragen der Serie *{series_name}* gescheitert.\nStatus code: *{response.status_code}*", parse_mode="Markdown")
+                await status_message.edit_text(f"🛑 Anfragen der Serie *{series_name}* gescheitert.\nStatus code: *{response.status_code}*", parse_mode="Markdown")
 
 # Function to get quality profile ID by name from Radarr
 async def get_radarr_quality_profile_id(radarr_url, api_key, profile_name):
@@ -877,7 +890,7 @@ async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.
 
     if not tmdb_data['results']:
         logger.error(f"No TMDb results found for the movie '{movie_name}'")
-        await status_message.edit_text(f"🆘 Keine TMDB Ergebnisse für den Film *{movie_name}* gefunden.", parse_mode="Markdown")
+        await status_message.edit_text(f"🛑 Keine TMDB Ergebnisse für den Film *{movie_name}* gefunden.", parse_mode="Markdown")
         return
 
     # Use the first search result for simplicity
@@ -893,7 +906,7 @@ async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.
     quality_profile_id = await get_radarr_quality_profile_id(RADARR_URL, RADARR_API_KEY, RADARR_QUALITY_PROFILE_NAME)
     if quality_profile_id is None:
         logger.error("Quality profile not found in Radarr.")
-        await status_message.edit_text("🆘 Quality Profil in Radarr nicht gefunden.")
+        await status_message.edit_text("🛑 Quality Profil in Radarr nicht gefunden.")
         return
 
     data = {
@@ -923,13 +936,13 @@ async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.
                             await status_message.edit_text(f"✅ Der Film *{movie_name}* wurde angefragt. Manuelle Suche wurde gestartet.", parse_mode="Markdown")
                         else:
                             logger.error(f"Failed to start manual search for movie '{movie_name}'. Status code: {search_response.status_code}")
-                            await status_message.edit_text(f"🆘 Suche für den Film *{movie_name}* gescheitert.", parse_mode="Markdown")
+                            await status_message.edit_text(f"🛑 Suche für den Film *{movie_name}* gescheitert.", parse_mode="Markdown")
                 else:
                     logger.info(f"Search for movie '{movie_name}' started automatically.")
                     await status_message.edit_text(f"✅ Der Film *{movie_name}* wurde angefragt und die Suche wurde gestartet.", parse_mode="Markdown")
             else:
                 logger.error(f"Failed to add movie '{movie_name}' to Radarr. Status code: {response.status}")
-                await status_message.edit_text(f"🆘 Anfragen des Films *{movie_name}* gescheitert.\nStatus code: *{response.status_code}*", parse_mode="Markdown")
+                await status_message.edit_text(f"🛑 Anfragen des Films *{movie_name}* gescheitert.\nStatus code: *{response.status_code}*", parse_mode="Markdown")
 
 # Command to set the group ID
 async def set_group_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -969,16 +982,13 @@ async def disable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 
 # Global variable to store the message ID of the night mode message
-night_mode_message_id = None
-
-# Night mode checker function
 async def night_mode_checker(context):
     global night_mode_active, GROUP_CHAT_ID, night_mode_message_id
 
     # Ensure GROUP_CHAT_ID is only the chat ID (integer) and not a tuple
     if isinstance(GROUP_CHAT_ID, tuple):
         GROUP_CHAT_ID = GROUP_CHAT_ID[0]  # Extract only the chat ID part
-    
+
     # Retrieve the group name
     group_name = get_group_name(GROUP_CHAT_ID)
 
@@ -988,13 +998,12 @@ async def night_mode_checker(context):
 
     if not GROUP_CHAT_ID:
         logger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        logger.error("Missing Group Chat ID. Please set it using /set_group_id")
+        logger.error("Missing Group Chat ID. Please set it using /set_group_id <-----")
         logger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         return
 
-    now = get_current_time()
-    if now.hour == 12 and not night_mode_active:
-        # Activate night mode
+    # Activate night mode if it’s currently not active and it's 5 PM
+    if now.hour == 17 and now.minute == 35 and not night_mode_active:
         night_mode_active = True
         logger.info(f"Night mode activated for GROUP_CHAT_ID: {GROUP_CHAT_ID} (Group Name: {group_name}).")
 
@@ -1007,15 +1016,21 @@ async def night_mode_checker(context):
             # Store the message ID in the database
             update_night_mode_message_id(GROUP_CHAT_ID, night_mode_message_id)
 
+            # Update the database to set night_mode_active to 1 (True)
+            with sqlite3.connect(DATABASE_FILE) as conn:
+                cursor = conn.cursor()
+                cursor.execute("UPDATE group_data SET night_mode_active = ? WHERE group_chat_id = ?", (1, GROUP_CHAT_ID))
+                conn.commit()
+
         except telegram.error.BadRequest as e:
             logger.error(f"Failed to send night mode activation message: {e}")
 
-    elif now.hour == 13 and night_mode_active:
-        # Deactivate night mode
+    # If night mode is active and it's 3 PM, deactivate it
+    elif now.hour == 17 and now.minute == 45 and night_mode_active:
         night_mode_active = False
         logger.info(f"Night mode deactivated for GROUP_CHAT_ID: {GROUP_CHAT_ID} (Group Name: {group_name}).")
 
-        # Edit the previously sent message
+        # If there is a previous message ID, edit it instead of sending a new message
         try:
             if night_mode_message_id:
                 await context.bot.edit_message_text(chat_id=GROUP_CHAT_ID,
@@ -1026,6 +1041,12 @@ async def night_mode_checker(context):
                 # Optionally update the database to clear the message ID
                 update_night_mode_message_id(GROUP_CHAT_ID, None)
 
+                # Update the database to set night_mode_active to 0 (False)
+                with sqlite3.connect(DATABASE_FILE) as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("UPDATE group_data SET night_mode_active = ? WHERE group_chat_id = ?", (0, GROUP_CHAT_ID))
+                    conn.commit()
+
             else:
                 logger.warning(f"No night mode message found to edit for GROUP_CHAT_ID: {GROUP_CHAT_ID} (Group Name: {group_name}).")
         except telegram.error.BadRequest as e:
@@ -1033,20 +1054,37 @@ async def night_mode_checker(context):
 
     logger.info(f"Night mode checker finished for GROUP_CHAT_ID: {GROUP_CHAT_ID} (Group Name: {group_name}).")
 
-
 # Restrict messages during night mode
 async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     now = get_current_time()
-    if night_mode_active:
+
+    # Check if night mode is active and within the restricted hours
+    if night_mode_active and (now.hour >= 0 and now.hour < 7):
         user_id = update.effective_user.id
         username = update.effective_user.username  # Get the username
         chat_id = update.effective_chat.id
-        member = await context.bot.get_chat_member(chat_id, user_id)
-        is_admin = member.status in ('administrator', 'creator')
-        if not is_admin:
-            logger.info(f"Deleting message from non-admin user {username} (ID: {user_id}) due to night mode.")  # Log username
-            await update.message.reply_text("🆘 Sorry, solange der NACHTMODUS aktiviert ist (00:00 - 07:00 Uhr), kannst du keine Mitteilungen in der Gruppe oder in den Topics senden.")
-            await context.bot.delete_message(chat_id=chat_id, message_id=update.message.message_id)
+
+        try:
+            # Check the status of the user in the chat
+            member = await context.bot.get_chat_member(chat_id, user_id)
+            is_admin = member.status in ('administrator', 'creator')
+
+            # If the user is not an admin, delete their message
+            if not is_admin:
+                logger.info(f"Deleting message from non-admin user {username} (ID: {user_id}) due to night mode.")
+                
+                # Notify the user about the restriction
+                await update.message.reply_text("🛑 Sorry, solange der NACHTMODUS aktiviert ist (00:00 - 07:00 Uhr), kannst du keine Mitteilungen in der Gruppe oder in den Topics senden.")
+                
+                # Delete the user's message
+                await context.bot.delete_message(chat_id=chat_id, message_id=update.message.message_id)
+
+        except telegram.error.BadRequest as e:
+            logger.error(f"Failed to get chat member status or delete message: {e}")
+            # await update.message.reply_text("🛑 An error occurred while processing your message. Please try again later.")
+        except Exception as e:
+            logger.error(f"An unexpected error occurred: {e}")
+            # await update.message.reply_text("🛑 An unexpected error occurred. Please contact an admin.")
 
 
 # Command to set the language for TMDB searches
@@ -1143,6 +1181,7 @@ def print_logo():
 async def main() -> None:
     global application
     global GROUP_CHAT_ID
+    global night_mode_message_id, night_mode_active, GROUP_CHAT_ID
 
     # Print the logo at startup
     print_logo()
@@ -1175,7 +1214,19 @@ async def main() -> None:
            
            # Initialize Database
            init_db()
+
+           # Initialize group data from db
            initialize_group_data()
+
+           # Assume GROUP_CHAT_ID has already been set through /set_group_id
+           night_mode_message_id, night_mode_active = get_night_mode_info(GROUP_CHAT_ID)
+           group_name = get_group_name(GROUP_CHAT_ID)  # Retrieve the group name
+
+           # Log whether night mode is currently active
+           if night_mode_active:
+              logger.info(f"Night mode is currently active for Group Chat ID: {GROUP_CHAT_ID} (Group Name: {group_name}) Message ID: {night_mode_message_id}")
+           else:
+              logger.info(f"Night mode is currently inactive for Group Chat ID: {GROUP_CHAT_ID} (Group Name: {group_name})")
 
            application = ApplicationBuilder().token(TOKEN).build()
 
