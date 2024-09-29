@@ -907,7 +907,7 @@ async def set_group_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     save_group_id(GROUP_CHAT_ID, LANGUAGE)
     username = update.message.from_user.username  # Get the username
     user_id =update.message.from_user.id
-    logger.info(f"Group chat ID set to: {GROUP_CHAT_ID} by user {username} ({user_id})")
+    logger.info(f"Group chat ID set to: {GROUP_CHAT_ID} by user {username} (ID: {user_id})")
     await update.message.reply_text(f"Group chat ID set to: {GROUP_CHAT_ID}")
 
 # Enable or disable night mode
@@ -917,7 +917,7 @@ async def enable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         night_mode_active = True
         user_id =update.message.from_user.id
         username = update.message.from_user.username  # Get the username
-        logger.info(f"Night mode enabled by user {username} ({user_id})")
+        logger.info(f"Night mode enabled by user {username} (ID: {user_id})")
         await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff Team braucht auch mal eine Pause 😴😪🥱💤🛌🏼")
 
 async def disable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -926,7 +926,7 @@ async def disable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE)
         night_mode_active = False
         user_id =update.message.from_user.id
         username = update.message.from_user.username  # Get the username
-        logger.info(f"Night mode disabled by user {username} ({user_id})")  # Log username
+        logger.info(f"Night mode disabled by user {username} (ID: {user_id})")  # Log username
         await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
 
 
@@ -995,7 +995,7 @@ async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE
         member = await context.bot.get_chat_member(chat_id, user_id)
         is_admin = member.status in ('administrator', 'creator')
         if not is_admin:
-            logger.info(f"Deleting message from non-admin user {username} ({user_id}) due to night mode.")  # Log username
+            logger.info(f"Deleting message from non-admin user {username} (ID: {user_id}) due to night mode.")  # Log username
             await update.message.reply_text("🆘 Sorry, solange der NACHTMODUS aktiviert ist (00:00 - 07:00 Uhr), kannst du keine Mitteilungen in der Gruppe oder in den Topics senden.")
             await context.bot.delete_message(chat_id=chat_id, message_id=update.message.message_id)
 
@@ -1010,7 +1010,7 @@ async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             save_group_id(GROUP_CHAT_ID, LANGUAGE)
             user_id =update.message.from_user.id
             username = update.message.from_user.username
-            logger.info(f"Language set to: {LANGUAGE} by user {username} ({user_id})")
+            logger.info(f"Language set to: {LANGUAGE} by user {username} (ID: {user_id})")
             await update.message.reply_text(f"TMDB Language gesetzt: {LANGUAGE}")
         else:
             await update.message.reply_text("Ungültiger Language Code. Bitte benutze Language Code (e.g., 'en', 'de').")
