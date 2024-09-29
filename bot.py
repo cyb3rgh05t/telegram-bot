@@ -156,14 +156,12 @@ log_lock = asyncio.Lock()
 
 # Modify the log_message function to use the asyncio lock
 async def log_message_async(message):
-    """Log a message with asyncio lock to maintain order."""
     async with log_lock:
         print(message)
         sys.stdout.flush()  # Ensure the message is flushed to the console immediately
 
 
 def log_message(message):
-    """Print a plain text message without log level or metadata."""
     #print(f"DEBUG: log_message called with: {message}")  # Debug print
     print(message, flush=True)  # Actual message print
 
@@ -367,7 +365,6 @@ async def add_media_response(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 # Function to fetch additional details of the movie/TV show from TMDb
 async def fetch_media_details(media_type, media_id):
-    """Fetch detailed media information including poster, rating, summary, etc."""
     url = f"https://api.themoviedb.org/3/{media_type}/{media_id}?api_key={TMDB_API_KEY}&language={LANGUAGE}"
     logger.info(f"Fetching details from URL: {url}")
 
@@ -378,9 +375,8 @@ async def fetch_media_details(media_type, media_id):
     logger.info(f"Details fetched successfully for media_id: {media_id}")
     return media_details
 
+# Convert the rating to a 10-star scale
 def rating_to_stars(rating):
-    """Convert a TMDb rating (out of 10) to a 10-star emoji string."""
-    # Convert the rating to a 5-star scale
     stars = (rating / 10) * 10
 
     # Determine the number of full stars, half stars, and empty stars
@@ -393,7 +389,6 @@ def rating_to_stars(rating):
     return star_display
 
 def extract_year_from_input(selected_title):
-    """Extract the year from the user's input and ensure the format is correct."""
     # Use regex to find a year in parentheses, even if the parentheses are incomplete
     match = re.search(r'\((\d{4})', selected_title)
     if match:
@@ -910,7 +905,9 @@ async def set_group_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     global GROUP_CHAT_ID
     GROUP_CHAT_ID = update.message.chat_id
     save_group_id(GROUP_CHAT_ID, LANGUAGE)
-    logger.info(f"Group chat ID set to: {GROUP_CHAT_ID} by user {update.message.from_user.id}")
+    username = update.message.from_user.username  # Get the username
+    user_id =update.message.from_user.id
+    logger.info(f"Group chat ID set to: {GROUP_CHAT_ID} by user {username} ({user_id})")
     await update.message.reply_text(f"Group chat ID set to: {GROUP_CHAT_ID}")
 
 # Enable or disable night mode
@@ -918,15 +915,20 @@ async def enable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     global night_mode_active
     if not night_mode_active:
         night_mode_active = True
-        logger.info(f"Night mode enabled by user {update.message.from_user.id}.")
+        user_id =update.message.from_user.id
+        username = update.message.from_user.username  # Get the username
+        logger.info(f"Night mode enabled by user {username} ({user_id})")
         await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff Team braucht auch mal eine Pause 😴😪🥱💤🛌🏼")
 
 async def disable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     global night_mode_active
     if night_mode_active:
         night_mode_active = False
-        logger.info(f"Night mode disabled by user {update.message.from_user.id}.")
+        user_id =update.message.from_user.id
+        username = update.message.from_user.username  # Get the username
+        logger.info(f"Night mode disabled by user {username} ({user_id})")  # Log username
         await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
+
 
 # Global variable to store the message ID of the night mode message
 night_mode_message_id = None
@@ -988,13 +990,15 @@ async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE
     now = get_current_time()
     if night_mode_active:
         user_id = update.effective_user.id
+        username = update.effective_user.username  # Get the username
         chat_id = update.effective_chat.id
         member = await context.bot.get_chat_member(chat_id, user_id)
         is_admin = member.status in ('administrator', 'creator')
         if not is_admin:
-            logger.info(f"Deleting message from non-admin user {update.message.from_user.id} due to night mode.")
+            logger.info(f"Deleting message from non-admin user {username} ({user_id}) due to night mode.")  # Log username
             await update.message.reply_text("🆘 Sorry, solange der NACHTMODUS aktiviert ist (00:00 - 07:00 Uhr), kannst du keine Mitteilungen in der Gruppe oder in den Topics senden.")
-            await context.bot.delete_message(chat_id=update.message.chat_id, message_id=update.message.message_id)
+            await context.bot.delete_message(chat_id=chat_id, message_id=update.message.message_id)
+
 
 # Command to set the language for TMDB searches
 async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1004,7 +1008,9 @@ async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         if len(language_code) == 2:
             LANGUAGE = language_code
             save_group_id(GROUP_CHAT_ID, LANGUAGE)
-            logger.info(f"Language set to: {LANGUAGE} by user {update.message.from_user.id}")
+            user_id =update.message.from_user.id
+            username = update.message.from_user.username
+            logger.info(f"Language set to: {LANGUAGE} by user {username} ({user_id})")
             await update.message.reply_text(f"TMDB Language gesetzt: {LANGUAGE}")
         else:
             await update.message.reply_text("Ungültiger Language Code. Bitte benutze Language Code (e.g., 'en', 'de').")
@@ -1041,7 +1047,7 @@ async def welcome_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     help_text = (
         "Hier sind die Befehle, die du verwenden kannst:\n\n"
-        "/start  - Willkommensnachricht\n"
+        "/start  - Bot Willkommensnachricht\n"
         #"/welcome [user]  - Manuelle Willkommensnachricht beim Beitritt (standard: auto)\n"
         "/set_group_id  - Setze die Gruppen-ID (für den Nachtmodus)\n"
         "/set_language [code]  - TMDB-Sprache für Mediensuche (standard: eng)\n"
@@ -1067,12 +1073,20 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 def print_logo():
     logo = r"""
-███╗   ███╗██████╗    ███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗███╗   ██╗███████╗████████╗
-████╗ ████║██╔══██╗   ██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║████╗  ██║██╔════╝╚══██╔══╝
-██╔████╔██║██████╔╝   ███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║██╔██╗ ██║█████╗     ██║   
-██║╚██╔╝██║██╔══██╗   ╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║██║╚██╗██║██╔══╝     ██║   
-██║ ╚═╝ ██║██║  ██║██╗███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║██║ ╚████║███████╗   ██║   
-╚═╝     ╚═╝╚═╝  ╚═╝╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝   
+
+                                                                                                   
+ @@@@@@@  @@@ @@@  @@@@@@@   @@@@@@   @@@@@@@    @@@@@@@@  @@@  @@@   @@@@@@@@   @@@@@@@  @@@@@@@  
+@@@@@@@@  @@@ @@@  @@@@@@@@  @@@@@@@  @@@@@@@@  @@@@@@@@@  @@@  @@@  @@@@@@@@@@  @@@@@@@  @@@@@@@  
+!@@       @@! !@@  @@!  @@@      @@@  @@!  @@@  !@@        @@!  @@@  @@!   @@@@  !@@        @@!    
+!@!       !@! @!!  !@   @!@      @!@  !@!  @!@  !@!        !@!  @!@  !@!  @!@!@  !@!        !@!    
+!@!        !@!@!   @!@!@!@   @!@!!@   @!@!!@!   !@! @!@!@  @!@!@!@!  @!@ @! !@!  !!@@!!     @!!    
+!!!         @!!!   !!!@!!!!  !!@!@!   !!@!@!    !!! !!@!!  !!!@!!!!  !@!!!  !!!  @!!@!!!    !!!    
+:!!         !!:    !!:  !!!      !!:  !!: :!!   :!!   !!:  !!:  !!!  !!:!   !!!      !:!    !!:    
+:!:         :!:    :!:  !:!      :!:  :!:  !:!  :!:   !::  :!:  !:!  :!:    !:!      !:!    :!:    
+ ::: :::     ::     :: ::::  :: ::::  ::   :::   ::: ::::  ::   :::  ::::::: ::  :::: ::     ::    
+ :: :: :     :     :: : ::    : : :    :   : :   :: :: :    :   : :   : : :  :   :: : :      :     
+                                                                                                   
+
     """
     print(logo)
 
@@ -1144,7 +1158,6 @@ async def main() -> None:
 
            # Start the Bot
            await log_message_async("=====================================================")
-           logger.info("******* Configuration check done *******")
            logger.info("Bot started polling.")
            await application.run_polling()
     except asyncio.CancelledError:
