@@ -210,34 +210,35 @@ def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
 def init_db():
     with sqlite3.connect(DATABASE_FILE) as conn:
         cursor = conn.cursor()
-        # Create the table without a default value
+        # Create the table with additional columns
         cursor.execute('''CREATE TABLE IF NOT EXISTS group_data (
                             id INTEGER PRIMARY KEY,
                             group_chat_id INTEGER,
+                            message_id INTEGER,
+                            user_id INTEGER,
+                            night_mode_message_id INTEGER,
                             language TEXT
                           )''')
         
-        # Check if the column is empty and update with the dynamic default value
+        # Get the default language
         default_language = config.get("tmdb").get("DEFAULT_LANGUAGE")
-        cursor.execute('''UPDATE group_data SET language = ? WHERE language IS NULL''', (default_language,))
+
+        # Check if the table is empty and set the default language
+        cursor.execute('SELECT COUNT(*) FROM group_data')
+        count = cursor.fetchone()[0]
+
+        if count == 0:  # Only insert if the table is empty
+            cursor.execute('''INSERT INTO group_data (group_chat_id, language) VALUES (?, ?)''', 
+                           (None, default_language))
         
         conn.commit()
 
-def initialize_group_data():
-    global GROUP_CHAT_ID, LANGUAGE
-    group_chat_id, language = load_group_data()
-    
-    GROUP_CHAT_ID = group_chat_id  # Only assign the chat ID
-    LANGUAGE = language
-
-    if GROUP_CHAT_ID is None:
-        logger.warning("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        logger.warning("Group Chat ID is not set. Please use /set_group_id to initialize it.")
-        logger.warning("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    else:
-        logger.info(f"Group Chat ID is set to: {GROUP_CHAT_ID}")
-        logger.info(f"TMDB Language is set to: {LANGUAGE}")
-
+# Save group chat ID and language to database
+def save_group_data(group_chat_id, language):
+    with sqlite3.connect(DATABASE_FILE) as conn:
+        cursor = conn.cursor()
+        cursor.execute("INSERT OR REPLACE INTO group_data (id, group_chat_id, language) VALUES (1, ?, ?)", (group_chat_id, language))
+        conn.commit()
 
 # Load group chat ID and language from database
 def load_group_data():
@@ -251,11 +252,31 @@ def load_group_data():
 
 LANGUAGE = DEFAULT_LANGUAGE
 
-# Save group chat ID and language to database
-def save_group_id(group_chat_id, language):
+# Check group data in database
+def initialize_group_data():
+    global GROUP_CHAT_ID, LANGUAGE
+    group_chat_id, language = load_group_data()
+    
+    GROUP_CHAT_ID = group_chat_id  # Only assign the chat ID
+    LANGUAGE = language
+
+    if GROUP_CHAT_ID is None:
+        logger.info("")
+        logger.warning("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        logger.warning("Group Chat ID is not set. Please use /set_group_id <-----")
+        logger.warning("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        logger.info("")
+        logger.info(f"TMDb Language is set to: {LANGUAGE}")
+    else:
+        logger.info(f"Group Chat ID is set to: {GROUP_CHAT_ID}")
+        logger.info(f"TMDb Language is set to: {LANGUAGE}")
+
+# Save night mode message ID to database
+def update_night_mode_message_id(group_chat_id, message_id):
     with sqlite3.connect(DATABASE_FILE) as conn:
         cursor = conn.cursor()
-        cursor.execute("INSERT OR REPLACE INTO group_data (id, group_chat_id, language) VALUES (1, ?, ?)", (group_chat_id, language))
+        cursor.execute('''UPDATE group_data SET night_mode_message_id = ? WHERE group_chat_id = ?''',
+                       (message_id, group_chat_id))
         conn.commit()
 
 # Global variable to track if night mode is active
@@ -904,7 +925,7 @@ async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.
 async def set_group_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     global GROUP_CHAT_ID
     GROUP_CHAT_ID = update.message.chat_id
-    save_group_id(GROUP_CHAT_ID, LANGUAGE)
+    save_group_data(GROUP_CHAT_ID, LANGUAGE)
     username = update.message.from_user.username  # Get the username
     user_id =update.message.from_user.id
     logger.info(f"Group chat ID set to: {GROUP_CHAT_ID} by user {username} (ID: {user_id})")
@@ -951,7 +972,7 @@ async def night_mode_checker(context):
         return
 
     now = get_current_time()
-    if now.hour == 0 and not night_mode_active:
+    if now.hour == 12 and not night_mode_active:
         # Activate night mode
         night_mode_active = True
         logger.info("Night mode activated.")
@@ -961,10 +982,14 @@ async def night_mode_checker(context):
             message = await context.bot.send_message(chat_id=GROUP_CHAT_ID,
                                                      text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff Team braucht auch mal eine Pause 😴😪🥱💤🛌🏼")
             night_mode_message_id = message.message_id
+
+            # Store the message ID in the database
+            update_night_mode_message_id(GROUP_CHAT_ID, night_mode_message_id)
+
         except telegram.error.BadRequest as e:
             logger.error(f"Failed to send night mode activation message: {e}")
 
-    elif now.hour == 7 and night_mode_active:
+    elif now.hour == 13 and night_mode_active:
         # Deactivate night mode
         night_mode_active = False
         logger.info("Night mode deactivated.")
@@ -976,14 +1001,16 @@ async def night_mode_checker(context):
                                                     message_id=night_mode_message_id,
                                                     text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
                 night_mode_message_id = None  # Reset message ID after editing
+
+                # Optionally update the database to clear the message ID
+                update_night_mode_message_id(GROUP_CHAT_ID, None)
+
             else:
                 logger.warning("No night mode message found to edit.")
         except telegram.error.BadRequest as e:
             logger.error(f"Failed to edit night mode deactivation message: {e}")
 
     logger.info(f"Night mode checker finished for GROUP_CHAT_ID: {GROUP_CHAT_ID}")
-
-
 
 # Restrict messages during night mode
 async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1007,7 +1034,7 @@ async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         language_code = context.args[0]
         if len(language_code) == 2:
             LANGUAGE = language_code
-            save_group_id(GROUP_CHAT_ID, LANGUAGE)
+            save_group_data(GROUP_CHAT_ID, LANGUAGE)
             user_id =update.message.from_user.id
             username = update.message.from_user.username
             logger.info(f"Language set to: {LANGUAGE} by user {username} (ID: {user_id})")
@@ -1106,15 +1133,11 @@ async def main() -> None:
         # Log bot information asynchronously to ensure order
         if version_info:
            await log_message_async("=====================================================")
-           # await log_message_async("")
            await log_message_async(f"Bot Version: {version_info.get('Version', 'Unknown')}")
            await log_message_async(f"Author: {version_info.get('Author', 'Unknown')}")
-           # await log_message_async("")
            await log_message_async("=====================================================")
-           # await log_message_async("")
            await log_message_async(f"To support this project, please visit")
            await log_message_async(f"https://github.com/cyb3rgh05t/telegram_bot")
-           # await log_message_async("")
            await log_message_async("=====================================================")
 
            logger.info("Starting the bot...")
