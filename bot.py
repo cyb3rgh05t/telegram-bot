@@ -1120,10 +1120,13 @@ async def night_mode_checker(context):
 
 # Restrict messages during night mode
 async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    now = get_current_time()
+    now = get_current_time().time()  # Get current time as a time object
+
+    # Get night mode times from the config
+    night_mode_start, night_mode_end = get_night_mode_times()
 
     # Check if night mode is active and within the restricted hours
-    if night_mode_active and (now.hour >= 0 and now.hour < 7):
+    if night_mode_active and (now >= night_mode_start and now < night_mode_end):
         user_id = update.effective_user.id
         username = update.effective_user.username  # Get the username
         chat_id = update.effective_chat.id
@@ -1138,17 +1141,23 @@ async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE
                 logger.info(f"Deleting message from non-admin user '{username}' (ID: '{user_id}') due to night mode.")
                 
                 # Notify the user about the restriction
-                await update.message.reply_text("🛑 Sorry, solange der NACHTMODUS aktiviert ist (00:00 - 07:00 Uhr), kannst du keine Mitteilungen in der Gruppe oder in den Topics senden.")
+                await update.message.reply_text(
+                    f"🛑 Sorry, solange der NACHTMODUS aktiviert ist ({night_mode_start.strftime('%H:%M')} - {night_mode_end.strftime('%H:%M')}), "
+                    f"kannst du keine Mitteilungen in der Gruppe oder in den Topics senden."
+                )
                 
                 # Delete the user's message
                 await context.bot.delete_message(chat_id=chat_id, message_id=update.message.message_id)
 
         except telegram.error.BadRequest as e:
             logger.error(f"Failed to get chat member status or delete message: {e}")
+            # Optionally notify the user of the error
             # await update.message.reply_text("🛑 An error occurred while processing your message. Please try again later.")
         except Exception as e:
             logger.error(f"An unexpected error occurred: {e}")
+            # Optionally notify the user of the unexpected error
             # await update.message.reply_text("🛑 An unexpected error occurred. Please contact an admin.")
+
 
 # Command to set the language for TMDB searches
 @admin_required
