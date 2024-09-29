@@ -944,7 +944,24 @@ async def add_movie_to_radarr(movie_name, update: Update, context: ContextTypes.
                 logger.error(f"Failed to add movie '{movie_name}' to Radarr. Status code: {response.status}")
                 await status_message.edit_text(f"🛑 Anfragen des Films *{movie_name}* gescheitert.\nStatus code: *{response.status_code}*", parse_mode="Markdown")
 
+# Function for admin commands
+def admin_required(func):
+    async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        chat_id = update.effective_chat.id
+        user_id = update.effective_user.id
+        
+        # Check if the user is an admin
+        member = await context.bot.get_chat_member(chat_id, user_id)
+        is_admin = member.status in ('administrator', 'creator')
+        
+        if not is_admin:
+            await update.message.reply_text("🚫 Befehle sind nur für Staff Mitglieder...")
+            return
+        return await func(update, context)
+    return wrapper
+
 # Command to set the group ID
+@admin_required
 async def set_group_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     global GROUP_CHAT_ID
     GROUP_CHAT_ID = update.message.chat_id
@@ -962,6 +979,7 @@ async def set_group_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await update.message.reply_text(f"Group chat ID set to: {GROUP_CHAT_ID} (Group Name: {group_name})")
 
 # Enable or disable night mode
+@admin_required
 async def enable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     global night_mode_active
     if not night_mode_active:
@@ -971,6 +989,7 @@ async def enable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         logger.info(f"Night mode enabled by user {username} (ID: {user_id})")
         await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="🌙 NACHTMODUS AKTIVIERT.\n\nStreamNet TV Staff Team braucht auch mal eine Pause 😴😪🥱💤🛌🏼")
 
+@admin_required
 async def disable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     global night_mode_active
     if night_mode_active:
@@ -979,7 +998,6 @@ async def disable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE)
         username = update.message.from_user.username  # Get the username
         logger.info(f"Night mode disabled by user {username} (ID: {user_id})")  # Log username
         await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="☀️ ENDE DES NACHTMODUS.\n\n✅ Ab jetzt kannst du wieder Mitteilungen in der Gruppe senden.")
-
 
 # Global variable to store the message ID of the night mode message
 async def night_mode_checker(context):
@@ -1086,8 +1104,8 @@ async def restrict_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE
             logger.error(f"An unexpected error occurred: {e}")
             # await update.message.reply_text("🛑 An unexpected error occurred. Please contact an admin.")
 
-
 # Command to set the language for TMDB searches
+@admin_required
 async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     global LANGUAGE
     if context.args:
