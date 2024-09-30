@@ -60,22 +60,22 @@ async def check_and_log_paths():
     logger.info(f"Checking Directories.....")
     if not os.path.exists(CONFIG_DIR):
         os.makedirs(CONFIG_DIR)
-        print("")
+        await log_message_async("")
         logger.warning(f"CONFIG directory '{CONFIG_DIR}' not found.")
         logger.info(f"Creating CONFIG directory....")
         logger.info(f"CONFIG directory '{CONFIG_DIR}' created.")
-        print("")
+        await log_message_async("")
     else:
         logger.info(f"CONFIG directory '{CONFIG_DIR}' already exists.")
     
     # Check if database directory exists
     if not os.path.exists(DATABASE_DIR):
         os.makedirs(DATABASE_DIR)
-        print("")
+        await log_message_async("")
         logger.warning(f"DATABASE directory '{DATABASE_DIR}' not found.")
         logger.info(f"Creating DATABASE directory....")
         logger.info(f"DATABASE directory '{DATABASE_DIR}' created.")
-        print("")
+        await log_message_async("")
     else:
         logger.info(f"DATABASE directory '{DATABASE_DIR}' already exists.")
 
@@ -151,7 +151,7 @@ async def log_message_async(message):
 # Log all config entries, redacting sensitive information
 async def log_config_entries(config):
     sensitive_keys = ['TOKEN', 'API_KEY', 'SECRET', 'KEY']  # Keys to redact
-    print("=====================================================")
+    await log_message_async("=====================================================")
     logger.info("Logging all configuration entries:")
     for section, entries in config.items():
         if isinstance(entries, dict):
@@ -162,7 +162,7 @@ async def log_config_entries(config):
                 logger.info(f"  {key}: {value}")
         else:
             logger.info(f"{section}: {entries}")
-    print("=====================================================")
+    await log_message_async("=====================================================")
 
 def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
     logger.info(f"=====================================================")
@@ -1245,13 +1245,13 @@ async def main() -> None:
 
         # Log bot information asynchronously to ensure order
         if version_info:
-            print("=====================================================")
-            print(f"Bot Version: {version_info.get('Version', 'Unknown')}")
-            print(f"Author: {version_info.get('Author', 'Unknown')}")
-            print("=====================================================")
-            print(f"To support this project, please visit")
-            print(f"https://github.com/cyb3rgh05t/telegram-bot")
-            print("=====================================================")
+            await log_message_async("=====================================================")
+            await log_message_async(f"Bot Version: {version_info.get('Version', 'Unknown')}")
+            await log_message_async(f"Author: {version_info.get('Author', 'Unknown')}")
+            await log_message_async("=====================================================")
+            await log_message_async(f"To support this project, please visit")
+            await log_message_async(f"https://github.com/cyb3rgh05t/telegram-bot")
+            await log_message_async("=====================================================")
 
             logger.info("Starting the bot...")
             
@@ -1322,7 +1322,7 @@ async def main() -> None:
             signal.signal(signal.SIGTERM, signal_handler)
 
             # Start the Bot
-            print("=====================================================")
+            await log_message_async("=====================================================")
             logger.info("Bot started polling...")
             await application.run_polling()
     except asyncio.CancelledError:
