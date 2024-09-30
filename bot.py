@@ -57,7 +57,9 @@ def load_version_info(file_path):
 # Function to check and log paths
 async def check_and_log_paths():
     # Check if config directory exists
-    logger.info(f"Checking Directories.....")
+    logger.info("=====================================================")
+    logger.info("Checking Directories.....")
+    logger.info("-----------")
     if not os.path.exists(CONFIG_DIR):
         os.makedirs(CONFIG_DIR)
         await log_message_async("")
@@ -153,6 +155,7 @@ async def log_config_entries(config):
     sensitive_keys = ['TOKEN', 'API_KEY', 'SECRET', 'KEY']  # Keys to redact
     logger.info("=====================================================")
     logger.info("Logging all configuration entries:")
+    logger.info("-----------")
     for section, entries in config.items():
         if isinstance(entries, dict):
             logger.info(f"Section [{section}]:")
@@ -165,8 +168,9 @@ async def log_config_entries(config):
             logger.info("=====================================================")
 
 def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
-    logger.info(f"=====================================================")
-    logger.info(f"Checking Globals....")
+    logger.info("=====================================================")
+    logger.info("Checking Globals....")
+    logger.info("-----------")
     # Log the successful retrieval of the token with only the first and last 4 characters visible
     if TOKEN:
         redacted_token = redact_sensitive_info(TOKEN)
