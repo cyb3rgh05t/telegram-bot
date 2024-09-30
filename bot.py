@@ -1328,6 +1328,7 @@ async def main() -> None:
             # Start the Bot
             logger.info("=====================================================")
             logger.info("Bot started polling...")
+            logger.info("-----------")
             await application.run_polling()
     except asyncio.CancelledError:
         logger.info("Main function was cancelled.")
