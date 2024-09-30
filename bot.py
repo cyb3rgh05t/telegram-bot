@@ -151,7 +151,7 @@ async def log_message_async(message):
 # Log all config entries, redacting sensitive information
 async def log_config_entries(config):
     sensitive_keys = ['TOKEN', 'API_KEY', 'SECRET', 'KEY']  # Keys to redact
-    await log_message_async("=====================================================")
+    logger.info("=====================================================")
     logger.info("Logging all configuration entries:")
     for section, entries in config.items():
         if isinstance(entries, dict):
@@ -162,7 +162,7 @@ async def log_config_entries(config):
                 logger.info(f"  {key}: {value}")
         else:
             logger.info(f"{section}: {entries}")
-    await log_message_async("=====================================================")
+            logger.info("=====================================================")
 
 def configure_bot(TOKEN, TIMEZONE="Europe/Berlin"):
     logger.info(f"=====================================================")
@@ -1322,7 +1322,7 @@ async def main() -> None:
             signal.signal(signal.SIGTERM, signal_handler)
 
             # Start the Bot
-            await log_message_async("=====================================================")
+            logger.info("=====================================================")
             logger.info("Bot started polling...")
             await application.run_polling()
     except asyncio.CancelledError:
