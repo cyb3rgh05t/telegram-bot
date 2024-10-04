@@ -1310,26 +1310,11 @@ async def main() -> None:
             # Register the message handler for user confirmation and general messages
             application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
 
-            # Define shutdown logic outside the try block
-            async def shutdown():
-                logger.info("Shutting down the bot...")
-                await application.shutdown()  # Close any application-specific tasks
-                await application.bot.close()  # Close the bot connection
-
-            # Define signal handler for graceful shutdown
-            def signal_handler(sig, frame):
-                asyncio.run(shutdown())
-                sys.exit(0)
-
-            # Register signal handlers
-            signal.signal(signal.SIGINT, signal_handler)
-            signal.signal(signal.SIGTERM, signal_handler)
-
             # Start the Bot
             logger.info("=====================================================")
             logger.info("Bot started polling...")
             logger.info("-----------")
-            await application.run_polling()
+            application.run_polling()
     except asyncio.CancelledError:
         logger.info("Main function was cancelled.")
     except Exception as e:
