@@ -153,7 +153,7 @@ async def log_message_async(message):
 # Log all config entries, redacting sensitive information
 async def log_config_entries(config):
     sensitive_keys = ['TOKEN', 'API_KEY', 'SECRET', 'KEY']  # Keys to redact
-    logger.info("Logging all configuration entries:")
+    logger.info("Current Config.json settings:")
     logger.info("-----------")
     for section, entries in config.items():
         if isinstance(entries, dict):
@@ -1249,7 +1249,7 @@ async def main() -> None:
         # Log bot information asynchronously to ensure order
         if version_info:
             await log_message_async("=====================================================")
-            await log_message_async(f"Bot Version: {version_info.get('Version', 'Unknown')}")
+            await log_message_async(f"Version: {version_info.get('Version', 'Unknown')}")
             await log_message_async(f"Author: {version_info.get('Author', 'Unknown')}")
             await log_message_async("=====================================================")
             await log_message_async(f"To support this project, please visit")
@@ -1257,6 +1257,7 @@ async def main() -> None:
             await log_message_async("=====================================================")
 
             logger.info("Starting the bot...")
+            logger.info(f"You are running Version {version_info.get('Version', 'Unknown')}")
             logger.info("-----------")
 
             # Log all configuration entries
