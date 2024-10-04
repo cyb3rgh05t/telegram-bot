@@ -153,7 +153,6 @@ async def log_message_async(message):
 # Log all config entries, redacting sensitive information
 async def log_config_entries(config):
     sensitive_keys = ['TOKEN', 'API_KEY', 'SECRET', 'KEY']  # Keys to redact
-    logger.info("=====================================================")
     logger.info("Logging all configuration entries:")
     logger.info("-----------")
     for section, entries in config.items():
@@ -1258,7 +1257,8 @@ async def main() -> None:
             await log_message_async("=====================================================")
 
             logger.info("Starting the bot...")
-            
+            logger.info("-----------")
+
             # Log all configuration entries
             await log_config_entries(config)
 
