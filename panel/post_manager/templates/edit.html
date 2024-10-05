@@ -1,60 +1,15 @@
 <!DOCTYPE html>
-<html lang="de">
+<html>
   <head>
-    <meta charset="UTF-8" />
     <title>Edit Post</title>
-    <script>
-      function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== "") {
-          const cookies = document.cookie.split(";");
-          for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === name + "=") {
-              cookieValue = decodeURIComponent(
-                cookie.substring(name.length + 1)
-              );
-              break;
-            }
-          }
-        }
-        return cookieValue;
-      }
-
-      function updatePost(postId) {
-        const csrftoken = getCookie("csrftoken");
-        const newContent = document.getElementById("postContent").value; // Make sure this ID is correct
-
-        fetch(`/edit/${postId}/`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": csrftoken,
-          },
-          body: JSON.stringify({ content: newContent }), // Ensure the content is sent here
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.status === "success") {
-              alert("Post updated successfully!");
-              console.log("Redirecting to the homepage.");
-              window.location.href = "/"; // Redirect to the homepage
-            }
-          })
-          .catch((error) => console.error("Error:", error));
-      }
-    </script>
   </head>
   <body>
     <h1>Edit Post</h1>
-    <form
-      id="editPostForm"
-      onsubmit="event.preventDefault(); updatePost({{ post.id }});"
-    >
+    <form method="post">
       {% csrf_token %}
-      <textarea id="postContent" required>{{ post.content }}</textarea><br />
+      <textarea name="content">{{ post.content }}</textarea>
       <button type="submit">Update Post</button>
     </form>
-    <a href="{% url 'index' %}">Back to Posts</a>
+    <a href="{% url 'index' %}">Cancel</a>
   </body>
 </html>
