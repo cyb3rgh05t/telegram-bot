@@ -18,7 +18,6 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKe
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, CallbackQueryHandler, ContextTypes
 import signal
 import sys
-import django
 
 # Check ist conig.json is present..
 CONFIG_DIR = "config"

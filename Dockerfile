@@ -18,9 +18,5 @@ COPY . .
 # Expose the port for the Django panel 
 EXPOSE 5555
 
-# Run migrations
-# RUN python panel/manage.py makemigrations
-# RUN python panel/manage.py migrate
-
 # Command to run both the bot and the Django server
 CMD ["sh", "-c", "python bot.py & python panel/manage.py runserver 0.0.0.0:5555"]
