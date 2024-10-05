@@ -13,3 +13,4 @@ config/config.json
 panel/media/images/*.*
 bot_and_django.log
 *.log
+*.pyc
