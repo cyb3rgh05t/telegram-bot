@@ -23,4 +23,4 @@ EXPOSE 5555
 # RUN python panel/manage.py migrate
 
 # Command to run both the bot and the Django server
-CMD ["sh", "-c", "python bot.py & python manage.py runserver 0.0.0.0:5555"]
+CMD ["sh", "-c", "python bot.py & python panel/manage.py runserver 0.0.0.0:5555"]
