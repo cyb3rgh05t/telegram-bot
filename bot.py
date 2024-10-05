@@ -142,6 +142,8 @@ HELP_COMMAND = config.get("commands").get("HELP", "help")
 SEARCH_COMMAND = config.get("commands").get("SEARCH", "search")
 # PANEL
 PANEL_URL = config.get("panel").get("PANEL_URL")
+# TOPICS
+TOPICS = config.get("topics", {})
 
 # Create the root logger and set its level
 logger = logging.getLogger("custom_logger")
