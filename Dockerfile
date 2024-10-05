@@ -13,8 +13,6 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the config folder and any other necessary files or folders
-COPY config ./config
-COPY database ./database
 COPY panel ./panel
 
 # Copy the rest of your application code
