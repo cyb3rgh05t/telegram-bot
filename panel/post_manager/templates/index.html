@@ -1,17 +1,108 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Post Manager</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        color: white;
+        margin: 0;
+        padding: 0;
+        background-color: #141414;
+      }
+      h1 {
+        color: #e5a209;
+        text-align: center;
+        padding: 20px;
+        background-color: #323232;
+        border-bottom: 2px solid #e0e0e0;
+      }
+      a {
+        text-decoration: none;
+        color: #e5a209;
+        font-weight: bold;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      ul {
+        list-style-type: none;
+        padding: 0;
+        max-width: 600px;
+        margin: 20px auto;
+      }
+      li {
+        background: #323232;
+        margin: 10px 0;
+        padding: 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background 0.3s;
+      }
+      li:hover {
+        background: #454545; /* Slightly lighter background on hover */
+      }
+      .post-category {
+        font-style: italic;
+        color: #888;
+        font-size: 14px;
+      }
+      .no-posts {
+        color: #777;
+        text-align: center;
+        padding: 20px;
+      }
+      .create-link {
+        display: block;
+        text-align: center;
+        margin: 20px;
+        padding: 10px;
+        background-color: #4a90e2;
+        color: white;
+        border-radius: 5px;
+        width: 200px;
+        text-decoration: none;
+      }
+      .create-link:hover {
+        background-color: #357abd;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 600px) {
+        body {
+          padding: 10px;
+        }
+        ul {
+          width: 100%;
+          margin: 10px 0;
+        }
+        .create-link {
+          width: 100%;
+          margin: 10px 0;
+        }
+      }
+    </style>
   </head>
   <body>
     <h1>Post Manager</h1>
-    <a href="{% url 'create_post' %}">Create New Post</a>
+    <a class="create-link" href="{% url 'create_post' %}">Create New Post</a>
     <ul>
-      {% for post in posts %}
+      {% if posts %} {% for post in posts %}
       <li>
-        {{ post.content }} - <a href="{% url 'edit_post' post.id %}">Edit</a>
+        <div>
+          <strong>{{ post.content }}</strong>
+          <span class="post-category">{{ post.category }}</span>
+        </div>
+        <a href="{% url 'edit_post' post.id %}">Edit</a>
       </li>
-      {% endfor %}
+      {% endfor %} {% else %}
+      <li class="no-posts">No posts available.</li>
+      {% endif %}
     </ul>
   </body>
 </html>
