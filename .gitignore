@@ -12,3 +12,4 @@ config/config.json
 # panel
 panel/media/images/*.*
 bot_and_django.log
+*.log
