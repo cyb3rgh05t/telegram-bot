@@ -39,31 +39,6 @@ def index(request):
     posts = Post.objects.all()
     return render(request, 'index.html', {'posts': posts})
 
-def edit_post(request, post_id):
-    post = get_object_or_404(Post, id=post_id)
-
-    if request.method == 'POST':
-        original_content = post.content  # Save the original content
-        post.content = request.POST['content']
-        post.save()
-
-        # Prepare the message to send to Telegram
-        update_message = (
-            f"📝 Post Upgedated!\n\n"
-            f"Originaler Post: {original_content}\n\n"
-            f"Neuer Post: {post.content}"
-        )
-
-        # Send the update to Telegram as a reply
-        send_to_telegram(update_message)
-
-        messages.success(request, 'Post updated and sent to Telegram!')
-        return redirect('index')
-
-    return render(request, 'edit.html', {'post': post})
-
-
-
 @csrf_protect  # Keep CSRF protection enabled
 def api_posts(request):
     if request.method == 'GET':
@@ -79,6 +54,26 @@ def api_posts(request):
         post.content = new_content
         post.save()
         return JsonResponse({"status": "success"})
+    
+def edit_post(request, post_id):
+    # Retrieve the post to edit
+    post = get_object_or_404(Post, id=post_id)
+
+    if request.method == 'POST':
+        # Handle the POST request to update the post
+        new_content = request.POST.get('content')  # Get the updated content from the form
+        post.content = new_content
+        post.save()
+
+        # Return a success response if it's an AJAX request
+        if request.is_ajax():
+            return JsonResponse({"status": "success"})
+
+        # Redirect to the index or another page if it’s a normal POST request
+        return redirect('index')
+
+    # If it's a GET request, render the edit form
+    return render(request, 'edit.html', {'post': post})
 
 def create_post(request):
     if request.method == 'POST':
