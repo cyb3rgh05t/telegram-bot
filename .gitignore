@@ -10,4 +10,5 @@ config/config.json
 /database
 
 # panel
-/media/images/*.*
+panel/media/images/*.*
+bot_and_django.log
