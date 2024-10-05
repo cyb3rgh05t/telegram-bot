@@ -44,6 +44,11 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['*']  # Allow all hosts for development purposes
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://botpanel.mystreamnet.club',
+    # Add more domains if necessary
+]
+
 
 # Application definition
 
