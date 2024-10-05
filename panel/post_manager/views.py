@@ -34,6 +34,8 @@ with open(CONFIG_FILE, 'r') as config_file:
 
 # BOT
 TOKEN = config.get("bot").get("TOKEN")
+# TOPICS
+TOPICS = config.get("topics", {})
 
 def index(request):
     posts = Post.objects.all()
@@ -82,31 +84,34 @@ def create_post(request):
     if request.method == 'POST':
         content = request.POST['content']
         image = request.FILES.get('image')  # Get the uploaded image
-        post = Post(content=content, image=image)
+        topic_id = request.POST.get('topic')  # Retrieve the selected topic ID from the form
+
+        # Create a new post with the topic ID
+        post = Post(content=content, image=image, topic_id=topic_id)
         post.save()
 
         # Prepare the image path
         image_path = f"{settings.MEDIA_ROOT}/images/{image.name}" if image else None
         
         # Send to Telegram
-        send_to_telegram(content, image_path)
+        send_to_telegram(content, image_path, topic_id)  # Assuming your send_to_telegram can handle the topic
 
         messages.success(request, 'Post created and sent to Telegram!')
         return redirect('index')
 
-    return render(request, 'create_post.html')
+    return render(request, 'create_post.html', {'topics': TOPICS})  # Pass topics to the template
 
 TELEGRAM_BOT_TOKEN = TOKEN
 CHAT_ID = load_group_chat_id()
 
-def send_to_telegram(content, image_path=None):
+def send_to_telegram(content, image_path=None, topic_id=None):
     if image_path:
         # Step 1: Send the photo with caption
         with open(image_path, 'rb') as photo:
             url_photo = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto'
             data_photo = {
-                'chat_id': CHAT_ID,
-                'caption': content,  # Use content as the caption
+                'chat_id': topic_id,  # Use the topic_id as the chat_id
+                'caption': content,    # Use content as the caption
                 'parse_mode': 'Markdown'
             }
             response_photo = requests.post(url_photo, files={'photo': photo}, data=data_photo)
@@ -119,7 +124,7 @@ def send_to_telegram(content, image_path=None):
                 # Step 2: Pin the message
                 url_pin = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/pinChatMessage'
                 data_pin = {
-                    'chat_id': CHAT_ID,
+                    'chat_id': topic_id,  # Use the topic_id for pinning
                     'message_id': message_id,
                     'disable_notification': False  # Optional
                 }
@@ -129,7 +134,7 @@ def send_to_telegram(content, image_path=None):
         # Step 1: Send the message
         url_send = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage'
         data_send = {
-            'chat_id': CHAT_ID,
+            'chat_id': topic_id,  # Use the topic_id as the chat_id
             'text': content,
             'parse_mode': 'Markdown',
             'disable_notification': False  # Optional
@@ -145,10 +150,9 @@ def send_to_telegram(content, image_path=None):
             # Step 2: Pin the message
             url_pin = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/pinChatMessage'
             data_pin = {
-                'chat_id': CHAT_ID,
+                'chat_id': topic_id,  # Use the topic_id for pinning
                 'message_id': message_id,
                 'disable_notification': False  # Optional
             }
 
             requests.post(url_pin, data=data_pin)
-

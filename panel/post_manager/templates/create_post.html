@@ -44,6 +44,15 @@
         border: 1px solid #e0e0e0;
         margin-bottom: 10px;
       }
+      select {
+        width: 90%;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #e0e0e0;
+        margin-bottom: 10px;
+        background: #454545;
+        color: white;
+      }
       button {
         background-color: #4a90e2;
         color: white;
@@ -72,7 +81,7 @@
   </head>
   <body>
     <h1>Create Post</h1>
-    <form method="POST" action="/create_post/">
+    <form method="POST" action="/create_post/" enctype="multipart/form-data">
       {% csrf_token %}
       <textarea
         name="content"
@@ -80,6 +89,14 @@
         placeholder="Enter your post content..."
       ></textarea
       ><br />
+
+      <select name="topic" id="topic" required>
+        <option value="">--Choose a Topic--</option>
+        {% for key, value in topics.items %}
+        <option value="{{ value }}">{{ key }}</option>
+        {% endfor %}</select
+      ><br />
+
       <input type="file" name="image" /><br />
       <button type="submit">Create Post</button>
     </form>
