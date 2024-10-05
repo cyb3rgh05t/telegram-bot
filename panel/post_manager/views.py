@@ -3,7 +3,7 @@ from .models import Post
 from django.contrib import messages
 from django.conf import settings
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_protect
 import json
 import requests
 import os
@@ -63,7 +63,8 @@ def edit_post(request, post_id):
     return render(request, 'edit.html', {'post': post})
 
 
-@csrf_exempt  # Disable CSRF protection for simplicity (not recommended for production)
+
+@csrf_protect  # Keep CSRF protection enabled
 def api_posts(request):
     if request.method == 'GET':
         posts = Post.objects.all()

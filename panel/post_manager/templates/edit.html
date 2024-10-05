@@ -1,15 +1,60 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
   <head>
+    <meta charset="UTF-8" />
     <title>Edit Post</title>
+    <script>
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === name + "=") {
+              cookieValue = decodeURIComponent(
+                cookie.substring(name.length + 1)
+              );
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+
+      function updatePost(postId, newContent) {
+        const csrftoken = getCookie("csrftoken");
+
+        fetch("/api/posts/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrftoken, // Include CSRF token in the request
+          },
+          body: JSON.stringify({
+            id: postId,
+            content: newContent,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => console.log(data))
+          .catch((error) => console.error("Error:", error));
+      }
+    </script>
   </head>
   <body>
     <h1>Edit Post</h1>
-    <form method="post">
-      {% csrf_token %}
-      <textarea name="content">{{ post.content }}</textarea>
+    <form id="editPostForm">
+      <textarea name="content" required>{{ post.content }}</textarea><br />
       <button type="submit">Update Post</button>
     </form>
-    <a href="{% url 'index' %}">Cancel</a>
+
+    <script>
+      document.getElementById('editPostForm').onsubmit = function(event) {
+          event.preventDefault();  // Prevent form submission
+          const postId = {{ post.id }};  // Use Django template variable for post ID
+          const newContent = this.content.value;  // Get the new content
+          updatePost(postId, newContent);  // Call the update function
+      };
+    </script>
   </body>
 </html>
