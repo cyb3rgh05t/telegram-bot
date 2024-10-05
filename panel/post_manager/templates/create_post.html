@@ -3,66 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <title>Create Post</title>
-    <script>
-      function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== "") {
-          const cookies = document.cookie.split(";");
-          for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === name + "=") {
-              cookieValue = decodeURIComponent(
-                cookie.substring(name.length + 1)
-              );
-              break;
-            }
-          }
-        }
-        return cookieValue;
-      }
-
-      function createPost() {
-        const csrftoken = getCookie("csrftoken");
-        const content = document.getElementById("postContent").value; // Get the content from the textarea
-        const image = document.getElementById("postImage").files[0]; // Get the selected image file
-
-        const formData = new FormData();
-        formData.append("content", content);
-        if (image) {
-          formData.append("image", image); // Append image if exists
-        }
-
-        fetch("/create_post/", {
-          method: "POST",
-          headers: {
-            "X-CSRFToken": csrftoken, // Include CSRF token in the request
-          },
-          body: formData,
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            console.log(data);
-            // Handle success (e.g., redirect or show a success message)
-            alert("Post created successfully!");
-            console.log("Redirecting to the homepage.");
-            window.location.href = "/"; // Redirect to the homepage
-          })
-          .catch((error) => console.error("Error:", error));
-      }
-    </script>
   </head>
   <body>
     <h1>Create Post</h1>
-    <form id="createPostForm" onsubmit="event.preventDefault(); createPost();">
+    <form method="POST" action="/create_post/">
+      <!-- Ensure action is set correctly -->
       {% csrf_token %}
       <textarea
-        id="postContent"
         name="content"
         required
         placeholder="Enter your post content..."
       ></textarea
       ><br />
-      <input type="file" id="postImage" name="image" /><br />
+      <input type="file" name="image" /><br />
       <button type="submit">Create Post</button>
     </form>
     <a href="{% url 'index' %}">Back to Posts</a>
