@@ -14,7 +14,7 @@ from pathlib import Path
 import os
 import json
 
-CONFIG_DIR = os.path.join('config')
+CONFIG_DIR = '/app/config'
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'config.json')
 
 # Load configuration from config.json
