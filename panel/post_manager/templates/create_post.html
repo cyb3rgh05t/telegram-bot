@@ -44,7 +44,8 @@
             console.log(data);
             // Handle success (e.g., redirect or show a success message)
             alert("Post created successfully!");
-            window.location.href = "/"; // Redirect to the index page or another page
+            console.log("Redirecting to the homepage.");
+            window.location.href = "/"; // Redirect to the homepage
           })
           .catch((error) => console.error("Error:", error));
       }

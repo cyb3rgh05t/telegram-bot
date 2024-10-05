@@ -23,21 +23,22 @@
 
       function updatePost(postId) {
         const csrftoken = getCookie("csrftoken");
-        const newContent = document.getElementById("postContent").value; // Get the new content
+        const newContent = document.getElementById("postContent").value; // Make sure this ID is correct
 
         fetch(`/edit/${postId}/`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-CSRFToken": csrftoken, // Include CSRF token in the request
+            "X-CSRFToken": csrftoken,
           },
-          body: JSON.stringify({ content: newContent }),
+          body: JSON.stringify({ content: newContent }), // Ensure the content is sent here
         })
           .then((response) => response.json())
           .then((data) => {
             if (data.status === "success") {
               alert("Post updated successfully!");
-              window.location.href = "/"; // Redirect or update the UI as needed
+              console.log("Redirecting to the homepage.");
+              window.location.href = "/"; // Redirect to the homepage
             }
           })
           .catch((error) => console.error("Error:", error));
