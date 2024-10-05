@@ -9,11 +9,11 @@ import requests
 import os
 import sqlite3
 
-CONFIG_DIR = "config"
+CONFIG_DIR = '/app/config'
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'config.json')
 
 # Path for SQLite database file in the backup folder
-DATABASE_DIR = "database"
+DATABASE_DIR = '/app/database'
 DATABASE_FILE = os.path.join(DATABASE_DIR, "group_data.db")
 
 # Load group chat ID from the database
