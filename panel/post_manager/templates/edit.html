@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Edit Post</title>
+  </head>
+  <body>
+    <h1>Edit Post</h1>
+    <form method="post">
+      {% csrf_token %}
+      <textarea name="content">{{ post.content }}</textarea>
+      <button type="submit">Update Post</button>
+    </form>
+    <a href="{% url 'index' %}">Cancel</a>
+  </body>
+</html>

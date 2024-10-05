@@ -1,0 +1,884 @@
+2024-10-05 13:20:08,637 - INFO - Watching for file changes with StatReloader
+2024-10-05 13:20:08,639 - DEBUG - Waiting for apps ready_event.
+2024-10-05 13:20:09,329 - DEBUG - Apps ready_event triggered. Sending autoreload_started signal.
+2024-10-05 13:20:09,350 - DEBUG - Watching dir C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\templates with glob **/*.
+2024-10-05 13:20:09,351 - DEBUG - Watching dir C:\Users\User\Documents\GitHub\telegram-bot\locale with glob **/*.mo.
+2024-10-05 13:20:09,352 - DEBUG - Watching dir C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\locale with glob **/*.mo.
+2024-10-05 13:20:09,473 - DEBUG - (0.016) 
+            SELECT name, type FROM sqlite_master
+            WHERE type in ('table', 'view') AND NOT name='sqlite_sequence'
+            ORDER BY name; args=None; alias=default
+2024-10-05 13:20:09,481 - DEBUG - (0.000) SELECT "django_migrations"."id", "django_migrations"."app", "django_migrations"."name", "django_migrations"."applied" FROM "django_migrations"; args=(); alias=default
+2024-10-05 13:20:09,622 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\template\engine.py first seen with mtime 1728118163.9501894
+2024-10-05 13:20:09,623 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\templatetags\cache.py first seen with mtime 1728118164.0567317
+2024-10-05 13:20:09,624 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\files\storage\base.py first seen with mtime 1728118163.1825397
+2024-10-05 13:20:09,624 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\checks\translation.py first seen with mtime 1728118163.110015
+2024-10-05 13:20:09,625 - DEBUG - File C:\Python312\Lib\concurrent\__init__.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,625 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\contenttypes\models.py first seen with mtime 1728118154.5723815
+2024-10-05 13:20:09,626 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\backends\sqlite3\base.py first seen with mtime 1728118163.3836277
+2024-10-05 13:20:09,626 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\forms\renderers.py first seen with mtime 1728118163.5537088
+2024-10-05 13:20:09,628 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\models.py first seen with mtime 1728118153.6646645
+2024-10-05 13:20:09,628 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\contenttypes\management\__init__.py first seen with mtime 1728118156.3150322
+2024-10-05 13:20:09,629 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\sites\requests.py first seen with mtime 1728118162.4547455
+2024-10-05 13:20:09,631 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\lorem_ipsum.py first seen with mtime 1728118164.5149179
+2024-10-05 13:20:09,638 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\migrations\__init__.py first seen with mtime 1728118163.3926384
+2024-10-05 13:20:09,638 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\PIL\_deprecate.py first seen with mtime 1728122276.0721288
+2024-10-05 13:20:09,643 - DEBUG - File C:\Python312\Lib\email\_policybase.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,645 - DEBUG - File C:\Python312\Lib\importlib\resources\_legacy.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,646 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\middleware\clickjacking.py first seen with mtime 1728118163.8546538
+2024-10-05 13:20:09,646 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\transaction.py first seen with mtime 1728118163.286089
+2024-10-05 13:20:09,647 - DEBUG - File C:\Python312\DLLs\select.pyd first seen with mtime 1707253852.0
+2024-10-05 13:20:09,648 - DEBUG - File C:\Python312\Lib\asyncio\staggered.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,648 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\sqlparse\filters\tokens.py first seen with mtime 1728118145.5494738
+2024-10-05 13:20:09,648 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\template\loaders\app_directories.py first seen with mtime 1728118164.0507312
+2024-10-05 13:20:09,651 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\checks\security\base.py first seen with mtime 1728118163.1190162
+2024-10-05 13:20:09,652 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\views\static.py first seen with mtime 1728118164.5414386
+2024-10-05 13:20:09,653 - DEBUG - File C:\Python312\Lib\asyncio\base_subprocess.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,653 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\template\utils.py first seen with mtime 1728118164.0397282
+2024-10-05 13:20:09,654 - DEBUG - File C:\Python312\Lib\importlib\abc.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,655 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\staticfiles\views.py first seen with mtime 1728118163.061
+2024-10-05 13:20:09,657 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\checks\registry.py first seen with mtime 1728118163.1080148
+2024-10-05 13:20:09,661 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\query_utils.py first seen with mtime 1728118163.445168
+2024-10-05 13:20:09,662 - DEBUG - File C:\Python312\Lib\importlib\metadata\_text.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,663 - DEBUG - File C:\Python312\Lib\random.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,664 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\requests\api.py first seen with mtime 1728115223.1558304
+2024-10-05 13:20:09,666 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\sqlparse\sql.py first seen with mtime 1728118145.4454696
+2024-10-05 13:20:09,666 - DEBUG - File C:\Python312\Lib\multiprocessing\__init__.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,667 - DEBUG - File C:\Python312\Lib\re\_compiler.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,668 - DEBUG - File C:\Python312\Lib\subprocess.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,669 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\backends\sqlite3\operations.py first seen with mtime 1728118163.3896282
+2024-10-05 13:20:09,669 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\migrations\migration.py first seen with mtime 1728118163.4026322
+2024-10-05 13:20:09,670 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\charset_normalizer\cd.py first seen with mtime 1728115221.322632
+2024-10-05 13:20:09,671 - DEBUG - File C:\Python312\Lib\importlib\metadata\_adapters.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,671 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\sessions\backends\base.py first seen with mtime 1728118162.0925977
+2024-10-05 13:20:09,672 - DEBUG - File C:\Python312\Lib\importlib\resources\readers.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,678 - DEBUG - File C:\Python312\Lib\ast.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,680 - DEBUG - File C:\Python312\Lib\tempfile.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,683 - DEBUG - File C:\Python312\Lib\threading.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,685 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\sql\__init__.py first seen with mtime 1728118163.4801753
+2024-10-05 13:20:09,686 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\checks.py first seen with mtime 1728118148.5648482
+2024-10-05 13:20:09,687 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\requests\status_codes.py first seen with mtime 1728115223.1619434
+2024-10-05 13:20:09,687 - DEBUG - File C:\Python312\Lib\asyncio\threads.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,688 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\termcolors.py first seen with mtime 1728118164.519427
+2024-10-05 13:20:09,694 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\backends\base\introspection.py first seen with mtime 1728118163.3216133
+2024-10-05 13:20:09,698 - DEBUG - File C:\Python312\DLLs\_ctypes.pyd first seen with mtime 1707253854.0
+2024-10-05 13:20:09,699 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\serializers\json.py first seen with mtime 1728118163.2720842
+2024-10-05 13:20:09,700 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\forms\models.py first seen with mtime 1728118163.5527074
+2024-10-05 13:20:09,701 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\translation\reloader.py first seen with mtime 1728118164.532436
+2024-10-05 13:20:09,702 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\files\storage\mixins.py first seen with mtime 1728118163.186539
+2024-10-05 13:20:09,705 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\aggregates.py first seen with mtime 1728118163.4241629
+2024-10-05 13:20:09,711 - DEBUG - File C:\Python312\Lib\hashlib.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,715 - DEBUG - File C:\Python312\Lib\email\parser.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,717 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\certifi\__init__.py first seen with mtime 1728114448.2579255
+2024-10-05 13:20:09,718 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\idna\core.py first seen with mtime 1728114447.5533957
+2024-10-05 13:20:09,718 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\handlers\asgi.py first seen with mtime 1728118163.18854
+2024-10-05 13:20:09,719 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\util\url.py first seen with mtime 1728115204.0270073
+2024-10-05 13:20:09,720 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\urls\utils.py first seen with mtime 1728118164.3413627
+2024-10-05 13:20:09,721 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\checks\compatibility\__init__.py first seen with mtime 1728118163.1150172
+2024-10-05 13:20:09,722 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\views\generic\__init__.py first seen with mtime 1728118164.5894494
+2024-10-05 13:20:09,820 - DEBUG - File C:\Python312\Lib\asyncio\windows_events.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,875 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\views\generic\detail.py first seen with mtime 1728118164.5964525
+2024-10-05 13:20:09,879 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\checks\model_checks.py first seen with mtime 1728118163.1070151
+2024-10-05 13:20:09,880 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\sqlparse\lexer.py first seen with mtime 1728118145.4454696
+2024-10-05 13:20:09,881 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\migrations\loader.py first seen with mtime 1728118163.4016316
+2024-10-05 13:20:09,882 - DEBUG - File C:\Python312\Lib\asyncio\queues.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,928 - DEBUG - File C:\Python312\Lib\platform.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,931 - DEBUG - File C:\Python312\DLLs\_asyncio.pyd first seen with mtime 1707253852.0
+2024-10-05 13:20:09,936 - DEBUG - File C:\Python312\Lib\asyncio\constants.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,938 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\utils.py first seen with mtime 1728118163.449167
+2024-10-05 13:20:09,939 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\sqlparse\filters\__init__.py first seen with mtime 1728118145.533535
+2024-10-05 13:20:09,940 - DEBUG - File C:\Python312\Lib\wsgiref\__init__.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,944 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\charset_normalizer\constant.py first seen with mtime 1728115221.3246312
+2024-10-05 13:20:09,945 - DEBUG - File C:\Python312\DLLs\_bz2.pyd first seen with mtime 1707253852.0
+2024-10-05 13:20:09,946 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\apps.py first seen with mtime 1728118153.6014261
+2024-10-05 13:20:09,947 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\sql\constants.py first seen with mtime 1728118163.4821756
+2024-10-05 13:20:09,947 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\mail\__init__.py first seen with mtime 1728118163.1965418
+2024-10-05 13:20:09,948 - DEBUG - File C:\Python312\Lib\bisect.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,950 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\crypto.py first seen with mtime 1728118164.3523643
+2024-10-05 13:20:09,951 - DEBUG - File C:\Python312\Lib\importlib\metadata\__init__.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,952 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\template\defaultfilters.py first seen with mtime 1728118163.8756576
+2024-10-05 13:20:09,952 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\http2\__init__.py first seen with mtime 1728115204.001995
+2024-10-05 13:20:09,953 - DEBUG - File C:\Python312\Lib\sysconfig.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,954 - DEBUG - File C:\Python312\Lib\asyncio\taskgroups.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,954 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\version.py first seen with mtime 1728118164.5294354
+2024-10-05 13:20:09,954 - DEBUG - File C:\Python312\Lib\token.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,957 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\util\retry.py first seen with mtime 1728115204.0220013
+2024-10-05 13:20:09,961 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py first seen with mtime 1728118163.4601707
+2024-10-05 13:20:09,962 - DEBUG - File C:\Python312\Lib\importlib\resources\_itertools.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,963 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\inspect.py first seen with mtime 1728118164.505915
+2024-10-05 13:20:09,963 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\admin.py first seen with mtime 1728118257.5235598
+2024-10-05 13:20:09,964 - DEBUG - File C:\Python312\Lib\email\charset.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,965 - DEBUG - File C:\Python312\Lib\asyncio\log.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,967 - DEBUG - File C:\Python312\Lib\email\iterators.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,967 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\backends\sqlite3\client.py first seen with mtime 1728118163.3846273
+2024-10-05 13:20:09,968 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\requests\packages.py first seen with mtime 1728115223.1619434
+2024-10-05 13:20:09,969 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\files\locks.py first seen with mtime 1728118163.124526
+2024-10-05 13:20:09,970 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\backends\sqlite3\_functions.py first seen with mtime 1728118163.3826272
+2024-10-05 13:20:09,970 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\models.py first seen with mtime 1728121865.338032
+2024-10-05 13:20:09,971 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\cache\backends\locmem.py first seen with mtime 1728118163.0970125
+2024-10-05 13:20:09,971 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\base_user.py first seen with mtime 1728118153.6034255
+2024-10-05 13:20:09,978 - DEBUG - File C:\Python312\DLLs\unicodedata.pyd first seen with mtime 1707253852.0
+2024-10-05 13:20:09,979 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\encoding.py first seen with mtime 1728118164.3653674
+2024-10-05 13:20:09,980 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\forms\__init__.py first seen with mtime 1728118163.542706
+2024-10-05 13:20:09,980 - DEBUG - File C:\Python312\Lib\functools.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,981 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\exceptions.py first seen with mtime 1728118163.0760105
+2024-10-05 13:20:09,981 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\regex_helper.py first seen with mtime 1728118164.5179174
+2024-10-05 13:20:09,983 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\views\__init__.py first seen with mtime 1728118164.537441
+2024-10-05 13:20:09,983 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\idna\__init__.py first seen with mtime 1728114447.5533957
+2024-10-05 13:20:09,984 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\backends\sqlite3\features.py first seen with mtime 1728118163.387628
+2024-10-05 13:20:09,985 - DEBUG - File C:\Python312\Lib\email\message.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,985 - DEBUG - File C:\Python312\Lib\email\_parseaddr.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,987 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\middleware\common.py first seen with mtime 1728118163.8556535
+2024-10-05 13:20:09,987 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\files\move.py first seen with mtime 1728118163.1255305
+2024-10-05 13:20:09,988 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\http\__init__.py first seen with mtime 1728118163.8416507
+2024-10-05 13:20:09,988 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\migrations\operations\models.py first seen with mtime 1728118163.4211626
+2024-10-05 13:20:09,991 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\template\autoreload.py first seen with mtime 1728118163.8696566
+2024-10-05 13:20:09,995 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\template\loaders\base.py first seen with mtime 1728118164.0507312
+2024-10-05 13:20:09,996 - DEBUG - File C:\Python312\Lib\urllib\__init__.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,997 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\templatetags\__init__.py first seen with mtime 1728118164.0557318
+2024-10-05 13:20:09,997 - DEBUG - File C:\Python312\Lib\wsgiref\util.py first seen with mtime 1707253818.0
+2024-10-05 13:20:09,998 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\servers\basehttp.py first seen with mtime 1728118163.2820864
+2024-10-05 13:20:10,000 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\cache\backends\filebased.py first seen with mtime 1728118163.0960062
+2024-10-05 13:20:10,000 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\http\response.py first seen with mtime 1728118163.8506532
+2024-10-05 13:20:10,000 - DEBUG - File C:\Python312\Lib\email\feedparser.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,001 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\urls\resolvers.py first seen with mtime 1728118164.3413627
+2024-10-05 13:20:10,001 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\functions\window.py first seen with mtime 1728118163.4761746
+2024-10-05 13:20:10,002 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\decorators.py first seen with mtime 1728118153.6496508
+2024-10-05 13:20:10,002 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\migrations\operations\fields.py first seen with mtime 1728118163.4191537
+2024-10-05 13:20:10,004 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\fields\related.py first seen with mtime 1728118163.4581704
+2024-10-05 13:20:10,005 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\staticfiles\apps.py first seen with mtime 1728118163.0499966
+2024-10-05 13:20:10,008 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\management\__init__.py first seen with mtime 1728118154.541124
+2024-10-05 13:20:10,010 - DEBUG - File C:\Python312\Lib\email\mime\nonmultipart.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,015 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\__init__.py first seen with mtime 1728118148.5450087
+2024-10-05 13:20:10,016 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\asgiref\__init__.py first seen with mtime 1728118146.3186374
+2024-10-05 13:20:10,017 - DEBUG - File C:\Python312\Lib\email\mime\base.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,017 - DEBUG - File C:\Python312\Lib\keyword.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,018 - DEBUG - File C:\Python312\Lib\difflib.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,018 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\shortcuts.py first seen with mtime 1728118146.687278
+2024-10-05 13:20:10,020 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\sqlparse\__init__.py first seen with mtime 1728118145.4089828
+2024-10-05 13:20:10,020 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\checks\urls.py first seen with mtime 1728118163.1140156
+2024-10-05 13:20:10,021 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\PIL\Image.py first seen with mtime 1728122275.9389484
+2024-10-05 13:20:10,021 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\panel\panel\__init__.py first seen with mtime 1728118233.3617463
+2024-10-05 13:20:10,024 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\migrations\exceptions.py first seen with mtime 1728118163.397631
+2024-10-05 13:20:10,029 - DEBUG - File C:\Python312\Lib\asyncio\mixins.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,030 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\checks\templates.py first seen with mtime 1728118163.1090145
+2024-10-05 13:20:10,031 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\contrib\__init__.py first seen with mtime 1728115203.9909918
+2024-10-05 13:20:10,032 - DEBUG - File C:\Python312\DLLs\_wmi.pyd first seen with mtime 1707253852.0
+2024-10-05 13:20:10,033 - DEBUG - File C:\Python312\Lib\email\_encoded_words.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,033 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\idna\intranges.py first seen with mtime 1728114447.5533957
+2024-10-05 13:20:10,034 - DEBUG - File C:\Python312\Lib\encodings\cp1252.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,035 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\messages\storage\base.py first seen with mtime 1728118159.6773846
+2024-10-05 13:20:10,036 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\validators.py first seen with mtime 1728118153.6959264
+2024-10-05 13:20:10,036 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\handlers\wsgi.py first seen with mtime 1728118163.1925411
+2024-10-05 13:20:10,037 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\util\proxy.py first seen with mtime 1728115204.0059948
+2024-10-05 13:20:10,037 - DEBUG - File C:\Python312\Lib\uuid.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,038 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\views\decorators\__init__.py first seen with mtime 1728118164.5784464
+2024-10-05 13:20:10,041 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\template\loaders\cached.py first seen with mtime 1728118164.0517318
+2024-10-05 13:20:10,042 - DEBUG - File C:\Python312\Lib\pathlib.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,046 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\PIL\_imaging.cp312-win_amd64.pyd first seen with mtime 1728122276.0881355
+2024-10-05 13:20:10,047 - DEBUG - File C:\Python312\Lib\collections\abc.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,048 - DEBUG - File C:\Python312\Lib\_compression.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,048 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\middleware\__init__.py first seen with mtime 1728118163.8516529
+2024-10-05 13:20:10,049 - DEBUG - File C:\Python312\Lib\importlib\resources\__init__.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,050 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\staticfiles\finders.py first seen with mtime 1728118163.051997
+2024-10-05 13:20:10,050 - DEBUG - File C:\Python312\Lib\email\quoprimime.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,051 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\sqlparse\filters\output.py first seen with mtime 1728118145.5444672
+2024-10-05 13:20:10,052 - DEBUG - File C:\Python312\Lib\graphlib.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,052 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\template\backends\__init__.py first seen with mtime 1728118164.0417285
+2024-10-05 13:20:10,053 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\util\__init__.py first seen with mtime 1728115204.004994
+2024-10-05 13:20:10,055 - DEBUG - File C:\Python312\Lib\bz2.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,058 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\cache\backends\__init__.py first seen with mtime 1728118163.0910056
+2024-10-05 13:20:10,063 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\views\autocomplete.py first seen with mtime 1728118152.3858716
+2024-10-05 13:20:10,064 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\management\base.py first seen with mtime 1728118163.2310736
+2024-10-05 13:20:10,064 - DEBUG - File C:\Python312\Lib\signal.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,065 - DEBUG - File C:\Python312\DLLs\_decimal.pyd first seen with mtime 1707253852.0
+2024-10-05 13:20:10,065 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\views\generic\dates.py first seen with mtime 1728118164.5954487
+2024-10-05 13:20:10,066 - DEBUG - File C:\Python312\Lib\importlib\resources\_common.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,067 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\fields\json.py first seen with mtime 1728118163.4541688
+2024-10-05 13:20:10,068 - DEBUG - File C:\Python312\Lib\fnmatch.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,069 - DEBUG - File C:\Python312\Lib\asyncio\futures.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,070 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\migrations\executor.py first seen with mtime 1728118163.3986304
+2024-10-05 13:20:10,070 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\PIL\_version.py first seen with mtime 1728122276.1282935
+2024-10-05 13:20:10,071 - DEBUG - File C:\Python312\Lib\logging\config.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,072 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\template\loaders\__init__.py first seen with mtime 1728118164.049732
+2024-10-05 13:20:10,074 - DEBUG - File C:\Python312\Lib\email\contentmanager.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,078 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\util\response.py first seen with mtime 1728115204.0089958
+2024-10-05 13:20:10,080 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\PIL\TiffTags.py first seen with mtime 1728122276.0581257
+2024-10-05 13:20:10,081 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\views\defaults.py first seen with mtime 1728118164.5404375
+2024-10-05 13:20:10,082 - DEBUG - File C:\Python312\Lib\dis.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,082 - DEBUG - File C:\Python312\Lib\argparse.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,083 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\sqlparse\utils.py first seen with mtime 1728118145.4454696
+2024-10-05 13:20:10,083 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\checks\files.py first seen with mtime 1728118163.105014
+2024-10-05 13:20:10,084 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\serializers\__init__.py first seen with mtime 1728118163.270084
+2024-10-05 13:20:10,085 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\asgiref\sync.py first seen with mtime 1728118146.3326397
+2024-10-05 13:20:10,086 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\sqlparse\engine\statement_splitter.py first seen with mtime 1728118145.4454696
+2024-10-05 13:20:10,087 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\asgiref\local.py first seen with mtime 1728118146.3236368
+2024-10-05 13:20:10,087 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\checks\__init__.py first seen with mtime 1728118163.1010072
+2024-10-05 13:20:10,088 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\messages\__init__.py first seen with mtime 1728118159.3983903
+2024-10-05 13:20:10,088 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\views\debug.py first seen with mtime 1728118164.5394385
+2024-10-05 13:20:10,095 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\panel\panel\settings.py first seen with mtime 1728127206.0966873
+2024-10-05 13:20:10,096 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\fields\related_lookups.py first seen with mtime 1728118163.466174
+2024-10-05 13:20:10,096 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\translation\trans_real.py first seen with mtime 1728118164.5354369
+2024-10-05 13:20:10,098 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\sessions\__init__.py first seen with mtime 1728118162.0855978
+2024-10-05 13:20:10,098 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\template\__init__.py first seen with mtime 1728118163.8686566
+2024-10-05 13:20:10,098 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\sql\query.py first seen with mtime 1728118163.4861763
+2024-10-05 13:20:10,099 - DEBUG - File C:\Python312\Lib\sqlite3\dbapi2.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,100 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\files\base.py first seen with mtime 1728118163.1225257
+2024-10-05 13:20:10,101 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\middleware\csrf.py first seen with mtime 1728118163.857654
+2024-10-05 13:20:10,101 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\autoreload.py first seen with mtime 1728118164.348364
+2024-10-05 13:20:10,102 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\templatetags\__init__.py first seen with mtime 1728118152.3468664
+2024-10-05 13:20:10,102 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\enums.py first seen with mtime 1728118163.4321644
+2024-10-05 13:20:10,103 - DEBUG - File C:\Python312\Lib\http\cookies.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,103 - DEBUG - File C:\Python312\Lib\importlib\readers.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,104 - DEBUG - File C:\Python312\Lib\ctypes\wintypes.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,104 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\handlers\exception.py first seen with mtime 1728118163.1915417
+2024-10-05 13:20:10,113 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\hashers.py first seen with mtime 1728118153.6646645
+2024-10-05 13:20:10,114 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\translation\__init__.py first seen with mtime 1728118164.5314362
+2024-10-05 13:20:10,115 - DEBUG - File C:\Python312\Lib\html\parser.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,115 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\templatetags\i18n.py first seen with mtime 1728118164.0577333
+2024-10-05 13:20:10,116 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\template\base.py first seen with mtime 1728118163.8706577
+2024-10-05 13:20:10,117 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\forms\fields.py first seen with mtime 1728118163.54771
+2024-10-05 13:20:10,117 - DEBUG - File C:\Python312\Lib\asyncio\coroutines.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,118 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\connection.py first seen with mtime 1728118164.351365
+2024-10-05 13:20:10,120 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\lookups.py first seen with mtime 1728118163.4371653
+2024-10-05 13:20:10,120 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\handlers\base.py first seen with mtime 1728118163.190541
+2024-10-05 13:20:10,121 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\urls\base.py first seen with mtime 1728118164.335361
+2024-10-05 13:20:10,121 - DEBUG - File C:\Python312\Lib\ssl.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,124 - DEBUG - File C:\Python312\Lib\pkgutil.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,129 - DEBUG - File C:\Python312\Lib\ipaddress.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,130 - DEBUG - File C:\Python312\Lib\warnings.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,130 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\sessions\apps.py first seen with mtime 1728118162.086596
+2024-10-05 13:20:10,131 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\conf\global_settings.py first seen with mtime 1728118146.700293
+2024-10-05 13:20:10,132 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\poolmanager.py first seen with mtime 1728115203.988993
+2024-10-05 13:20:10,132 - DEBUG - File C:\Python312\Lib\asyncio\streams.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,133 - DEBUG - File C:\Python312\Lib\email\errors.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,134 - DEBUG - File C:\Python312\Lib\gettext.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,136 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\template\smartif.py first seen with mtime 1728118164.0387292
+2024-10-05 13:20:10,136 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\messages\utils.py first seen with mtime 1728118159.6773846
+2024-10-05 13:20:10,137 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\__init__.py first seen with mtime 1728115203.9789898
+2024-10-05 13:20:10,138 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\datastructures.py first seen with mtime 1728118164.3553658
+2024-10-05 13:20:10,146 - DEBUG - File C:\Python312\Lib\secrets.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,147 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\staticfiles\management\commands\__init__.py first seen with mtime 1728118163.0639997
+2024-10-05 13:20:10,147 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\backends.py first seen with mtime 1728118153.602426
+2024-10-05 13:20:10,148 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\signals.py first seen with mtime 1728118153.6646645
+2024-10-05 13:20:10,148 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\sessions\exceptions.py first seen with mtime 1728118162.0885973
+2024-10-05 13:20:10,149 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\__init__.py first seen with mtime 1728118163.284087
+2024-10-05 13:20:10,150 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\sqlparse\filters\right_margin.py first seen with mtime 1728118145.5494738
+2024-10-05 13:20:10,151 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\charset_normalizer\models.py first seen with mtime 1728115221.3326325
+2024-10-05 13:20:10,151 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\migrations\utils.py first seen with mtime 1728118163.408638
+2024-10-05 13:20:10,152 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\conf\urls\static.py first seen with mtime 1728118148.4077716
+2024-10-05 13:20:10,154 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\options.py first seen with mtime 1728118148.6449556
+2024-10-05 13:20:10,154 - DEBUG - File C:\Python312\Lib\encodings\idna.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,155 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\PIL\_binary.py first seen with mtime 1728122276.071127
+2024-10-05 13:20:10,158 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\signals.py first seen with mtime 1728118163.4471686
+2024-10-05 13:20:10,162 - DEBUG - File C:\Python312\Lib\hmac.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,163 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\_collections.py first seen with mtime 1728115203.9809892
+2024-10-05 13:20:10,164 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\fields.py first seen with mtime 1728115203.9869916
+2024-10-05 13:20:10,165 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\middleware\cache.py first seen with mtime 1728118163.8536532
+2024-10-05 13:20:10,165 - DEBUG - File C:\Python312\Lib\urllib\error.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,166 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\constraints.py first seen with mtime 1728118163.4301631
+2024-10-05 13:20:10,166 - DEBUG - File C:\Python312\Lib\dataclasses.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,167 - DEBUG - File C:\Python312\Lib\multiprocessing\reduction.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,169 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\http2\probe.py first seen with mtime 1728115204.0039947
+2024-10-05 13:20:10,170 - DEBUG - File C:\Python312\Lib\encodings\utf_8.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,171 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\backends\sqlite3\schema.py first seen with mtime 1728118163.3906283
+2024-10-05 13:20:10,173 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\staticfiles\management\commands\runserver.py first seen with mtime 1728118163.0690007
+2024-10-05 13:20:10,174 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\requests\hooks.py first seen with mtime 1728115223.1619434
+2024-10-05 13:20:10,178 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\numberformat.py first seen with mtime 1728118164.5159185
+2024-10-05 13:20:10,178 - DEBUG - File C:\Python312\Lib\multiprocessing\process.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,180 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\password_validation.py first seen with mtime 1728118153.6646645
+2024-10-05 13:20:10,180 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\staticfiles\checks.py first seen with mtime 1728118163.050997
+2024-10-05 13:20:10,181 - DEBUG - File C:\Python312\Lib\importlib\metadata\_meta.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,181 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\charset_normalizer\legacy.py first seen with mtime 1728115221.3256323
+2024-10-05 13:20:10,182 - DEBUG - File C:\Python312\Lib\queue.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,182 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\files\storage\filesystem.py first seen with mtime 1728118163.1835392
+2024-10-05 13:20:10,184 - DEBUG - File C:\Python312\Lib\zoneinfo\_common.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,184 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\paginator.py first seen with mtime 1728118163.0800035
+2024-10-05 13:20:10,185 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\checks.py first seen with mtime 1728118153.6496508
+2024-10-05 13:20:10,186 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\cache.py first seen with mtime 1728118164.3503647
+2024-10-05 13:20:10,186 - DEBUG - File C:\Python312\Lib\inspect.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,187 - DEBUG - File C:\Python312\Lib\opcode.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,187 - DEBUG - File C:\Python312\DLLs\_queue.pyd first seen with mtime 1707253850.0
+2024-10-05 13:20:10,189 - DEBUG - File C:\Python312\Lib\textwrap.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,194 - DEBUG - File C:\Python312\Lib\asyncio\tasks.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,195 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\log.py first seen with mtime 1728118164.5139167
+2024-10-05 13:20:10,196 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\functions\math.py first seen with mtime 1728118163.4721727
+2024-10-05 13:20:10,196 - DEBUG - File C:\Python312\Lib\ctypes\_endian.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,197 - DEBUG - File C:\Python312\Lib\_compat_pickle.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,197 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\contenttypes\admin.py first seen with mtime 1728118154.5723815
+2024-10-05 13:20:10,198 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\PIL\_util.py first seen with mtime 1728122276.1272945
+2024-10-05 13:20:10,199 - DEBUG - File C:\Python312\Lib\re\_casefix.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,200 - DEBUG - File C:\Python312\Lib\email\mime\message.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,200 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\views\decorators\debug.py first seen with mtime 1728118164.5844476
+2024-10-05 13:20:10,201 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\contenttypes\__init__.py first seen with mtime 1728118154.5723815
+2024-10-05 13:20:10,202 - DEBUG - File C:\Python312\DLLs\_zoneinfo.pyd first seen with mtime 1707253852.0
+2024-10-05 13:20:10,202 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\decorators.py first seen with mtime 1728118164.361368
+2024-10-05 13:20:10,203 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\requests\__init__.py first seen with mtime 1728115223.1558304
+2024-10-05 13:20:10,204 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\backends\__init__.py first seen with mtime 1728118163.2920887
+2024-10-05 13:20:10,207 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\contenttypes\views.py first seen with mtime 1728118154.5723815
+2024-10-05 13:20:10,211 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\views\i18n.py first seen with mtime 1728118164.5404375
+2024-10-05 13:20:10,212 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\charset_normalizer\__init__.py first seen with mtime 1728115221.3196342
+2024-10-05 13:20:10,213 - DEBUG - File C:\Python312\Lib\lzma.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,213 - DEBUG - File C:\Python312\Lib\zipfile\__init__.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,214 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\checks\caches.py first seen with mtime 1728118163.1030078
+2024-10-05 13:20:10,215 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\migrations\operations\special.py first seen with mtime 1728118163.4221625
+2024-10-05 13:20:10,216 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\templatetags\admin_list.py first seen with mtime 1728118152.3478642
+2024-10-05 13:20:10,217 - DEBUG - File C:\Python312\Lib\json\decoder.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,218 - DEBUG - File C:\Python312\Lib\logging\__init__.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,219 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\util\util.py first seen with mtime 1728115204.0280054
+2024-10-05 13:20:10,219 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\response.py first seen with mtime 1728115203.9899926
+2024-10-05 13:20:10,220 - DEBUG - File C:\Python312\Lib\zipfile\_path\glob.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,221 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\templatetags\static.py first seen with mtime 1728118164.0597339
+2024-10-05 13:20:10,221 - DEBUG - File C:\Python312\Lib\email\utils.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,224 - DEBUG - File C:\Python312\Lib\importlib\metadata\_collections.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,228 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\template\backends\django.py first seen with mtime 1728118164.0427308
+2024-10-05 13:20:10,229 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\migrations\operations\__init__.py first seen with mtime 1728118163.4136393
+2024-10-05 13:20:10,230 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\checks\security\csrf.py first seen with mtime 1728118163.1195204
+2024-10-05 13:20:10,230 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\views\generic\edit.py first seen with mtime 1728118164.597451
+2024-10-05 13:20:10,231 - DEBUG - File C:\Python312\Lib\csv.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,232 - DEBUG - File C:\Python312\Lib\wsgiref\handlers.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,233 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\functions\comparison.py first seen with mtime 1728118163.4701731
+2024-10-05 13:20:10,233 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\sql\subqueries.py first seen with mtime 1728118163.4871755
+2024-10-05 13:20:10,234 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\connectionpool.py first seen with mtime 1728115203.9849973
+2024-10-05 13:20:10,235 - DEBUG - File C:\Python312\Lib\urllib\request.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,236 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\checks\security\__init__.py first seen with mtime 1728118163.1180162
+2024-10-05 13:20:10,236 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\requests\auth.py first seen with mtime 1728115223.1619434
+2024-10-05 13:20:10,237 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\timesince.py first seen with mtime 1728118164.5214334
+2024-10-05 13:20:10,238 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\checks\database.py first seen with mtime 1728118163.1040082
+2024-10-05 13:20:10,244 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\http\cookie.py first seen with mtime 1728118163.845653
+2024-10-05 13:20:10,245 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\backends\base\creation.py first seen with mtime 1728118163.3191
+2024-10-05 13:20:10,245 - DEBUG - File C:\Python312\Lib\importlib\metadata\_functools.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,246 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\cache\backends\base.py first seen with mtime 1728118163.0920062
+2024-10-05 13:20:10,247 - DEBUG - File C:\Python312\Lib\urllib\parse.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,248 - DEBUG - File C:\Python312\Lib\calendar.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,248 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\query.py first seen with mtime 1728118163.442166
+2024-10-05 13:20:10,249 - DEBUG - File C:\Python312\Lib\stringprep.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,250 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\conf\__init__.py first seen with mtime 1728118146.6992898
+2024-10-05 13:20:10,251 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\requests\certs.py first seen with mtime 1728115223.1619434
+2024-10-05 13:20:10,252 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\sql\datastructures.py first seen with mtime 1728118163.483176
+2024-10-05 13:20:10,252 - DEBUG - File C:\Python312\Lib\statistics.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,253 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\templatetags\l10n.py first seen with mtime 1728118164.0587337
+2024-10-05 13:20:10,253 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\charset_normalizer\version.py first seen with mtime 1728115221.3356345
+2024-10-05 13:20:10,254 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\views\decorators\common.py first seen with mtime 1728118164.5814474
+2024-10-05 13:20:10,255 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\_base_connection.py first seen with mtime 1728115203.9799907
+2024-10-05 13:20:10,261 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\actions.py first seen with mtime 1728118148.5450087
+2024-10-05 13:20:10,262 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\messages\storage\__init__.py first seen with mtime 1728118159.6773846
+2024-10-05 13:20:10,264 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\charset_normalizer\md__mypyc.cp312-win_amd64.pyd first seen with mtime 1728115221.3306324
+2024-10-05 13:20:10,265 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\admin.py first seen with mtime 1728118153.6004264
+2024-10-05 13:20:10,267 - DEBUG - File C:\Python312\Lib\traceback.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,268 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\fields\files.py first seen with mtime 1728118163.452168
+2024-10-05 13:20:10,268 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\servers\__init__.py first seen with mtime 1728118163.281086
+2024-10-05 13:20:10,269 - DEBUG - File C:\Python312\Lib\email\generator.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,270 - DEBUG - File C:\Python312\Lib\asyncio\base_tasks.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,270 - DEBUG - File C:\Python312\Lib\email\headerregistry.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,271 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\staticfiles\__init__.py first seen with mtime 1728118163.0489964
+2024-10-05 13:20:10,271 - DEBUG - File C:\Python312\Lib\wsgiref\simple_server.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,272 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\base.py first seen with mtime 1728118163.4251635
+2024-10-05 13:20:10,278 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\util\timeout.py first seen with mtime 1728115204.0260067
+2024-10-05 13:20:10,280 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\backends\signals.py first seen with mtime 1728118163.29809
+2024-10-05 13:20:10,282 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\template\loaders\filesystem.py first seen with mtime 1728118164.052733
+2024-10-05 13:20:10,283 - DEBUG - File C:\Python312\Lib\typing.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,285 - DEBUG - File C:\Python312\Lib\asyncio\events.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,286 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\__init__.py first seen with mtime 1728118163.0730019
+2024-10-05 13:20:10,287 - DEBUG - File C:\Python312\Lib\importlib\resources\_adapters.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,287 - DEBUG - File C:\Python312\Lib\copy.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,288 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\files\utils.py first seen with mtime 1728118163.1325283
+2024-10-05 13:20:10,296 - DEBUG - File C:\Python312\Lib\operator.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,297 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\backends\base\base.py first seen with mtime 1728118163.3170998
+2024-10-05 13:20:10,298 - DEBUG - File C:\Python312\Lib\getpass.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,299 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\util\connection.py first seen with mtime 1728115204.0059948
+2024-10-05 13:20:10,299 - DEBUG - File C:\Python312\Lib\quopri.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,300 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\migrations\state.py first seen with mtime 1728118163.4076383
+2024-10-05 13:20:10,302 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\text.py first seen with mtime 1728118164.5204334
+2024-10-05 13:20:10,302 - DEBUG - File C:\Python312\Lib\asyncio\selector_events.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,303 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\contenttypes\fields.py first seen with mtime 1728118154.5723815
+2024-10-05 13:20:10,303 - DEBUG - File C:\Python312\Lib\email\base64mime.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,304 - DEBUG - File C:\Python312\Lib\contextlib.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,305 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\manager.py first seen with mtime 1728118163.4381657
+2024-10-05 13:20:10,305 - DEBUG - File C:\Python312\Lib\locale.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,312 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\__init__.py first seen with mtime 1728118163.4231608
+2024-10-05 13:20:10,313 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\signals.py first seen with mtime 1728118163.081006
+2024-10-05 13:20:10,313 - DEBUG - File C:\Python312\Lib\asyncio\protocols.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,314 - DEBUG - File C:\Python312\Lib\wsgiref\headers.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,315 - DEBUG - File C:\Python312\Lib\asyncio\__init__.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,315 - DEBUG - File C:\Python312\Lib\email\header.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,316 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\files\images.py first seen with mtime 1728118163.1235266
+2024-10-05 13:20:10,318 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\template\loader.py first seen with mtime 1728118163.9541917
+2024-10-05 13:20:10,318 - DEBUG - File C:\Python312\Lib\types.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,319 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\wsgi.py first seen with mtime 1728118163.0850048
+2024-10-05 13:20:10,320 - DEBUG - File C:\Python312\Lib\pprint.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,320 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\panel\manage.py first seen with mtime 1728122628.100652
+2024-10-05 13:20:10,321 - DEBUG - File C:\Python312\Lib\http\__init__.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,321 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\cache\utils.py first seen with mtime 1728118163.0900068
+2024-10-05 13:20:10,322 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\views\main.py first seen with mtime 1728118152.3878722
+2024-10-05 13:20:10,329 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\migrations\graph.py first seen with mtime 1728118163.399631
+2024-10-05 13:20:10,330 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\templatetags\admin_modify.py first seen with mtime 1728118152.3498642
+2024-10-05 13:20:10,330 - DEBUG - File C:\Python312\Lib\http\client.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,331 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\sites\shortcuts.py first seen with mtime 1728118162.4557462
+2024-10-05 13:20:10,332 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\files\uploadedfile.py first seen with mtime 1728118163.1305265
+2024-10-05 13:20:10,333 - DEBUG - File C:\Python312\Lib\zoneinfo\_tzpath.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,334 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\charset_normalizer\utils.py first seen with mtime 1728115221.3346336
+2024-10-05 13:20:10,334 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\urls\__init__.py first seen with mtime 1728118164.334362
+2024-10-05 13:20:10,335 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\utils.py first seen with mtime 1728118163.2900877
+2024-10-05 13:20:10,336 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\sqlparse\filters\reindent.py first seen with mtime 1728118145.5454679
+2024-10-05 13:20:10,336 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\checks\compatibility\django_4_0.py first seen with mtime 1728118163.1160169
+2024-10-05 13:20:10,337 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\sqlparse\engine\__init__.py first seen with mtime 1728118145.4454696
+2024-10-05 13:20:10,338 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\forms\forms.py first seen with mtime 1728118163.5497074
+2024-10-05 13:20:10,338 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\asyncio.py first seen with mtime 1728118164.348364
+2024-10-05 13:20:10,342 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\conf\locale\__init__.py first seen with mtime 1728118146.7168121
+2024-10-05 13:20:10,346 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\sites\__init__.py first seen with mtime 1728118162.4477434
+2024-10-05 13:20:10,347 - DEBUG - File C:\Python312\Lib\asyncio\windows_utils.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,347 - DEBUG - File C:\Python312\Lib\_weakrefset.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,348 - DEBUG - File C:\Python312\Lib\concurrent\futures\__init__.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,349 - DEBUG - File C:\Python312\Lib\importlib\_abc.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,350 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\__init__.py first seen with mtime 1728118148.5450087
+2024-10-05 13:20:10,351 - DEBUG - File C:\Python312\Lib\email\__init__.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,351 - DEBUG - File C:\Python312\Lib\asyncio\trsock.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,352 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\sessions\base_session.py first seen with mtime 1728118162.087597
+2024-10-05 13:20:10,353 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\PIL\_typing.py first seen with mtime 1728122276.1252935
+2024-10-05 13:20:10,353 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\staticfiles\utils.py first seen with mtime 1728118163.0589983
+2024-10-05 13:20:10,354 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\ipv6.py first seen with mtime 1728118164.5069163
+2024-10-05 13:20:10,354 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\sqlparse\engine\filter_stack.py first seen with mtime 1728118145.4454696
+2024-10-05 13:20:10,355 - DEBUG - File C:\Python312\Lib\asyncio\proactor_events.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,361 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\certifi\core.py first seen with mtime 1728114448.2619267
+2024-10-05 13:20:10,362 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\files\temp.py first seen with mtime 1728118163.1295269
+2024-10-05 13:20:10,362 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\indexes.py first seen with mtime 1728118163.4361649
+2024-10-05 13:20:10,364 - DEBUG - File C:\Python312\Lib\numbers.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,365 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\models.py first seen with mtime 1728118148.6283975
+2024-10-05 13:20:10,366 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\functions\__init__.py first seen with mtime 1728118163.469172
+2024-10-05 13:20:10,366 - DEBUG - File C:\Python312\Lib\sqlite3\__init__.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,367 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\messages\middleware.py first seen with mtime 1728118159.6773846
+2024-10-05 13:20:10,367 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\template\response.py first seen with mtime 1728118163.9581926
+2024-10-05 13:20:10,368 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\migrations\operations\base.py first seen with mtime 1728118163.4176433
+2024-10-05 13:20:10,369 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\files\uploadhandler.py first seen with mtime 1728118163.1315272
+2024-10-05 13:20:10,370 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\mail\message.py first seen with mtime 1728118163.1985416
+2024-10-05 13:20:10,370 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\requests\adapters.py first seen with mtime 1728115223.1558304
+2024-10-05 13:20:10,371 - DEBUG - File C:\Python312\Lib\html\entities.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,371 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\views\csrf.py first seen with mtime 1728118164.538437
+2024-10-05 13:20:10,378 - DEBUG - File C:\Python312\Lib\struct.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,379 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\decorators.py first seen with mtime 1728118148.5648482
+2024-10-05 13:20:10,380 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\checks\async_checks.py first seen with mtime 1728118163.102008
+2024-10-05 13:20:10,380 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\backends\base\features.py first seen with mtime 1728118163.319607
+2024-10-05 13:20:10,381 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\files\storage\handler.py first seen with mtime 1728118163.1845398
+2024-10-05 13:20:10,381 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\requests\structures.py first seen with mtime 1728115223.1619434
+2024-10-05 13:20:10,382 - DEBUG - File C:\Python312\Lib\asyncio\locks.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,383 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\asgiref\current_thread_executor.py first seen with mtime 1728118146.3216355
+2024-10-05 13:20:10,384 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\views\generic\list.py first seen with mtime 1728118164.598451
+2024-10-05 13:20:10,384 - DEBUG - File C:\Python312\Lib\asyncio\runners.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,385 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\apps.py first seen with mtime 1728118148.5648482
+2024-10-05 13:20:10,386 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\idna\idnadata.py first seen with mtime 1728114447.5533957
+2024-10-05 13:20:10,387 - DEBUG - File C:\Python312\Lib\json\__init__.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,387 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\safestring.py first seen with mtime 1728118164.5179174
+2024-10-05 13:20:10,388 - DEBUG - File C:\Python312\Lib\encodings\aliases.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,395 - DEBUG - File C:\Python312\Lib\weakref.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,396 - DEBUG - File C:\Python312\Lib\decimal.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,397 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\dispatch\dispatcher.py first seen with mtime 1728118163.540706
+2024-10-05 13:20:10,398 - DEBUG - File C:\Python312\DLLs\_uuid.pyd first seen with mtime 1707253850.0
+2024-10-05 13:20:10,398 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\contenttypes\forms.py first seen with mtime 1728118154.5723815
+2024-10-05 13:20:10,399 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\checks\messages.py first seen with mtime 1728118163.1060133
+2024-10-05 13:20:10,399 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\filepost.py first seen with mtime 1728115203.9879928
+2024-10-05 13:20:10,400 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\fields\reverse_related.py first seen with mtime 1728118163.467172
+2024-10-05 13:20:10,402 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\urls.py first seen with mtime 1728120041.7982671
+2024-10-05 13:20:10,403 - DEBUG - File C:\Python312\Lib\http\cookiejar.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,403 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\sqlparse\cli.py first seen with mtime 1728118145.4246142
+2024-10-05 13:20:10,404 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\helpers.py first seen with mtime 1728118148.6283975
+2024-10-05 13:20:10,404 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\utils.py first seen with mtime 1728118148.6449556
+2024-10-05 13:20:10,405 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\util\ssl_match_hostname.py first seen with mtime 1728115204.0240002
+2024-10-05 13:20:10,413 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\template\defaulttags.py first seen with mtime 1728118163.9481907
+2024-10-05 13:20:10,414 - DEBUG - File C:\Python312\Lib\copyreg.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,415 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\checks\security\sessions.py first seen with mtime 1728118163.1205256
+2024-10-05 13:20:10,416 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\requests\exceptions.py first seen with mtime 1728115223.1619434
+2024-10-05 13:20:10,416 - DEBUG - File C:\Python312\Lib\concurrent\futures\_base.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,417 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\connection.py first seen with mtime 1728115203.9839902
+2024-10-05 13:20:10,417 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\templatetags\base.py first seen with mtime 1728118152.382871
+2024-10-05 13:20:10,419 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\views\decorators\cache.py first seen with mtime 1728118164.5804467
+2024-10-05 13:20:10,420 - DEBUG - File C:\Python312\DLLs\_sqlite3.pyd first seen with mtime 1707253852.0
+2024-10-05 13:20:10,421 - DEBUG - File C:\Python312\Lib\asyncio\exceptions.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,421 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\fields\mixins.py first seen with mtime 1728118163.455168
+2024-10-05 13:20:10,421 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\charset_normalizer\md.cp312-win_amd64.pyd first seen with mtime 1728115221.3276317
+2024-10-05 13:20:10,427 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\middleware.py first seen with mtime 1728118153.6646645
+2024-10-05 13:20:10,428 - DEBUG - File C:\Python312\Lib\zoneinfo\__init__.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,433 - DEBUG - File C:\Python312\DLLs\_ssl.pyd first seen with mtime 1707253852.0
+2024-10-05 13:20:10,434 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\sessions\backends\__init__.py first seen with mtime 1728118162.0916028
+2024-10-05 13:20:10,435 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\filters.py first seen with mtime 1728118148.6283975
+2024-10-05 13:20:10,435 - DEBUG - File C:\Python312\Lib\asyncio\base_futures.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,436 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\management\commands\runserver.py first seen with mtime 1728118163.2520843
+2024-10-05 13:20:10,438 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\urls\conf.py first seen with mtime 1728118164.3373609
+2024-10-05 13:20:10,441 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\panel\panel\urls.py first seen with mtime 1728122732.5703866
+2024-10-05 13:20:10,443 - DEBUG - File C:\Python312\DLLs\_lzma.pyd first seen with mtime 1707253852.0
+2024-10-05 13:20:10,444 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\http.py first seen with mtime 1728118164.402375
+2024-10-05 13:20:10,448 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\dateformat.py first seen with mtime 1728118164.3563654
+2024-10-05 13:20:10,449 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\template\backends\base.py first seen with mtime 1728118164.0427308
+2024-10-05 13:20:10,450 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\options.py first seen with mtime 1728118163.440166
+2024-10-05 13:20:10,451 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\__init__.py first seen with mtime 1728118146.6852746
+2024-10-05 13:20:10,452 - DEBUG - File C:\Python312\Lib\logging\handlers.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,452 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\urls\exceptions.py first seen with mtime 1728118164.3403623
+2024-10-05 13:20:10,453 - DEBUG - File C:\Python312\DLLs\_hashlib.pyd first seen with mtime 1707253852.0
+2024-10-05 13:20:10,454 - DEBUG - File C:\Python312\Lib\socketserver.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,455 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\backends\sqlite3\creation.py first seen with mtime 1728118163.385628
+2024-10-05 13:20:10,457 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\hashable.py first seen with mtime 1728118164.3983748
+2024-10-05 13:20:10,461 - DEBUG - File C:\Python312\Lib\importlib\__init__.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,462 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\duration.py first seen with mtime 1728118164.3643675
+2024-10-05 13:20:10,463 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\management\color.py first seen with mtime 1728118163.232075
+2024-10-05 13:20:10,463 - DEBUG - File C:\Python312\Lib\asyncio\base_events.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,464 - DEBUG - File C:\Python312\Lib\email\mime\text.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,465 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\backends\ddl_references.py first seen with mtime 1728118163.29709
+2024-10-05 13:20:10,465 - DEBUG - File C:\Python312\Lib\glob.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,466 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\mail\utils.py first seen with mtime 1728118163.1995494
+2024-10-05 13:20:10,468 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\backends\base\schema.py first seen with mtime 1728118163.323614
+2024-10-05 13:20:10,469 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\sqlparse\filters\aligned_indent.py first seen with mtime 1728118145.533535
+2024-10-05 13:20:10,470 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\apps.py first seen with mtime 1728118257.5235598
+2024-10-05 13:20:10,470 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\sqlparse\keywords.py first seen with mtime 1728118145.4454696
+2024-10-05 13:20:10,471 - DEBUG - File C:\Python312\Lib\linecache.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,474 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\management\__init__.py first seen with mtime 1728118163.2300746
+2024-10-05 13:20:10,478 - DEBUG - File C:\Python312\Lib\email\mime\__init__.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,479 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\functions\datetime.py first seen with mtime 1728118163.4711719
+2024-10-05 13:20:10,480 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\functional.py first seen with mtime 1728118164.3673673
+2024-10-05 13:20:10,480 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\files\storage\memory.py first seen with mtime 1728118163.185539
+2024-10-05 13:20:10,481 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\util\request.py first seen with mtime 1728115204.0069995
+2024-10-05 13:20:10,481 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\templatetags\tz.py first seen with mtime 1728118164.2518241
+2024-10-05 13:20:10,482 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\_distutils_hack\__init__.py first seen with mtime 1728115208.432657
+2024-10-05 13:20:10,484 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\views\__init__.py first seen with mtime 1728118152.3848724
+2024-10-05 13:20:10,485 - DEBUG - File C:\Python312\Lib\asyncio\sslproto.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,486 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\requests\compat.py first seen with mtime 1728115223.1619434
+2024-10-05 13:20:10,487 - DEBUG - File C:\Python312\Lib\email\encoders.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,487 - DEBUG - File C:\Python312\Lib\re\__init__.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,488 - DEBUG - File C:\Python312\Lib\socket.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,491 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\requests\__version__.py first seen with mtime 1728115223.1558304
+2024-10-05 13:20:10,492 - DEBUG - File C:\Python312\Lib\gzip.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,497 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\backends\base\__init__.py first seen with mtime 1728118163.309096
+2024-10-05 13:20:10,498 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\apps\registry.py first seen with mtime 1728118146.69829
+2024-10-05 13:20:10,499 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\messages\apps.py first seen with mtime 1728118159.4043972
+2024-10-05 13:20:10,500 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\requests\models.py first seen with mtime 1728115223.1619434
+2024-10-05 13:20:10,500 - DEBUG - File C:\Python312\Lib\_markupbase.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,501 - DEBUG - File C:\Python312\Lib\email\policy.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,501 - DEBUG - File C:\Python312\Lib\pickle.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,502 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\staticfiles\management\__init__.py first seen with mtime 1728118163.062999
+2024-10-05 13:20:10,504 - DEBUG - File C:\Python312\Lib\datetime.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,504 - DEBUG - File C:\Python312\Lib\heapq.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,508 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\timezone.py first seen with mtime 1728118164.5224328
+2024-10-05 13:20:10,509 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\expressions.py first seen with mtime 1728118163.4351647
+2024-10-05 13:20:10,511 - DEBUG - File C:\Python312\Lib\asyncio\transports.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,514 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\messages\api.py first seen with mtime 1728118159.3993917
+2024-10-05 13:20:10,515 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\staticfiles\handlers.py first seen with mtime 1728118163.053997
+2024-10-05 13:20:10,516 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\_os.py first seen with mtime 1728118164.346362
+2024-10-05 13:20:10,517 - DEBUG - File C:\Python312\Lib\enum.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,517 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\templatetags\log.py first seen with mtime 1728118152.3838716
+2024-10-05 13:20:10,518 - DEBUG - File C:\Python312\Lib\collections\__init__.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,518 - DEBUG - File C:\Python312\Lib\asyncio\timeouts.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,519 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\template\library.py first seen with mtime 1728118163.9521897
+2024-10-05 13:20:10,520 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\_version.py first seen with mtime 1728115203.9829946
+2024-10-05 13:20:10,521 - DEBUG - File C:\Python312\Lib\reprlib.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,522 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\util\ssltransport.py first seen with mtime 1728115204.0250072
+2024-10-05 13:20:10,525 - DEBUG - File C:\Python312\Lib\nturl2path.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,528 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\files\storage\__init__.py first seen with mtime 1728118163.1795385
+2024-10-05 13:20:10,531 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\contenttypes\apps.py first seen with mtime 1728118154.5723815
+2024-10-05 13:20:10,532 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\sql\where.py first seen with mtime 1728118163.4881768
+2024-10-05 13:20:10,532 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\middleware\security.py first seen with mtime 1728118163.8656557
+2024-10-05 13:20:10,533 - DEBUG - File C:\Python312\Lib\zipfile\_path\__init__.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,534 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\template\context.py first seen with mtime 1728118163.872658
+2024-10-05 13:20:10,535 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\sqlparse\exceptions.py first seen with mtime 1728118145.4341185
+2024-10-05 13:20:10,535 - DEBUG - File C:\Python312\Lib\fractions.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,536 - DEBUG - File C:\Python312\Lib\selectors.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,537 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\__init__.py first seen with mtime 1728118153.5994258
+2024-10-05 13:20:10,538 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\cache\__init__.py first seen with mtime 1728118163.0870042
+2024-10-05 13:20:10,545 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\PIL\__init__.py first seen with mtime 1728122276.0681345
+2024-10-05 13:20:10,546 - DEBUG - File C:\Python312\Lib\contextvars.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,547 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\templatetags\admin_urls.py first seen with mtime 1728118152.3798714
+2024-10-05 13:20:10,548 - DEBUG - File C:\Python312\DLLs\_overlapped.pyd first seen with mtime 1707253852.0
+2024-10-05 13:20:10,549 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\forms\utils.py first seen with mtime 1728118163.5557091
+2024-10-05 13:20:10,549 - DEBUG - File C:\Python312\Lib\importlib\metadata\_itertools.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,550 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\html.py first seen with mtime 1728118164.3993766
+2024-10-05 13:20:10,550 - DEBUG - File C:\Python312\Lib\re\_constants.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,551 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\PIL\ExifTags.py first seen with mtime 1728122275.8894935
+2024-10-05 13:20:10,552 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\charset_normalizer\api.py first seen with mtime 1728115221.321631
+2024-10-05 13:20:10,552 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\deletion.py first seen with mtime 1728118163.4311638
+2024-10-05 13:20:10,554 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\__init__.py first seen with mtime 1728118257.5552607
+2024-10-05 13:20:10,554 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\fields\__init__.py first seen with mtime 1728118163.4511678
+2024-10-05 13:20:10,555 - DEBUG - File C:\Python312\Lib\base64.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,562 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\fields\proxy.py first seen with mtime 1728118163.45617
+2024-10-05 13:20:10,564 - DEBUG - File C:\Python312\Lib\json\encoder.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,564 - DEBUG - File C:\Python312\Lib\urllib\response.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,565 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\handlers\__init__.py first seen with mtime 1728118163.1875393
+2024-10-05 13:20:10,565 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\_request_methods.py first seen with mtime 1728115203.981994
+2024-10-05 13:20:10,566 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\validators.py first seen with mtime 1728118163.0840044
+2024-10-05 13:20:10,567 - DEBUG - File C:\Python312\Lib\concurrent\futures\thread.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,567 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\backends\base\operations.py first seen with mtime 1728118163.3226135
+2024-10-05 13:20:10,568 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\PIL\ImageMode.py first seen with mtime 1728122275.9695117
+2024-10-05 13:20:10,568 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\exceptions.py first seen with mtime 1728115203.9859905
+2024-10-05 13:20:10,570 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\backends\base\validation.py first seen with mtime 1728118163.3246143
+2024-10-05 13:20:10,571 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\backends\base\client.py first seen with mtime 1728118163.3180988
+2024-10-05 13:20:10,572 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\backends\sqlite3\introspection.py first seen with mtime 1728118163.3886282
+2024-10-05 13:20:10,580 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\urls\converters.py first seen with mtime 1728118164.339362
+2024-10-05 13:20:10,580 - DEBUG - File C:\Python312\Lib\asyncio\format_helpers.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,581 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\sites.py first seen with mtime 1728118148.6449556
+2024-10-05 13:20:10,581 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\apps\config.py first seen with mtime 1728118146.6922903
+2024-10-05 13:20:10,582 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\sessions\models.py first seen with mtime 1728118162.0905974
+2024-10-05 13:20:10,583 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\forms\boundfield.py first seen with mtime 1728118163.5467074
+2024-10-05 13:20:10,583 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\requests\utils.py first seen with mtime 1728115223.1619434
+2024-10-05 13:20:10,584 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\sqlparse\tokens.py first seen with mtime 1728118145.4454696
+2024-10-05 13:20:10,586 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\views\decorators\csrf.py first seen with mtime 1728118164.5824475
+2024-10-05 13:20:10,586 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\http\multipartparser.py first seen with mtime 1728118163.8476539
+2024-10-05 13:20:10,587 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\choices.py first seen with mtime 1728118164.3503647
+2024-10-05 13:20:10,588 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\widgets.py first seen with mtime 1728118148.6585112
+2024-10-05 13:20:10,596 - DEBUG - File C:\Python312\Lib\email\mime\multipart.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,597 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\sessions\middleware.py first seen with mtime 1728118162.0895975
+2024-10-05 13:20:10,597 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\views\generic\base.py first seen with mtime 1728118164.5904493
+2024-10-05 13:20:10,598 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\template\exceptions.py first seen with mtime 1728118163.9501894
+2024-10-05 13:20:10,598 - DEBUG - File C:\Python312\Lib\email\_header_value_parser.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,598 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\messages\constants.py first seen with mtime 1728118159.4063993
+2024-10-05 13:20:10,599 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\management\commands\__init__.py first seen with mtime 1728118163.235075
+2024-10-05 13:20:10,599 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\requests\sessions.py first seen with mtime 1728115223.1619434
+2024-10-05 13:20:10,600 - DEBUG - File C:\Python312\Lib\tokenize.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,602 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\util\wait.py first seen with mtime 1728115204.029008
+2024-10-05 13:20:10,602 - DEBUG - File C:\Python312\Lib\re\_parser.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,603 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\views.py first seen with mtime 1728122450.5390213
+2024-10-05 13:20:10,603 - DEBUG - File C:\Python312\Lib\html\__init__.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,604 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\forms.py first seen with mtime 1728118153.6496508
+2024-10-05 13:20:10,604 - DEBUG - File C:\Python312\Lib\__future__.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,606 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\exceptions.py first seen with mtime 1728118148.6283975
+2024-10-05 13:20:10,613 - DEBUG - File C:\Python312\DLLs\_socket.pyd first seen with mtime 1707253852.0
+2024-10-05 13:20:10,613 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\constants.py first seen with mtime 1728118163.4261632
+2024-10-05 13:20:10,614 - DEBUG - File C:\Python312\Lib\mimetypes.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,614 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\tokens.py first seen with mtime 1728118153.6646645
+2024-10-05 13:20:10,615 - DEBUG - File C:\Python312\Lib\shutil.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,616 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\dates.py first seen with mtime 1728118164.358366
+2024-10-05 13:20:10,616 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\tree.py first seen with mtime 1728118164.525434
+2024-10-05 13:20:10,618 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\fields\generated.py first seen with mtime 1728118163.4531677
+2024-10-05 13:20:10,619 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\module_loading.py first seen with mtime 1728118164.5159185
+2024-10-05 13:20:10,619 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\signing.py first seen with mtime 1728118163.0830033
+2024-10-05 13:20:10,620 - DEBUG - File C:\Python312\Lib\json\scanner.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,620 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\http\request.py first seen with mtime 1728118163.848652
+2024-10-05 13:20:10,621 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\forms\formsets.py first seen with mtime 1728118163.5507083
+2024-10-05 13:20:10,623 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\views.py first seen with mtime 1728118153.7119527
+2024-10-05 13:20:10,628 - DEBUG - File C:\Python312\Lib\importlib\resources\abc.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,629 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\serializers\base.py first seen with mtime 1728118163.2710838
+2024-10-05 13:20:10,629 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\requests\cookies.py first seen with mtime 1728115223.1619434
+2024-10-05 13:20:10,630 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\__init__.py first seen with mtime 1728118164.3423634
+2024-10-05 13:20:10,631 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\sqlparse\formatter.py first seen with mtime 1728118145.4454696
+2024-10-05 13:20:10,631 - DEBUG - File C:\Python312\Lib\multiprocessing\context.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,632 - DEBUG - File C:\Python312\Lib\http\server.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,633 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\functions\mixins.py first seen with mtime 1728118163.4731736
+2024-10-05 13:20:10,634 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\forms\widgets.py first seen with mtime 1728118163.556709
+2024-10-05 13:20:10,635 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\sqlparse\engine\grouping.py first seen with mtime 1728118145.4454696
+2024-10-05 13:20:10,635 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\sqlparse\filters\others.py first seen with mtime 1728118145.533535
+2024-10-05 13:20:10,636 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\requests\_internal_utils.py first seen with mtime 1728115223.1558304
+2024-10-05 13:20:10,636 - DEBUG - File C:\Python312\Lib\ctypes\__init__.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,637 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\serializers\python.py first seen with mtime 1728118163.274085
+2024-10-05 13:20:10,638 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\idna\package_data.py first seen with mtime 1728114447.5533957
+2024-10-05 13:20:10,644 - DEBUG - File C:\Python312\Lib\asyncio\subprocess.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,645 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\backends\utils.py first seen with mtime 1728118163.29909
+2024-10-05 13:20:10,646 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\formats.py first seen with mtime 1728118164.3673673
+2024-10-05 13:20:10,648 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\dateparse.py first seen with mtime 1728118164.357365
+2024-10-05 13:20:10,648 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\deconstruct.py first seen with mtime 1728118164.3593662
+2024-10-05 13:20:10,649 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\dispatch\__init__.py first seen with mtime 1728118163.539707
+2024-10-05 13:20:10,650 - DEBUG - File C:\Python312\Lib\string.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,650 - DEBUG - File C:\Python312\Lib\encodings\__init__.py first seen with mtime 1707253818.0
+2024-10-05 13:20:10,651 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\conf\urls\__init__.py first seen with mtime 1728118148.4077716
+2024-10-05 13:20:10,651 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\template\loader_tags.py first seen with mtime 1728118163.957189
+2024-10-05 13:20:10,653 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\contenttypes\checks.py first seen with mtime 1728118154.5723815
+2024-10-05 13:20:10,653 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\core\files\__init__.py first seen with mtime 1728118163.1215248
+2024-10-05 13:20:10,654 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\functions\text.py first seen with mtime 1728118163.4751742
+2024-10-05 13:20:10,654 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\urllib3\util\ssl_.py first seen with mtime 1728115204.023
+2024-10-05 13:20:10,656 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\apps\__init__.py first seen with mtime 1728118146.6902776
+2024-10-05 13:20:10,661 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\utils\deprecation.py first seen with mtime 1728118164.3633673
+2024-10-05 13:20:10,661 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\backends\sqlite3\__init__.py first seen with mtime 1728118163.381629
+2024-10-05 13:20:10,663 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\templates\create_post.html first seen with mtime 1728122113.3343563
+2024-10-05 13:20:10,664 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\templates\edit.html first seen with mtime 1728121653.0339727
+2024-10-05 13:20:10,665 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\templates\index.html first seen with mtime 1728120134.4294522
+2024-10-05 13:20:12,091 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\models\sql\compiler.py first seen with mtime 1728118163.4811754
+2024-10-05 13:20:12,092 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\sessions\migrations\0001_initial.py first seen with mtime 1728118162.439742
+2024-10-05 13:20:12,094 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\migrations\0001_initial.py first seen with mtime 1728118154.541124
+2024-10-05 13:20:12,096 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\migrations\0012_alter_user_first_name_max_length.py first seen with mtime 1728118154.556751
+2024-10-05 13:20:12,101 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\sessions\backends\db.py first seen with mtime 1728118162.0975993
+2024-10-05 13:20:12,102 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\migrations\0002_alter_permission_name_max_length.py first seen with mtime 1728118154.541124
+2024-10-05 13:20:12,104 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\db\migrations\recorder.py first seen with mtime 1728118163.4056382
+2024-10-05 13:20:12,111 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\migrations\0003_logentry_add_action_flag_choices.py first seen with mtime 1728118151.484973
+2024-10-05 13:20:12,113 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\contenttypes\migrations\0002_remove_content_type_name.py first seen with mtime 1728118156.3150322
+2024-10-05 13:20:12,114 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\contenttypes\migrations\0001_initial.py first seen with mtime 1728118156.3150322
+2024-10-05 13:20:12,118 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\migrations\0009_alter_user_last_name_max_length.py first seen with mtime 1728118154.556751
+2024-10-05 13:20:12,120 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\migrations\0004_alter_user_username_opts.py first seen with mtime 1728118154.541124
+2024-10-05 13:20:12,122 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\panel\panel\wsgi.py first seen with mtime 1728122732.5753877
+2024-10-05 13:20:12,124 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\migrations\0001_initial.py first seen with mtime 1728118151.4225821
+2024-10-05 13:20:12,128 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\migrations\0005_alter_user_last_login_null.py first seen with mtime 1728118154.556751
+2024-10-05 13:20:12,131 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\migrations\__init__.py first seen with mtime 1728118154.556751
+2024-10-05 13:20:12,132 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\migrations\0007_alter_validators_add_error_messages.py first seen with mtime 1728118154.556751
+2024-10-05 13:20:12,133 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\migrations\__init__.py first seen with mtime 1728118151.484973
+2024-10-05 13:20:12,133 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\migrations\0006_require_contenttypes_0002.py first seen with mtime 1728118154.556751
+2024-10-05 13:20:12,135 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\migrations\0001_initial.py first seen with mtime 1728119265.2772863
+2024-10-05 13:20:12,137 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\admin\migrations\0002_logentry_remove_auto_add.py first seen with mtime 1728118151.4225821
+2024-10-05 13:20:12,145 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\migrations\0003_alter_user_email_max_length.py first seen with mtime 1728118154.541124
+2024-10-05 13:20:12,149 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\migrations\0011_update_proxy_permissions.py first seen with mtime 1728118154.556751
+2024-10-05 13:20:12,150 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\contenttypes\migrations\__init__.py first seen with mtime 1728118156.3150322
+2024-10-05 13:20:12,151 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\migrations\0008_alter_user_username_max_length.py first seen with mtime 1728118154.556751
+2024-10-05 13:20:12,152 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\migrations\0002_post_image.py first seen with mtime 1728122285.8539364
+2024-10-05 13:20:12,155 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\auth\migrations\0010_alter_group_name_max_length.py first seen with mtime 1728118154.556751
+2024-10-05 13:20:12,161 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\venv\Lib\site-packages\django\contrib\sessions\migrations\__init__.py first seen with mtime 1728118162.439742
+2024-10-05 13:20:12,164 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\migrations\__init__.py first seen with mtime 1728118257.5552607
+2024-10-05 13:20:30,840 - DEBUG - File C:\Users\User\Documents\GitHub\telegram-bot\panel\panel\settings.py previous mtime: 1728127206.0966873, current mtime: 1728127230.792733
+2024-10-05 13:20:30,841 - DEBUG - C:\Users\User\Documents\GitHub\telegram-bot\panel\panel\settings.py notified as changed. Signal results: [(<function template_changed at 0x00000207099487C0>, None), (<function translation_file_changed at 0x000002070A895BC0>, None)].
+2024-10-05 13:20:30,841 - INFO - C:\Users\User\Documents\GitHub\telegram-bot\panel\panel\settings.py changed, reloading.
+2024-10-05 13:20:32,083 - INFO - Watching for file changes with StatReloader
+2024-10-05 13:21:07,501 - INFO - C:\Users\User\Documents\GitHub\telegram-bot\panel\panel\settings.py changed, reloading.
+2024-10-05 13:21:08,667 - INFO - Watching for file changes with StatReloader
+2024-10-05 13:21:54,058 - INFO - C:\Users\User\Documents\GitHub\telegram-bot\panel\panel\settings.py changed, reloading.
+[2024-10-05 13:21:55,620] [INFO} - Watching for file changes with StatReloader
+[2024-10-05 13:22:03,807] [INFO} - C:\Users\User\Documents\GitHub\telegram-bot\panel\panel\settings.py changed, reloading.
+[2024-10-05 13:22:05,057] [INFO] - Watching for file changes with StatReloader
+[2024-10-05 13:22:42,289] [INFO] - Watching for file changes with StatReloader
+[2024-10-05 13:24:26,314] [INFO] - C:\Users\User\Documents\GitHub\telegram-bot\panel\panel\settings.py changed, reloading.
+[2024-10-05 13:33:45,540] [INFO] - Watching for file changes with StatReloader
+[2024-10-05 13:35:45,327] [INFO] - C:\Users\User\Documents\GitHub\telegram-bot\panel\panel\settings.py changed, reloading.
+[2024-10-05 13:35:46] [INFO] Watching for file changes with StatReloader
+[2024-10-05 13:36:30] [INFO] C:\Users\User\Documents\GitHub\telegram-bot\panel\panel\settings.py changed, reloading.
+[2024-10-05 13:36:31] [INFO] Watching for file changes with StatReloader
+[2024-10-05 13:38:35] [INFO] C:\Users\User\Documents\GitHub\telegram-bot\panel\panel\settings.py changed, reloading.
+[2024-10-05 13:40:37] [INFO] Watching for file changes with StatReloader
+[2024-10-05 13:40:51] [INFO] Watching for file changes with StatReloader
+[2024-10-05 13:41:40] [INFO] C:\Users\User\Documents\GitHub\telegram-bot\panel\panel\settings.py changed, reloading.
+[2024-10-05 13:41:41] [INFO]   Watching for file changes with StatReloader
+[2024-10-05 13:55:37] [INFO]   "GET /create/ HTTP/1.1" 200 588
+[2024-10-05 13:55:37] [WARNING]   Not Found: /favicon.ico
+[2024-10-05 13:55:38] [WARNING]   "GET /favicon.ico HTTP/1.1" 404 3420
+[2024-10-05 13:59:06] [INFO]   C:\Users\User\Documents\GitHub\telegram-bot\panel\panel\settings.py changed, reloading.
+[2024-10-05 14:03:13] [INFO - PANEL]   Watching for file changes with StatReloader
+[2024-10-05 14:03:50] [INFO - PANEL]   C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\views.py changed, reloading.
+[2024-10-05 14:03:51] [INFO - PANEL]   Watching for file changes with StatReloader
+[2024-10-05 14:04:14] [INFO - PANEL]   "GET /create/ HTTP/1.1" 200 588
+[2024-10-05 14:04:15] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 14:04:15] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 3420
+[2024-10-05 14:04:22] [INFO - PANEL]   "POST /create/ HTTP/1.1" 302 0
+[2024-10-05 14:04:22] [INFO - PANEL]   "GET / HTTP/1.1" 200 342
+[2024-10-05 14:04:23] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 14:04:23] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 3420
+[2024-10-05 14:08:07] [INFO - PANEL]   Watching for file changes with StatReloader
+[2024-10-05 14:15:48] [INFO - PANEL]   C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\views.py changed, reloading.
+[2024-10-05 14:15:49] [INFO - PANEL]   Watching for file changes with StatReloader
+[2024-10-05 14:16:03] [INFO - PANEL]   "GET /create/ HTTP/1.1" 200 588
+[2024-10-05 14:16:03] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 14:16:03] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 3420
+[2024-10-05 14:16:08] [INFO - PANEL]   "POST /create/ HTTP/1.1" 302 0
+[2024-10-05 14:16:08] [INFO - PANEL]   "GET / HTTP/1.1" 200 417
+[2024-10-05 14:16:08] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 14:16:08] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 3420
+[2024-10-05 14:16:21] [INFO - PANEL]   Watching for file changes with StatReloader
+[2024-10-05 14:17:25] [INFO - PANEL]   C:\Users\User\Documents\GitHub\telegram-bot\panel\panel\settings.py changed, reloading.
+[2024-10-05 14:17:27] [INFO - PANEL]   Watching for file changes with StatReloader
+[2024-10-05 14:17:35] [INFO - PANEL]   C:\Users\User\Documents\GitHub\telegram-bot\panel\panel\settings.py changed, reloading.
+[2024-10-05 14:17:47] [INFO - PANEL]   Watching for file changes with StatReloader
+[2024-10-05 14:19:13] [INFO - PANEL]   C:\Users\User\Documents\GitHub\telegram-bot\panel\panel\settings.py changed, reloading.
+[2024-10-05 14:19:14] [INFO - PANEL]   Watching for file changes with StatReloader
+[2024-10-05 14:19:35] [INFO - PANEL]   C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\views.py changed, reloading.
+[2024-10-05 14:19:36] [INFO - PANEL]   Watching for file changes with StatReloader
+[2024-10-05 14:32:31] [INFO - PANEL]   C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\views.py changed, reloading.
+[2024-10-05 14:32:32] [INFO - PANEL]   Watching for file changes with StatReloader
+[2024-10-05 14:37:01] [INFO - PANEL]   C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\views.py changed, reloading.
+[2024-10-05 14:37:02] [INFO - PANEL]   Watching for file changes with StatReloader
+[2024-10-05 14:37:08] [INFO - PANEL]   "GET /create/ HTTP/1.1" 200 588
+[2024-10-05 14:37:08] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 14:37:08] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 14:37:14] [INFO - PANEL]   "POST /create/ HTTP/1.1" 302 0
+[2024-10-05 14:37:14] [INFO - PANEL]   "GET / HTTP/1.1" 200 494
+[2024-10-05 14:37:15] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 14:37:15] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 14:37:38] [INFO - PANEL]   "GET /create/ HTTP/1.1" 200 588
+[2024-10-05 14:37:38] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 14:37:38] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 14:37:57] [INFO - PANEL]   "POST /create/ HTTP/1.1" 302 0
+[2024-10-05 14:37:57] [INFO - PANEL]   "GET / HTTP/1.1" 200 577
+[2024-10-05 14:37:57] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 14:37:57] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 15:16:23] [INFO - PANEL]   Watching for file changes with StatReloader
+[2024-10-05 15:16:33] [INFO - PANEL]   "GET /create/ HTTP/1.1" 200 588
+[2024-10-05 15:16:33] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 15:16:33] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 15:16:44] [INFO - PANEL]   "POST /create/ HTTP/1.1" 302 0
+[2024-10-05 15:16:44] [INFO - PANEL]   "GET / HTTP/1.1" 200 654
+[2024-10-05 15:16:44] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 15:16:44] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 15:16:52] [INFO - PANEL]   "GET /create/ HTTP/1.1" 200 588
+[2024-10-05 15:16:52] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 15:16:52] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 15:17:53] [INFO - PANEL]   "GET /create/ HTTP/1.1" 200 588
+[2024-10-05 15:17:53] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 15:17:53] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 15:17:58] [INFO - PANEL]   "POST /create/ HTTP/1.1" 302 0
+[2024-10-05 15:17:58] [INFO - PANEL]   "GET / HTTP/1.1" 200 727
+[2024-10-05 15:17:58] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 15:17:58] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 15:18:11] [INFO - PANEL]   "GET /create/ HTTP/1.1" 200 588
+[2024-10-05 15:18:12] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 15:18:12] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 15:18:25] [INFO - PANEL]   "POST /create/ HTTP/1.1" 302 0
+[2024-10-05 15:18:25] [INFO - PANEL]   "GET / HTTP/1.1" 200 804
+[2024-10-05 15:18:25] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 15:18:25] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 15:19:53] [INFO - PANEL]   C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\views.py changed, reloading.
+[2024-10-05 15:19:55] [INFO - PANEL]   Watching for file changes with StatReloader
+[2024-10-05 15:20:00] [INFO - PANEL]   "GET /create/ HTTP/1.1" 200 588
+[2024-10-05 15:20:01] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 15:20:01] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 15:20:09] [INFO - PANEL]   "POST /create/ HTTP/1.1" 302 0
+[2024-10-05 15:20:09] [INFO - PANEL]   "GET / HTTP/1.1" 200 885
+[2024-10-05 15:20:09] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 15:20:09] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 15:20:39] [INFO - PANEL]   C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\views.py changed, reloading.
+[2024-10-05 15:20:40] [INFO - PANEL]   Watching for file changes with StatReloader
+[2024-10-05 15:26:48] [INFO - PANEL]   C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\views.py changed, reloading.
+[2024-10-05 15:26:50] [INFO - PANEL]   Watching for file changes with StatReloader
+[2024-10-05 15:26:58] [INFO - PANEL]   "GET /create/ HTTP/1.1" 200 588
+[2024-10-05 15:26:58] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 15:26:58] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 15:30:57] [INFO - PANEL]   "POST /create/ HTTP/1.1" 302 0
+[2024-10-05 15:30:57] [INFO - PANEL]   "GET / HTTP/1.1" 200 959
+[2024-10-05 15:30:57] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 15:30:57] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 15:31:03] [INFO - PANEL]   "GET /edit/1/ HTTP/1.1" 200 409
+[2024-10-05 15:31:03] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 15:31:03] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 15:31:09] [INFO - PANEL]   "GET / HTTP/1.1" 200 959
+[2024-10-05 15:31:09] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 15:31:09] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 15:31:11] [INFO - PANEL]   "GET /edit/10/ HTTP/1.1" 200 409
+[2024-10-05 15:31:11] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 15:31:11] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 15:31:22] [INFO - PANEL]   "POST /edit/10/ HTTP/1.1" 302 0
+[2024-10-05 15:31:22] [INFO - PANEL]   "GET / HTTP/1.1" 200 966
+[2024-10-05 15:31:22] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 15:31:22] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 15:42:43] [INFO - PANEL]   C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\views.py changed, reloading.
+[2024-10-05 15:42:45] [INFO - PANEL]   Watching for file changes with StatReloader
+[2024-10-05 15:42:50] [INFO - PANEL]   "GET /edit/9/ HTTP/1.1" 200 417
+[2024-10-05 15:42:50] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 15:42:50] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 15:42:59] [INFO - PANEL]   "POST /edit/9/ HTTP/1.1" 302 0
+[2024-10-05 15:42:59] [INFO - PANEL]   "GET / HTTP/1.1" 200 975
+[2024-10-05 15:42:59] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 15:42:59] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 15:43:47] [INFO - PANEL]   "GET /edit/9/ HTTP/1.1" 200 426
+[2024-10-05 15:43:48] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 15:43:48] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 15:43:54] [INFO - PANEL]   "POST /edit/9/ HTTP/1.1" 302 0
+[2024-10-05 15:43:54] [INFO - PANEL]   "GET / HTTP/1.1" 200 982
+[2024-10-05 15:43:54] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 15:43:54] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 15:45:00] [INFO - PANEL]   C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\views.py changed, reloading.
+[2024-10-05 15:45:01] [INFO - PANEL]   Watching for file changes with StatReloader
+[2024-10-05 15:45:11] [INFO - PANEL]   "GET /edit/10/ HTTP/1.1" 200 416
+[2024-10-05 15:45:11] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 15:45:11] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 15:45:15] [INFO - PANEL]   "POST /edit/10/ HTTP/1.1" 302 0
+[2024-10-05 15:45:15] [INFO - PANEL]   "GET / HTTP/1.1" 200 982
+[2024-10-05 15:45:15] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 15:45:15] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 15:46:59] [INFO - PANEL]   C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\views.py changed, reloading.
+[2024-10-05 15:47:00] [INFO - PANEL]   Watching for file changes with StatReloader
+[2024-10-05 15:47:05] [INFO - PANEL]   "GET /edit/10/ HTTP/1.1" 200 416
+[2024-10-05 15:47:05] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 15:47:05] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 15:47:12] [INFO - PANEL]   "POST /edit/10/ HTTP/1.1" 302 0
+[2024-10-05 15:47:12] [INFO - PANEL]   "GET / HTTP/1.1" 200 989
+[2024-10-05 15:47:13] [WARNING - PANEL]   Not Found: /favicon.ico
+[2024-10-05 15:47:13] [WARNING - PANEL]   "GET /favicon.ico HTTP/1.1" 404 179
+[2024-10-05 15:48:58] [INFO - PANEL]   C:\Users\User\Documents\GitHub\telegram-bot\panel\post_manager\views.py changed, reloading.
+[2024-10-05 15:48:59] [INFO - PANEL]   Watching for file changes with StatReloader

@@ -1,5 +1,6 @@
 # virtual env
 .venv
+venv
 
 # configs
 config/config.json
@@ -7,3 +8,6 @@ config/config.json
 # database
 *.db
 /database
+
+# panel
+/media/images/*.*

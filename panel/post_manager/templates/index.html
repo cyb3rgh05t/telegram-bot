@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Post Manager</title>
+  </head>
+  <body>
+    <h1>Post Manager</h1>
+    <a href="{% url 'create_post' %}">Create New Post</a>
+    <ul>
+      {% for post in posts %}
+      <li>
+        {{ post.content }} - <a href="{% url 'edit_post' post.id %}">Edit</a>
+      </li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>

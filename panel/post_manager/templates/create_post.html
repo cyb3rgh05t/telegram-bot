@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Create Post</title>
+  </head>
+  <body>
+    <h1>Create a New Post</h1>
+    <form method="post" enctype="multipart/form-data">
+      <!-- Add enctype -->
+      {% csrf_token %}
+      <textarea name="content" required></textarea><br />
+      <input type="file" name="image" accept="image/*" /><br />
+      <!-- Add file input -->
+      <button type="submit">Create Post</button>
+    </form>
+    <a href="{% url 'index' %}">Back to Posts</a>
+  </body>
+</html>

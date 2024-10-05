@@ -1,4 +1,5 @@
 import asyncio
+import subprocess
 import nest_asyncio
 import json
 import os
@@ -17,6 +18,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKe
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, CallbackQueryHandler, ContextTypes
 import signal
 import sys
+import django
 
 # Check ist conig.json is present..
 CONFIG_DIR = "config"
@@ -25,6 +27,15 @@ CONFIG_FILE = os.path.join(CONFIG_DIR, 'config.json')
 if not os.path.isfile(CONFIG_FILE):
     print(f"ERROR: '{CONFIG_FILE}' not found. Please create the configuration file before starting the bot.")
     sys.exit(1)  # Exit with status code 1
+
+# Start the Django server using the Python interpreter from the current environment
+def start_django_server():
+    command = [sys.executable, "panel/manage.py", "runserver", "0.0.0.0:8000"]
+    
+    # Start the Django server in a separate process
+    process = subprocess.Popen(command)
+    return process
+
 
 # Function to redact sensitive information like tokens and API keys
 def redact_sensitive_info(value, visible_chars=4):
@@ -130,6 +141,8 @@ TMDB_LANGUAGE_COMMAND = config.get("commands").get("TMDB_LANGUAGE", "set_languag
 SET_GROUP_ID_COMMAND = config.get("commands").get("SET_GROUP_ID", "set_group_id")
 HELP_COMMAND = config.get("commands").get("HELP", "help")
 SEARCH_COMMAND = config.get("commands").get("SEARCH", "search")
+# PANEL
+PANEL_URL = config.get("panel").get("PANEL_URL")
 
 # Create the root logger and set its level
 logger = logging.getLogger("custom_logger")
@@ -149,6 +162,9 @@ async def log_message_async(message):
     async with log_lock:
         print(message)
         sys.stdout.flush()  # Ensure the message is flushed to the console immediately
+
+# Django Panel Configuration
+PANEL = '{PANEL_URL}/api/posts/'
 
 # Log all config entries, redacting sensitive information
 async def log_config_entries(config):
@@ -263,6 +279,7 @@ def initialize_group_data():
     else:
         logger.info(f"GROUP CHAT ID is set to: '{GROUP_CHAT_ID}'")
         logger.info(f"TMDb LANGUAGE is set to: '{LANGUAGE}'")
+        logger.info(f"PANEL URL set to: '{PANEL_URL}'")
 
 # Load group name
 def get_group_name(group_chat_id):
@@ -1259,7 +1276,9 @@ async def main() -> None:
             logger.info("Starting the bot...")
             logger.info(f"You are running Version {version_info.get('Version', 'Unknown')}")
             logger.info("-----------")
-
+            # Start the Django server
+            start_django_server()
+            
             # Log all configuration entries
             await log_config_entries(config)
 
@@ -1315,15 +1334,13 @@ async def main() -> None:
             logger.info("=====================================================")
             logger.info("Bot started polling...")
             logger.info("-----------")
-            application.run_polling()
+            await application.run_polling()
     except asyncio.CancelledError:
         logger.info("Main function was cancelled.")
     except Exception as e:
         logger.error(f"An error occurred: {e}")
-    finally:
-        logger.info("Shutting down the bot...")
 
-if __name__ == '__main__':
+def run_bot():
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
@@ -1332,3 +1349,6 @@ if __name__ == '__main__':
         logger.error(f"An unexpected error occurred: {e}")
     finally:
         logger.info("Shutting down the bot...")
+
+if __name__ == '__main__':
+    run_bot()
