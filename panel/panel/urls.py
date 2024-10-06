@@ -23,3 +23,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('post_manager.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Serve media files when DEBUG is True
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# Serve media files when DEBUG is False (for testing purposes)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

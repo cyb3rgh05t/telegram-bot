@@ -90,10 +90,10 @@
       ></textarea
       ><br />
 
-      <select name="topic" id="topic" required>
+      <select name="thread" id="thread" required>
         <option value="">--Choose a Topic--</option>
-        {% for key, value in topics.items %}
-        <option value="{{ value }}">{{ key }}</option>
+        {% for key, value in threads.items %}
+        <option value="{{ key }}">{{ key }}</option>
         {% endfor %}</select
       ><br />
 

@@ -140,8 +140,6 @@ TMDB_LANGUAGE_COMMAND = config.get("commands").get("TMDB_LANGUAGE", "set_languag
 SET_GROUP_ID_COMMAND = config.get("commands").get("SET_GROUP_ID", "set_group_id")
 HELP_COMMAND = config.get("commands").get("HELP", "help")
 SEARCH_COMMAND = config.get("commands").get("SEARCH", "search")
-# PANEL
-PANEL_URL = config.get("panel").get("PANEL_URL")
 # TOPICS
 TOPICS = config.get("topics", {})
 
@@ -163,9 +161,6 @@ async def log_message_async(message):
     async with log_lock:
         print(message)
         sys.stdout.flush()  # Ensure the message is flushed to the console immediately
-
-# Django Panel Configuration
-PANEL = '{PANEL_URL}/api/posts/'
 
 # Log all config entries, redacting sensitive information
 async def log_config_entries(config):
@@ -280,7 +275,6 @@ def initialize_group_data():
     else:
         logger.info(f"GROUP CHAT ID is set to: '{GROUP_CHAT_ID}'")
         logger.info(f"TMDb LANGUAGE is set to: '{LANGUAGE}'")
-        logger.info(f"PANEL URL set to: '{PANEL_URL}'")
 
 # Load group name
 def get_group_name(group_chat_id):

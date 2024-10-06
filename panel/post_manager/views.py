@@ -80,79 +80,92 @@ def edit_post(request, post_id):
 
     return render(request, 'edit.html', {'post': post})
 
+def delete_post(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    post.delete()  # Delete the post from the database
+    messages.success(request, 'Post deleted successfully!')
+    return redirect('index')  # Redirect back to the post listing or wherever appropriate
+
 def create_post(request):
     if request.method == 'POST':
         content = request.POST['content']
         image = request.FILES.get('image')  # Get the uploaded image
-        topic_id = request.POST.get('topic')  # Retrieve the selected topic ID from the form
+        selected_thread = request.POST.get('thread')  # Retrieve the selected thread
 
-        # Create a new post with the topic ID
-        post = Post(content=content, image=image, topic_id=topic_id)
-        post.save()
+        # Get the thread information from the configuration
+        thread_info = TOPICS.get(selected_thread)
 
-        # Prepare the image path
-        image_path = f"{settings.MEDIA_ROOT}/images/{image.name}" if image else None
-        
-        # Send to Telegram
-        send_to_telegram(content, image_path, topic_id)  # Assuming your send_to_telegram can handle the topic
+        if thread_info:
+            chat_id = thread_info["chat_id"]
+            message_thread_id = thread_info["message_thread_id"]
 
-        messages.success(request, 'Post created and sent to Telegram!')
-        return redirect('index')
+            # Create a new post
+            post = Post(content=content, image=image)
+            post.save()
 
-    return render(request, 'create_post.html', {'topics': TOPICS})  # Pass topics to the template
+            # Prepare the image path
+            image_path = f"{settings.MEDIA_ROOT}/images/{image.name}" if image else None
+            
+            # Send to Telegram
+            send_to_telegram(content, image_path, chat_id, message_thread_id)
+
+            messages.success(request, 'Post created and sent to Telegram!')
+            return redirect('index')
+        else:
+            messages.error(request, 'Invalid thread selected!')
+            return redirect('create_post')
+
+    return render(request, 'create_post.html', {'threads': TOPICS})  # Pass threads to the template
 
 TELEGRAM_BOT_TOKEN = TOKEN
 CHAT_ID = load_group_chat_id()
 
-def send_to_telegram(content, image_path=None, topic_id=None):
+def send_to_telegram(content, image_path=None, chat_id=None, message_thread_id=None):
     if image_path:
-        # Step 1: Send the photo with caption
+        # Send the photo with caption
         with open(image_path, 'rb') as photo:
             url_photo = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto'
             data_photo = {
-                'chat_id': topic_id,  # Use the topic_id as the chat_id
-                'caption': content,    # Use content as the caption
-                'parse_mode': 'Markdown'
+                'chat_id': chat_id,  # Use the retrieved chat_id
+                'caption': content,
+                'parse_mode': 'Markdown',
+                'message_thread_id': message_thread_id  # Include message_thread_id
             }
             response_photo = requests.post(url_photo, files={'photo': photo}, data=data_photo)
             result_photo = response_photo.json()
 
-            # Check if the photo was sent successfully
             if response_photo.status_code == 200:
-                message_id = result_photo['result']['message_id']  # Get the sent message ID
+                message_id = result_photo['result']['message_id']
                 
-                # Step 2: Pin the message
+                # Pin the message
                 url_pin = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/pinChatMessage'
                 data_pin = {
-                    'chat_id': topic_id,  # Use the topic_id for pinning
+                    'chat_id': chat_id,
                     'message_id': message_id,
-                    'disable_notification': False  # Optional
+                    'disable_notification': False
                 }
                 requests.post(url_pin, data=data_pin)
 
     else:
-        # Step 1: Send the message
+        # Send the message
         url_send = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage'
         data_send = {
-            'chat_id': topic_id,  # Use the topic_id as the chat_id
+            'chat_id': chat_id,  # Use the retrieved chat_id
             'text': content,
             'parse_mode': 'Markdown',
-            'disable_notification': False  # Optional
+            'message_thread_id': message_thread_id  # Include message_thread_id
         }
-
         response_send = requests.post(url_send, data=data_send)
         result_send = response_send.json()
 
-        # Check if the message was sent successfully
         if response_send.status_code == 200:
-            message_id = result_send['result']['message_id']  # Get the sent message ID
+            message_id = result_send['result']['message_id']
             
-            # Step 2: Pin the message
+            # Pin the message
             url_pin = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/pinChatMessage'
             data_pin = {
-                'chat_id': topic_id,  # Use the topic_id for pinning
+                'chat_id': chat_id,
                 'message_id': message_id,
-                'disable_notification': False  # Optional
+                'disable_notification': False
             }
-
             requests.post(url_pin, data=data_pin)
