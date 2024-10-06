@@ -1,9 +1,12 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Post Manager</title>
+    <link rel="icon" type="image/png" href="{% static 'favicon.png' %}" />
+    <link rel="shortcut icon" href="{% static 'favicon.ico' %}" />
+    <title>Bot Panel | Dashboard</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -89,7 +92,7 @@
     </style>
   </head>
   <body>
-    <h1>Post Manager</h1>
+    <h1>Telegram Post Manager</h1>
     <a class="create-link" href="{% url 'create_post' %}">Create New Post</a>
     <ul>
       {% if posts %}
