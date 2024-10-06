@@ -7,3 +7,4 @@ aiohttp
 asyncio
 django
 pillow
+whitenoise
