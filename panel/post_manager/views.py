@@ -63,22 +63,54 @@ def edit_post(request, post_id):
     if request.method == 'POST':
         original_content = post.content  # Save the original content
         post.content = request.POST['content']
+        
+        # Check if a new image is uploaded; if not, keep the existing one
+        if request.FILES.get('image'):
+            post.image = request.FILES['image']
+        else:
+            # Retain the existing image (no change)
+            post.image = post.image
+        
+        # Update pinned status based on the checkbox
+        post.pinned = request.POST.get('pinned') == 'True'  # Update pinned status
+        
+        # Update topic_id based on the selection
+        post.topic_id = request.POST.get('topic')  # Update topic_id based on the form input
+        
+        # Save the updated post
         post.save()
 
         # Prepare the message to send to Telegram
         update_message = (
-            f"📝 Post Upgedated!\n\n"
+            f"📝 Post Aktualisiert!\n\n"
             f"Originaler Post: {original_content}\n\n"
             f"Neuer Post: {post.content}"
         )
 
-        # Send the update to Telegram as a reply
-        send_to_telegram(update_message)
+        # Debugging: print available threads
+        print("Available THREADS in TOPICS:", TOPICS)  # Debugging
+        print("Post Topic ID:", post.topic_id)  # Debugging
+
+        # Retrieve the thread information by matching the topic_id
+        thread_info = next((info for key, info in TOPICS.items() if key == post.topic_id), None)
+        if thread_info:
+            chat_id = thread_info["chat_id"]
+            message_thread_id = thread_info["message_thread_id"]
+            
+            # Prepare the correct image path
+            image_path = post.image.path if post.image else None  # Use the full path of the existing image
+            
+            # Send the update to Telegram as a reply
+            send_to_telegram(update_message, chat_id=chat_id, message_thread_id=message_thread_id, pinned=post.pinned, image_path=image_path)
+        else:
+            print("Thread information not found in TOPICS based on topic_id.")
 
         messages.success(request, 'Post updated and sent to Telegram!')
         return redirect('index')
 
-    return render(request, 'edit.html', {'post': post})
+    # Pass the image URL to the template
+    image_url = post.image.url if post.image else None  # Retrieve the URL for the existing image
+    return render(request, 'edit.html', {'post': post, 'topics': TOPICS, 'image_url': image_url})
 
 def delete_post(request, post_id):
     post = get_object_or_404(Post, id=post_id)
@@ -91,6 +123,14 @@ def create_post(request):
         content = request.POST['content']
         image = request.FILES.get('image')  # Get the uploaded image
         selected_thread = request.POST.get('thread')  # Retrieve the selected thread
+        
+        # Check if the pinned checkbox is present and set the pinned status accordingly
+        pinned = request.POST.get('pinned') == 'True'  # Check for 'True' to confirm pin status
+
+        # Debugging statement
+        print("Create Post - Content:", content)
+        print("Create Post - Image:", image)
+        print("Create Post - Pinned Status:", pinned)  # Debugging the pinned status
 
         # Get the thread information from the configuration
         thread_info = TOPICS.get(selected_thread)
@@ -100,14 +140,14 @@ def create_post(request):
             message_thread_id = thread_info["message_thread_id"]
 
             # Create a new post
-            post = Post(content=content, image=image)
+            post = Post(content=content, image=image, pinned=pinned)
             post.save()
 
             # Prepare the image path
             image_path = f"{settings.MEDIA_ROOT}/images/{image.name}" if image else None
             
             # Send to Telegram
-            send_to_telegram(content, image_path, chat_id, message_thread_id)
+            send_to_telegram(content, image_path, chat_id, message_thread_id, pinned=pinned)  # Pass the pinned status
 
             messages.success(request, 'Post created and sent to Telegram!')
             return redirect('index')
@@ -117,10 +157,11 @@ def create_post(request):
 
     return render(request, 'create_post.html', {'threads': TOPICS})  # Pass threads to the template
 
+
 TELEGRAM_BOT_TOKEN = TOKEN
 CHAT_ID = load_group_chat_id()
 
-def send_to_telegram(content, image_path=None, chat_id=None, message_thread_id=None):
+def send_to_telegram(content, image_path=None, chat_id=None, message_thread_id=None, pinned=False):
     if image_path:
         # Send the photo with caption
         with open(image_path, 'rb') as photo:
@@ -136,15 +177,30 @@ def send_to_telegram(content, image_path=None, chat_id=None, message_thread_id=N
 
             if response_photo.status_code == 200:
                 message_id = result_photo['result']['message_id']
-                
-                # Pin the message
-                url_pin = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/pinChatMessage'
-                data_pin = {
-                    'chat_id': chat_id,
-                    'message_id': message_id,
-                    'disable_notification': False
-                }
-                requests.post(url_pin, data=data_pin)
+                print("Photo sent successfully, message ID:", message_id)
+
+                # Pin the message only if pinned is True
+                if pinned:
+                    url_pin = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/pinChatMessage'
+                    data_pin = {
+                        'chat_id': chat_id,
+                        'message_id': message_id,
+                        'disable_notification': False
+                    }
+                    pin_response = requests.post(url_pin, data=data_pin)
+                    pin_result = pin_response.json()
+
+                    # Debugging output for pinning response
+                    print(f"Attempting to pin message ID {message_id} in chat {chat_id}.")
+                    print("Pin Data:", data_pin)
+                    print("Pin Response:", pin_result)  # Log the pinning response  # Log the pinning response
+
+                    if pin_response.status_code != 200:
+                        print(f"Error pinning message (status code {pin_response.status_code}):", pin_result)
+                    else:
+                        print("Message pinned successfully.")
+            else:
+                print("Error sending photo:", result_photo)
 
     else:
         # Send the message
@@ -160,12 +216,25 @@ def send_to_telegram(content, image_path=None, chat_id=None, message_thread_id=N
 
         if response_send.status_code == 200:
             message_id = result_send['result']['message_id']
-            
-            # Pin the message
-            url_pin = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/pinChatMessage'
-            data_pin = {
-                'chat_id': chat_id,
-                'message_id': message_id,
-                'disable_notification': False
-            }
-            requests.post(url_pin, data=data_pin)
+            print("Message sent successfully, message ID:", message_id)
+
+            # Pin the message only if pinned is True
+            if pinned:
+                url_pin = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/pinChatMessage'
+                data_pin = {
+                    'chat_id': chat_id,
+                    'message_id': message_id,
+                    'disable_notification': False
+                }
+                pin_response = requests.post(url_pin, data=data_pin)
+                pin_result = pin_response.json()
+
+                # Debugging output for pinning response
+                print("Pin Response:", pin_result)  # Log the pinning response
+
+                if pin_response.status_code != 200:
+                    print(f"Error pinning message (status code {pin_response.status_code}):", pin_result)
+                else:
+                    print("Message pinned successfully.")
+        else:
+            print("Error sending message:", result_send)  # Print error if sending message failed

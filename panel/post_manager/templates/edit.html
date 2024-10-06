@@ -36,6 +36,23 @@
         color: white;
         resize: vertical;
       }
+      select {
+        width: 90%;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #e0e0e0;
+        margin-bottom: 10px;
+        background: #454545;
+        color: white;
+      }
+      input[type="file"] {
+        background: #454545;
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #e0e0e0;
+        margin-bottom: 10px;
+      }
       button {
         background-color: #4a90e2;
         color: white;
@@ -64,9 +81,24 @@
   </head>
   <body>
     <h1>Edit Post</h1>
-    <form method="post">
+    <form method="POST" action="{% url 'edit_post' post.id %}" enctype="multipart/form-data">
       {% csrf_token %}
-      <textarea name="content">{{ post.content }}</textarea>
+      <textarea name="content" required>{{ post.content }}</textarea><br />
+      <select name="topic" required>
+        <option value="">--Choose a Topic--</option>
+        {% for topic in topics %}
+        <<option value="{{ topic }}" {% if post.topic_id == topic %}selected{% endif %}>{{ topic }}</option>
+        {% endfor %}</select
+      ><br />
+      {% if image_url %}
+        <div>
+            <p>Existing Image:</p>
+            <img src="{{ image_url }}" alt="Post Image" style="max-width: 300px; max-height: 300px;" />
+        </div>
+    {% endif %}
+      <input type="file" name="image" /><br />
+      <label for="pinned">Pin this post:</label>
+      <input type="checkbox" name="pinned" id="pinned" value="True" {% if post.pinned %}checked{% endif %} /><br /><br />
       <button type="submit">Update Post</button>
     </form>
     <a href="{% url 'index' %}">Cancel</a>

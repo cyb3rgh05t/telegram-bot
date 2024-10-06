@@ -92,20 +92,20 @@
     <h1>Post Manager</h1>
     <a class="create-link" href="{% url 'create_post' %}">Create New Post</a>
     <ul>
-      {% if posts %} {% for post in posts %}
+      {% if posts %}
+      <h3>Pinned Posts</h3>
+      {% for post in posts %} {% if post.pinned %}
       <li>
-        <h3>{{ post.content }}</h3>
-        {% if post.image %}
+        {{ post.content }} {% if post.image %}
         <img
           src="{{ post.image.url }}"
           alt="Post Image"
-          style="max-width: 100%; height: auto"
+          style="max-width: 25%; height: auto"
         />
-        <!-- Make sure this line is correct -->
         {% endif %}
         <div>
-          <a href="{% url 'edit_post' post.id %}">Edit</a><br />
-          <!-- Added line break for new line -->
+          <a href="{% url 'edit_post' post.id %}">Edit</a>
+          |
           <a
             href="{% url 'delete_post' post.id %}"
             onclick="return confirm('Are you sure you want to delete this post?');"
@@ -113,7 +113,28 @@
           >
         </div>
       </li>
-      {% endfor %} {% else %}
+      {% endif %} {% endfor %}
+      <h3>Other Posts</h3>
+      {% for post in posts %} {% if not post.pinned %}
+      <li>
+        {{ post.content }} {% if post.image %}
+        <img
+          src="{{ post.image.url }}"
+          alt="Post Image"
+          style="max-width: 25%; height: auto"
+        />
+        {% endif %}
+        <div>
+          <a href="{% url 'edit_post' post.id %}">Edit</a>
+          |
+          <a
+            href="{% url 'delete_post' post.id %}"
+            onclick="return confirm('Are you sure you want to delete this post?');"
+            >Delete</a
+          >
+        </div>
+      </li>
+      {% endif %} {% endfor %} {% else %}
       <li class="no-posts">No posts available.</li>
       {% endif %}
     </ul>
