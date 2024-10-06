@@ -17,6 +17,8 @@ import json
 CONFIG_DIR = '/app/config'
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'config.json')
 
+DATABASE_DIR = '/app/database'
+
 # Load configuration from config.json
 with open(CONFIG_FILE, 'r') as config_file:
     config = json.load(config_file)
@@ -100,7 +102,7 @@ WSGI_APPLICATION = 'panel.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'panel.db',
+        'NAME': os.path.join(DATABASE_DIR, "panel.db"),
     }
 }
 
@@ -173,6 +175,7 @@ LOGGING = {
         },
         'console': {
             'class': 'logging.StreamHandler',
+            'level': LOG_LEVEL,
             'formatter': 'verbose',  # Use the verbose formatter for console output
         },
     },
@@ -182,7 +185,7 @@ LOGGING = {
             'level': LOG_LEVEL,
             'propagate': True,
         },
-        'your_bot_logger': {  # Add a custom logger for your bot if needed
+        'bot': {  # Add a custom logger for your bot if needed
             'handlers': ['file', 'console'],
             'level': LOG_LEVEL,
             'propagate': False,
