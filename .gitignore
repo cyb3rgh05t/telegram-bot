@@ -14,3 +14,4 @@ panel/media/images/*.*
 bot_and_django.log
 *.log
 *.pyc
+/panel/staticfiles

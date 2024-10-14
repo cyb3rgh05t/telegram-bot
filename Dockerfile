@@ -3,7 +3,7 @@ FROM python:3.9-slim
 
 # Owner 
 LABEL maintainer=cyb3rgh05t
-LABEL org.opencontainers.image.source https://github.com/cyb3rgh05t/telegram-bot
+LABEL org.opencontainers.image.source=https://github.com/cyb3rgh05t/telegram-bot
 
 # Set the working directory in the container
 WORKDIR /app

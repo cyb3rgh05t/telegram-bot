@@ -1,3 +1,3 @@
-Version: 1.5.2
+Version: 2.0.0
 Author: cyb3rgh05t
-Description: Telegram Bot
+Description: Telegram Bot Paneled
