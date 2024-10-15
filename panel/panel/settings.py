@@ -17,6 +17,8 @@ SECRET_KEY = config.get("panel").get("SECRET_KEY")
 DEBUG = config.get("panel").get("DEBUG")
 ALLOWED_HOSTS = config.get("panel").get("ALLOWED_HOSTS")
 CSRF_TRUSTED_ORIGINS = config.get("panel").get("CSRF_TRUSTED_ORIGINS")
+STATIC_URL = config.get("panel").get("STATIC_URL")
+MEDIA_URL = config.get("panel").get("MEDIA_URL")
 
 
 # Application definition
@@ -137,14 +139,12 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
-STATIC_URL = "/static/"
-
+STATIC_URL =
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 # Media configuration for handling uploaded files
-MEDIA_URL = "/media/"
+MEDIA_URL = 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
