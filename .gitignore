@@ -15,3 +15,4 @@ bot_and_django.log
 *.log
 *.pyc
 /panel/staticfiles
+/panel/static/admin
