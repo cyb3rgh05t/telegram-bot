@@ -16,6 +16,8 @@ LOG_LEVEL = config.get("panel").get("LOG_LEVEL", "INFO").upper()
 SECRET_KEY = config.get("panel").get("SECRET_KEY")
 DEBUG = config.get("panel").get("DEBUG")
 ALLOWED_HOSTS = config.get("panel").get("ALLOWED_HOSTS")
+CSRF_TRUSTED_ORIGINS = config.get("panel").get("CSRF_TRUSTED_ORIGINS")
+
 
 # Application definition
 
