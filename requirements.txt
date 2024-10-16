@@ -8,3 +8,4 @@ asyncio
 django
 pillow
 whitenoise
+gunicorn
