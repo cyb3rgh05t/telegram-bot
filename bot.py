@@ -154,11 +154,20 @@ def start_django_server():
         )
         logger.info("Static files collected.")
 
-        # Step 4: Run the Django server
-        logger.info("Starting Django server...")
-        command = [sys.executable, "panel/manage.py", "runserver", "0.0.0.0:8000"]
-        django_process = subprocess.Popen(command)
-        logger.info("Django server started.")
+        # Step 4: Run the Gunicorn server instead of the Django development server
+        logger.info("Starting Gunicorn server...")
+
+        # Gunicorn command with 3 workers
+        command = [
+            sys.executable,
+            "-m",
+            "gunicorn",
+            "panel.wsgi:application",  # Reference to the WSGI application
+            "--bind",
+            "0.0.0.0:8000",  # Bind to all IPs on port 8000
+            "--workers",
+            "3",  # Set the number of Gunicorn workers
+        ]
 
     except subprocess.CalledProcessError as e:
         logger.error(f"Command '{e.cmd}' failed with exit code {e.returncode}")
