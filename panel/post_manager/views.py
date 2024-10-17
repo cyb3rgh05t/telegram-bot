@@ -9,7 +9,6 @@ import json
 import requests
 import os
 import sqlite3
-import logging
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,9 +21,6 @@ DATABASE_DIR = os.path.join(BASE_DIR.parent, "database")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "config.json")
 
 DATABASE_FILE = os.path.join(DATABASE_DIR, "group_data.db")
-
-# Get an instance of the logger
-logger = logging.getLogger(__name__)
 
 
 # Load group chat ID from the database
@@ -104,9 +100,9 @@ def edit_post(request, post_id):
             f"Neuer Post: {post.content}"
         )
 
-        # Debugging: logger.info available threads
-        logger.info("Available THREADS in TOPICS:", TOPICS)  # Debugging
-        logger.info("Post Topic ID:", post.topic_id)  # Debugging
+        # Debugging: print available threads
+        print("Available THREADS in TOPICS:", TOPICS)  # Debugging
+        print("Post Topic ID:", post.topic_id)  # Debugging
 
         # Retrieve the thread information by matching the topic_id
         thread_info = next(
@@ -130,7 +126,7 @@ def edit_post(request, post_id):
                 image_path=image_path,
             )
         else:
-            logger.info("Thread information not found in TOPICS based on topic_id.")
+            print("Thread information not found in TOPICS based on topic_id.")
 
         messages.success(request, "Post updated and sent to Telegram!")
         return redirect("index")
@@ -148,6 +144,10 @@ def delete_post(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     post.delete()  # Delete the post from the database
     messages.success(request, "Post deleted successfully!")
+
+    # Log successful deletion
+    print(f"Post with ID {post_id} has been deleted.")
+
     return redirect(
         "index"
     )  # Redirect back to the post listing or wherever appropriate
@@ -165,12 +165,10 @@ def create_post(request):
         )  # Check for 'True' to confirm pin status
 
         # Debugging statement
-        logger.info("Create Post - Content:", content)
-        logger.info("Create Post - Image:", image)
-        logger.info(
-            "Create Post - Pinned Status:", pinned
-        )  # Debugging the pinned status
-        logger.info("Create Post - Selected Thread:", selected_thread)
+        print("Create Post - Content:", content)
+        print("Create Post - Image:", image)
+        print("Create Post - Pinned Status:", pinned)  # Debugging the pinned status
+        print("Create Post - Selected Thread:", selected_thread)
 
         # Get the thread information from the configuration
         thread_info = TOPICS.get(selected_thread)
@@ -228,7 +226,7 @@ def send_to_telegram(
 
             if response_photo.status_code == 200:
                 message_id = result_photo["result"]["message_id"]
-                logger.info("Photo sent successfully, message ID:", message_id)
+                print("Photo sent successfully, message ID:", message_id)
 
                 # Pin the message only if pinned is True
                 if pinned:
@@ -242,23 +240,23 @@ def send_to_telegram(
                     pin_result = pin_response.json()
 
                     # Debugging output for pinning response
-                    logger.info(
+                    print(
                         f"Attempting to pin message ID {message_id} in chat {chat_id}."
                     )
-                    logger.info("Pin Data:", data_pin)
-                    logger.info(
+                    print("Pin Data:", data_pin)
+                    print(
                         "Pin Response:", pin_result
                     )  # Log the pinning response  # Log the pinning response
 
                     if pin_response.status_code != 200:
-                        logger.info(
+                        print(
                             f"Error pinning message (status code {pin_response.status_code}):",
                             pin_result,
                         )
                     else:
-                        logger.info("Message pinned successfully.")
+                        print("Message pinned successfully.")
             else:
-                logger.info("Error sending photo:", result_photo)
+                print("Error sending photo:", result_photo)
 
     else:
         # Send the message
@@ -274,7 +272,7 @@ def send_to_telegram(
 
         if response_send.status_code == 200:
             message_id = result_send["result"]["message_id"]
-            logger.info("Message sent successfully, message ID:", message_id)
+            print("Message sent successfully, message ID:", message_id)
 
             # Pin the message only if pinned is True
             if pinned:
@@ -290,16 +288,16 @@ def send_to_telegram(
                 pin_result = pin_response.json()
 
                 # Debugging output for pinning response
-                logger.info("Pin Response:", pin_result)  # Log the pinning response
+                print("Pin Response:", pin_result)  # Log the pinning response
 
                 if pin_response.status_code != 200:
-                    logger.info(
+                    print(
                         f"Error pinning message (status code {pin_response.status_code}):",
                         pin_result,
                     )
                 else:
-                    logger.info("Message pinned successfully.")
+                    print("Message pinned successfully.")
         else:
-            logger.info(
+            print(
                 "Error sending message:", result_send
             )  # Print error if sending message failed

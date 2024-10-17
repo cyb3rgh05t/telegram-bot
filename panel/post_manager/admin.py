@@ -3,13 +3,9 @@ from django import forms
 from .models import Post
 from .views import send_to_telegram  # Import the send_to_telegram function
 import json
-from panel.settings import LOGGING
 import os
 from pathlib import Path
 import logging
-
-# Get an instance of the logger
-logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -31,7 +27,7 @@ TOPICS = config["topics"]
 TOPIC_CHOICES = [(k, k) for k in TOPICS.keys()]  # Use topic names for choices
 
 # Debugging: Print loaded topics to console
-logger.info("Loaded TOPICS from config.json:", TOPICS)
+print("Loaded TOPICS from config.json:", TOPICS)
 
 
 @admin.action(description="Mark selected posts as pinned")
@@ -63,7 +59,7 @@ def send_posts_to_telegram(modeladmin, request, queryset):
             )  # Get message_thread_id
 
             # Debugging: Print the values that are being sent to Telegram
-            logger.info(
+            print(
                 f"Sending to chat_id: {chat_id}, message_thread_id: {message_thread_id}"
             )
 
@@ -76,7 +72,7 @@ def send_posts_to_telegram(modeladmin, request, queryset):
                 message_thread_id=message_thread_id,
             )
         else:
-            logger.error(f"Error: Topic not found for post: {post.content}")
+            print(f"Error: Topic not found for post: {post.content}")
 
     modeladmin.message_user(
         request, "Selected posts were sent to Telegram successfully!"
@@ -136,7 +132,7 @@ class PostAdmin(admin.ModelAdmin):
             message_thread_id = topic_info.get("message_thread_id")
 
             # Debugging: Print to confirm which topic is selected
-            logger.info(
+            print(
                 f"Sending to chat_id: {chat_id}, message_thread_id: {message_thread_id}"
             )
 
