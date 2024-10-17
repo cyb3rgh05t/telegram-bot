@@ -4,9 +4,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path("", admin.site.urls),
-    path("postmanager/", include("post_manager.urls")),
+    path("admin/", admin.site.urls),
+    path("", include("post_manager.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-# Serve media files when DEBUG is True
+# Serve media files
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
