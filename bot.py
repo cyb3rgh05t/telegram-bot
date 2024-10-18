@@ -1570,16 +1570,19 @@ async def welcome_new_members(
         username = f"@{member.username}" if member.username else member.full_name
 
         welcome_message = (
-            f"\n🎉 Howdy, {member.full_name}!\n\n"
-            "Vielen Dank, dass du diesen Service ausgewählt hast ❤️.\n\n"
-            f"Username: {username}\n"
-            f"Beitritt: {date_time}\n\n"
-            "Wir hoffen, du hast eine gute Unterhaltung mit StreamNet TV.\n\n"
-            "Bei Fragen oder sonstiges einfach in die verschiedenen Topics reinschreiben."
+            f"\n🎉 Howdy, **{member.full_name}**!\n\n"
+            "Vielen Dank, dass du diesen **Service** ausgewählt hast ❤️.\n\n"
+            f"**Username**: {username}\n"
+            f"**Beitritt**: {date_time}\n\n"
+            "Wir hoffen, du hast eine gute Unterhaltung mit **StreamNet TV**.\n\n"
+            "Bei Fragen oder sonstiges einfach in die verschiedenen **Topics** reinschreiben."
         )
 
         await update.message.chat.send_photo(
-            photo=IMAGE_URL, caption=welcome_message, reply_markup=keyboard
+            photo=IMAGE_URL,
+            caption=welcome_message,
+            parse_mode="Markdown",
+            reply_markup=keyboard,
         )
 
 
@@ -1604,8 +1607,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_html(
         rf"Hi {user.mention_html()} !"
         "\n\n"
-        "Willkommen bei StreamNet TV\n"
-        "Ich bin Mr.StreamNet - der Butler des StreamNet Club's.\n\n"
+        "Willkommen bei <b>StreamNet TV</b>\n"
+        "Ich bin <b>Mr.StreamNet</b> - der Butler des <b>StreamNet Club's</b>.\n\n"
         "Ich stehe dir zur Verfügung, um deine Medienanfragen zu verwalten und vieles Mehr.\n"
         "Wenn du Hilfe benötigst, benutze/klicke auf den Befehl  /help .",
         reply_markup=ReplyKeyboardRemove(),
