@@ -1,6 +1,7 @@
 import asyncio
 import subprocess
 import nest_asyncio
+import re
 import json
 import os
 import sqlite3
@@ -1556,6 +1557,10 @@ async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         )
 
 
+# Escape Markdown special characters in full_name and username
+def escape_markdown(text):
+    return re.sub(r'([_`\[\]()~>#+\-=|{}.!])', r'\\\1', text)
+
 # Function to welcome new members
 async def welcome_new_members(
     update: Update, context: ContextTypes.DEFAULT_TYPE
@@ -1567,13 +1572,13 @@ async def welcome_new_members(
 
         now = get_current_time()
         date_time = now.strftime("%d.%m.%Y %H:%M:%S")
-        username = f"@{member.username}" if member.username else member.full_name
+        username = f"@{escape_markdown(member.username)}" if member.username else escape_markdown(member.full_name)
 
         welcome_message = (
-            f"\n🎉 Howdy, **{member.full_name}**!\n\n"
+            f"\n🎉 Howdy, **{escape_markdown(member.full_name)}**!\n\n"
             "Vielen Dank, dass du diesen **Service** ausgewählt hast ❤️.\n\n"
-            f"**Username**: {username}\n"
-            f"**Beitritt**: {date_time}\n\n"
+            f"Username: **{username}**\n"
+            f"Beitritt: **{date_time}**\n\n"
             "Wir hoffen, du hast eine gute Unterhaltung mit **StreamNet TV**.\n\n"
             "Bei Fragen oder sonstiges einfach in die verschiedenen **Topics** reinschreiben."
         )
