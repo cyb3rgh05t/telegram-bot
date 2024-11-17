@@ -65,6 +65,7 @@ LOG_LEVEL = config.get("bot").get("LOG_LEVEL", "INFO").upper()
 # WELCOME
 IMAGE_URL = config.get("welcome").get("IMAGE_URL")
 BUTTON_URL = config.get("welcome").get("BUTTON_URL")
+SUPPORT_URL = config.get("welcome").get("SUPPORT_URL")
 # NIGHTMODE
 NIGHTMODE_START = config.get("nightmode").get("NIGHTMODE_START")
 NIGHTMODE_END = config.get("nightmode").get("NIGHTMODE_END")
@@ -1559,7 +1560,8 @@ async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 # Escape Markdown special characters in full_name and username
 def escape_markdown(text):
-    return re.sub(r'([_`\[\]()~>#+\-=|{}.!])', r'\\\1', text)
+    return re.sub(r"([_`\[\]()~>#+\-=|{}.!])", r"\\\1", text)
+
 
 # Function to welcome new members
 async def welcome_new_members(
@@ -1567,12 +1569,21 @@ async def welcome_new_members(
 ) -> None:
     for member in update.message.new_chat_members:
         logger.info(f"New member '{member.full_name}' joined the group.")
-        button = InlineKeyboardButton("StreamNet TV Store", url=BUTTON_URL)
-        keyboard = InlineKeyboardMarkup([[button]])
+
+        # Define the buttons
+        button1 = InlineKeyboardButton("StreamNet TV Store", url=BUTTON_URL)
+        button2 = InlineKeyboardButton("StreamNet Club Spende", url=SUPPORT_URL)
+
+        # Add both buttons to the keyboard
+        keyboard = InlineKeyboardMarkup([[button1, button2]])
 
         now = get_current_time()
         date_time = now.strftime("%d.%m.%Y %H:%M:%S")
-        username = f"@{escape_markdown(member.username)}" if member.username else escape_markdown(member.full_name)
+        username = (
+            f"@{escape_markdown(member.username)}"
+            if member.username
+            else escape_markdown(member.full_name)
+        )
 
         welcome_message = (
             f"\n🎉 Howdy, **{escape_markdown(member.full_name)}**!\n\n"

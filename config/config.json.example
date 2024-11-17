@@ -16,7 +16,8 @@
     },
     "welcome": {
         "IMAGE_URL": "URL_TO_YOUR_WELCOME_IMAGE",
-        "BUTTON_URL": "URL_TO_YOUR_BUTTON"
+        "BUTTON_URL": "URL_TO_YOUR_BUTTON",
+        "SUPPORT_URL": "URL_TO_YOUR_BUTTON"
     },
     "nightmode": {
     "NIGHTMODE_START": "00:00",
