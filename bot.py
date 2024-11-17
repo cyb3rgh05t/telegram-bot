@@ -1591,7 +1591,8 @@ async def welcome_new_members(
             f"Username: **{username}**\n"
             f"Beitritt: **{date_time}**\n\n"
             "Wir hoffen, du hast eine gute Unterhaltung mit **StreamNet TV**.\n\n"
-            "Bei Fragen oder sonstiges einfach in die verschiedenen **Topics** reinschreiben."
+            "Bei Fragen einfach in den verschiedenen **Kategorien** schreiben.\n\n"
+            "Happy streamnet-ing 📺"
         )
 
         await update.message.chat.send_photo(
