@@ -1575,7 +1575,7 @@ async def welcome_new_members(
         button2 = InlineKeyboardButton("StreamNet Club Spende", url=SUPPORT_URL)
 
         # Add both buttons to the keyboard
-        keyboard = InlineKeyboardMarkup([[button1, button2]])
+        keyboard = InlineKeyboardMarkup([[button1], [button2]])
 
         now = get_current_time()
         date_time = now.strftime("%d.%m.%Y %H:%M:%S")
