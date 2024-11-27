@@ -100,7 +100,7 @@
             <img src="{{ image_url }}" alt="Post Image" style="max-width: 300px; max-height: 300px;" />
         </div>
     {% endif %}
-      <input type="file" name="image" /><br />
+    <input type="file" name="file" accept="image/*,video/*" /><br />
       <label for="pinned">Pin this post:</label>
       <input type="checkbox" name="pinned" id="pinned" value="True" {% if post.pinned %}checked{% endif %} /><br /><br />
       <button type="submit">Update Post</button>
