@@ -143,48 +143,41 @@ def delete_post(request, post_id):
 
 
 def create_post(request):
-    if request.method == "POST":
-        content = request.POST["content"]
-        file = request.FILES.get("file")  # Get the uploaded file (image or video)
-        selected_thread = request.POST.get("thread")  # Retrieve the selected thread
+    if request.method == 'POST':
+        content = request.POST.get('content')
+        file = request.FILES.get('file')  # Handle file upload
+        selected_thread = request.POST.get('thread')
+        pinned = request.POST.get('pinned') == 'True'  # Handle pinned checkbox
 
-        # Check if the pinned checkbox is present and set the pinned status accordingly
-        pinned = (
-            request.POST.get("pinned") == "True"
-        )  # Check for 'True' to confirm pin status
-
-        # Get the thread information from the configuration
+        # Get the topic info
         thread_info = TOPICS.get(selected_thread)
 
         if thread_info:
-            chat_id = thread_info["chat_id"]
-            message_thread_id = thread_info.get(
-                "message_thread_id", None
-            )  # Get message_thread_id if available
+            chat_id = thread_info['chat_id']
+            message_thread_id = thread_info.get('message_thread_id', None)
 
-            # Create a new post, saving the topic_id (chat_id)
+            # Create a new post object (without file saved yet)
             post = Post(content=content, pinned=pinned, topic_id=chat_id)
 
-            # Save the file if provided (can be an image or video)
             if file:
-                post.file = file  # Save the file
-            post.save()
+                post.file = file  # Save the uploaded file (image or video)
+            
+            post.save()  # Save the post to the database (this will also save the file)
 
-            # Prepare the file path if there is a file
-            file_path = file.path if file else None
+            # After the post is saved, you can access the path of the file
+            file_path = post.file.path if post.file else None  # Access the file path from the saved post object
 
-            # Send to Telegram, using the selected topic's `message_thread_id`
-            send_to_telegram(
-                content, file_path=file_path, chat_id=chat_id, message_thread_id=message_thread_id, pinned=pinned
-            )  # Pass the pinned status and the file path
+            # Now you can send the content and file to Telegram as needed
+            send_to_telegram(content, file_path=file_path, chat_id=chat_id, message_thread_id=message_thread_id, pinned=pinned)
 
             messages.success(request, "Post created and sent to Telegram!")
-            return redirect("index")
+            return redirect('index')
         else:
             messages.error(request, "Invalid thread selected!")
-            return redirect("create_post")
+            return redirect('create_post')
 
-    return render(request, "create_post.html", {"threads": TOPICS})  # Pass threads to the template
+    return render(request, 'create_post.html', {'threads': TOPICS})
+
 
 
 # Telegram Bot Token and Chat ID
