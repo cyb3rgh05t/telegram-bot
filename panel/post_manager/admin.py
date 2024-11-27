@@ -43,6 +43,9 @@ def make_unpinned(modeladmin, request, queryset):
 @admin.action(description="Send selected posts to Telegram")
 def send_posts_to_telegram(modeladmin, request, queryset):
     for post in queryset:
+        # Save the post first to commit the image (if any) to the database
+        post.save()
+
         # Retrieve the topic name based on topic_id (chat_id)
         topic_name = None
         for name, topic_info in TOPICS.items():
@@ -63,12 +66,15 @@ def send_posts_to_telegram(modeladmin, request, queryset):
                 f"Sending to chat_id: {chat_id}, message_thread_id: {message_thread_id}"
             )
 
+            # Check if the post has an image and use its path if it exists
+            image_path = post.image.path if post.image else None
+
             # Send the post to Telegram using the correct thread
             send_to_telegram(
                 content=post.content,
                 chat_id=chat_id,
                 pinned=post.pinned,
-                image_path=post.image.path if post.image else None,
+                image_path=image_path,
                 message_thread_id=message_thread_id,
             )
         else:
@@ -77,6 +83,7 @@ def send_posts_to_telegram(modeladmin, request, queryset):
     modeladmin.message_user(
         request, "Selected posts were sent to Telegram successfully!"
     )
+
 
 
 @admin.register(Post)
@@ -119,30 +126,33 @@ class PostAdmin(admin.ModelAdmin):
             )  # Use forms.Select widget for dropdown
         return super().formfield_for_dbfield(db_field, request, **kwargs)
 
-    # Add the option to send the post to Telegram when saved
     def save_model(self, request, obj, form, change):
-        super().save_model(request, obj, form, change)
+      super().save_model(request, obj, form, change)
 
-        # Retrieve the correct topic (chat_id and message_thread_id) from the config
-        topic_name = self.get_topic_name(obj)  # Get the topic name from the object
-        topic_info = TOPICS.get(topic_name)  # Retrieve the topic info from TOPICS
+      # Retrieve the correct topic (chat_id and message_thread_id) from the config
+      topic_name = self.get_topic_name(obj)  # Get the topic name from the object
+      topic_info = TOPICS.get(topic_name)  # Retrieve the topic info from TOPICS
 
-        if topic_info:
-            chat_id = topic_info["chat_id"]
-            message_thread_id = topic_info.get("message_thread_id")
+      if topic_info:
+        chat_id = topic_info["chat_id"]
+        message_thread_id = topic_info.get("message_thread_id")
 
-            # Debugging: Print to confirm which topic is selected
-            print(
-                f"Sending to chat_id: {chat_id}, message_thread_id: {message_thread_id}"
-            )
+        # Debugging: Print to confirm which topic is selected
+        print(
+            f"Sending to chat_id: {chat_id}, message_thread_id: {message_thread_id}"
+        )
 
-            # Send the post to Telegram using the correct thread
-            send_to_telegram(
-                content=obj.content,
-                chat_id=chat_id,
-                pinned=obj.pinned,
-                image_path=obj.image.path if obj.image else None,
-                message_thread_id=message_thread_id,
-            )
+        # Check if the post has an image and use its path if it exists
+        image_path = obj.image.path if obj.image else None
+
+        # Send the post to Telegram using the correct thread
+        send_to_telegram(
+            content=obj.content,
+            chat_id=chat_id,
+            pinned=obj.pinned,
+            image_path=image_path,
+            message_thread_id=message_thread_id,
+        )
 
         self.message_user(request, "Post sent to Telegram successfully!")
+
