@@ -189,12 +189,13 @@ def send_to_telegram(
 ):
     try:
         if file_path:
+            # Check if it's a video file by looking at the extension
             file_extension = file_path.split('.')[-1].lower()
 
             # Check if it's a video file
-            if file_extension in ['mp4', 'mov', 'avi', 'mkv', 'webm']:  # Added more formats
+            if file_extension in ['mp4', 'mov', 'avi', 'mkv', 'webm']:  # Added more formats for video files
                 url_send = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendVideo"
-                with open(file_path, 'rb') as video_file:  # Open file in binary mode and close after sending
+                with open(file_path, 'rb') as video_file:  # Open the file in binary mode
                     files = {"video": video_file}
                     data = {
                         "chat_id": chat_id,
@@ -203,11 +204,17 @@ def send_to_telegram(
                         "message_thread_id": message_thread_id,
                     }
                     response = requests.post(url_send, files=files, data=data)
+                    result = response.json()
 
-            # If not a video, it's assumed to be an image file
+                    if response.status_code == 200:
+                        message_id = result["result"]["message_id"]
+                        print(f"Video sent successfully, message ID: {message_id}")
+                    else:
+                        print(f"Error sending video: {result}")
             else:
+                # If it's not a video, assume it's an image
                 url_send = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
-                with open(file_path, 'rb') as image_file:  # Open file in binary mode and close after sending
+                with open(file_path, 'rb') as image_file:  # Open the file in binary mode
                     files = {"photo": image_file}
                     data = {
                         "chat_id": chat_id,
@@ -216,29 +223,15 @@ def send_to_telegram(
                         "message_thread_id": message_thread_id,
                     }
                     response = requests.post(url_send, files=files, data=data)
+                    result = response.json()
 
-            result = response.json()
-
-            if response.status_code == 200:
-                message_id = result["result"]["message_id"]
-                print(f"File sent successfully, message ID: {message_id}")
-
-                if pinned:
-                    url_pin = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/pinChatMessage"
-                    data_pin = {
-                        "chat_id": chat_id,
-                        "message_id": message_id,
-                        "disable_notification": False,
-                    }
-                    pin_response = requests.post(url_pin, data=data_pin)
-                    print("Pin Response:", pin_response.json())
-
-            else:
-                print(f"Error sending file: {result.get('description')}")
-                return None
-
+                    if response.status_code == 200:
+                        message_id = result["result"]["message_id"]
+                        print(f"Image sent successfully, message ID: {message_id}")
+                    else:
+                        print(f"Error sending image: {result}")
         else:
-            # Send the text message if no file is provided
+            # If no file is provided, send a text message
             url_send = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
             data_send = {
                 "chat_id": chat_id,
@@ -251,20 +244,21 @@ def send_to_telegram(
 
             if response_send.status_code == 200:
                 message_id = result_send["result"]["message_id"]
-                print(f"Message sent successfully, message ID: {message_id}")
-
-                if pinned:
-                    url_pin = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/pinChatMessage"
-                    data_pin = {
-                        "chat_id": chat_id,
-                        "message_id": message_id,
-                        "disable_notification": False,
-                    }
-                    pin_response = requests.post(url_pin, data=data_pin)
-                    print("Pin Response:", pin_response.json())
+                print(f"Text message sent successfully, message ID: {message_id}")
             else:
-                print(f"Error sending message: {result_send.get('description')}")
+                print(f"Error sending text message: {result_send}")
                 return None
+
+        if pinned:
+            # Pin the message if the pinned flag is set
+            url_pin = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/pinChatMessage"
+            data_pin = {
+                "chat_id": chat_id,
+                "message_id": message_id,
+                "disable_notification": False,
+            }
+            pin_response = requests.post(url_pin, data=data_pin)
+            print("Pin Response:", pin_response.json())
 
     except Exception as e:
         print(f"Error occurred: {e}")

@@ -91,26 +91,26 @@ class PostAdmin(admin.ModelAdmin):
 
     # Ensure the post is saved before sending to Telegram
     def save_model(self, request, obj, form, change):
-     super().save_model(request, obj, form, change)
+      super().save_model(request, obj, form, change)
 
     # Retrieve the correct topic (chat_id and message_thread_id) from the config
-     topic_name = self.get_topic_name(obj)  # Get the topic name from the object
-     topic_info = TOPICS.get(topic_name)  # Retrieve the topic info from TOPICS
+      topic_name = self.get_topic_name(obj)  # Get the topic name from the object
+      topic_info = TOPICS.get(topic_name)  # Retrieve the topic info from TOPICS
 
-     if topic_info:
+      if topic_info:
         chat_id = topic_info["chat_id"]
         message_thread_id = topic_info.get("message_thread_id")
 
-        # Check if the post has an image and use its path if it exists
-        image_path = obj.image.path if obj.image else obj.file.path if obj.file else None
+        # Check if the post has an image or file and use the correct file path
+        file_path = obj.image.path if obj.image else obj.file.path if obj.file else None
 
         # Send the post to Telegram with the correct file (image or video)
         send_to_telegram(
             content=obj.content,
             chat_id=chat_id,
             pinned=obj.pinned,
-            image_path=image_path,  # Pass image_path if the post has an image
+            file_path=file_path,  # Pass file_path (either image or video)
             message_thread_id=message_thread_id,
         )
 
-     self.message_user(request, "Post sent to Telegram successfully!")
+      self.message_user(request, "Post sent to Telegram successfully!")
