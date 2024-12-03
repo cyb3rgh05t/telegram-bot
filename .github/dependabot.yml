@@ -7,7 +7,7 @@ updates:
       interval: "weekly"
   open-pull-requests-limit: 10
 
-- package-ecosystem: "python"
+- package-ecosystem: "pip"
   directory: "/"
   schedule:
     interval: "weekly"
