@@ -5,7 +5,7 @@ FROM python:3.9-slim
 LABEL maintainer=cyb3rgh05t
 LABEL org.opencontainers.image.source=https://github.com/cyb3rgh05t/telegram-bot
 
-# Set the working directory in the container
+# working directory in the container
 WORKDIR /app
 
 # Copy the requirements file and install dependencies
