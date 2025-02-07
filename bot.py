@@ -117,9 +117,7 @@ logging.basicConfig(
 # Create an asyncio lock for sequential logging
 log_lock = asyncio.Lock()
 
-
 # Global reference for Django process and bot application
-django_process = None
 application = None
 
 # Global reference for the group data
@@ -129,52 +127,6 @@ LANGUAGE = None
 # Global variable to track if night mode is active
 night_mode_lock = asyncio.Lock()
 task_lock = asyncio.Lock()
-
-
-# Start Django server in a background thread
-def start_django_server():
-    global django_process
-    try:
-        # Step 1: Run makemigrations
-        logger.info("Running makemigrations...")
-        subprocess.run(
-            [sys.executable, "panel/manage.py", "makemigrations", "--noinput"],
-            check=True,
-        )
-        logger.info("Makemigrations completed.")
-
-        # Step 2: Run migrate
-        logger.info("Running migrate...")
-        subprocess.run([sys.executable, "panel/manage.py", "migrate"], check=True)
-        logger.info("Migrations applied successfully.")
-
-        # Step 3: Run collectstatic
-        logger.info("Running collectstatic...")
-        subprocess.run(
-            [sys.executable, "panel/manage.py", "collectstatic", "--noinput"],
-            check=True,
-        )
-        logger.info("Static files collected.")
-
-        # Step 4: Run the Django server
-        logger.info("Starting Django server...")
-        command = [sys.executable, "panel/manage.py", "runserver", "0.0.0.0:8000"]
-        django_process = subprocess.Popen(command)
-        logger.info("Django server started.")
-
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Command '{e.cmd}' failed with exit code {e.returncode}")
-    except Exception as e:
-        logger.error(f"Failed to start Django server: {e}")
-
-
-# Stop Django server
-def stop_django_server():
-    global django_process
-    if django_process is not None:
-        django_process.terminate()
-        django_process.wait()
-        logger.info("Django server stopped.")
 
 
 # Function to load version and author info from a file
@@ -1641,7 +1593,7 @@ def print_logo():
 | (__| |_| | |_) |.___/ / | | (_| | | | \ |_/ /\__/ / |_ 
  \___|\__, |_.__/ \____/|_|  \__, |_| |_|\___/\____/ \__|
        __/ |                  __/ |                      
-      |___/                  |___/                       
+      |___/                  |___/     TelegramBot 2024                
 
     """
     print(logo)
@@ -1761,16 +1713,11 @@ def run_bot():
     except Exception as e:
         logger.error(f"An error occurred during bot operation: {e}")
     finally:
-        logger.info("Shutting down the bot and stopping Django.")
-        stop_django_server()  # Ensure the Django server is stopped
+        logger.info("Shutting down the bot.")
 
 
 # Entry point
 def main():
-    # Start Django server in a separate thread
-    django_thread = threading.Thread(target=start_django_server)
-    django_thread.start()
-
     try:
         # Start the bot in the main thread
         run_bot()
@@ -1780,7 +1727,6 @@ def main():
         logger.error(f"An unexpected error occurred: {e}")
     finally:
         logger.info("Bot has been stopped, ensuring clean shutdown.")
-        stop_django_server()
 
 
 if __name__ == "__main__":
