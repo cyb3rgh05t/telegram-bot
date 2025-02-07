@@ -2,7 +2,7 @@ name: Build Docker Image
 on:
   push:
     branches-ignore:
-      - 'dependabot/**'
+      - "dependabot/**"
     paths-ignore:
       - ".github/**"
       - "LICENSE"
@@ -46,7 +46,7 @@ jobs:
 
       - name: Set up Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@v3.6.1
+        uses: docker/setup-buildx-action@v3.8.0
 
       - name: Cache Docker layers
         uses: actions/cache@v4
@@ -56,16 +56,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3.1.0
+      - name: Login to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3.3.0
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}  # GitHub username
-          password: ${{ secrets.TOKEN }}  # GitHub token
+          username: ${{ github.actor }}
+          password: ${{ secrets.PACKAGES }}
 
       - name: Build and push GHRC.io
         id: docker_build
-        uses: docker/build-push-action@v6.7.0
+        uses: docker/build-push-action@v6.12.0
         with:
           builder: ${{ steps.buildx.outputs.name }}
           context: .
@@ -76,6 +77,8 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
           tags: |
             ghcr.io/${{ steps.prep.outputs.tags }}
+          build-args: |
+            COMMIT_TAG=${{ github.sha }}  # Pass the commit hash as COMMIT_TAG
           labels: |
             org.opencontainers.image.title=${{ steps.prep.outputs.title }}
             org.opencontainers.image.version=${{ steps.prep.outputs.version }}
@@ -88,3 +91,36 @@ jobs:
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
+
+      - name: Send Discord Notification
+        if: success() # This step will only run if the build is successful
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{
+                  "content": "🚀 Docker build and push completed successfully!",
+                  "embeds": [
+                    {
+                      "title": "Build Details",
+                      "description": "The Docker image has been built and pushed.",
+                      "fields": [
+                        {
+                          "name": "Commit Hash",
+                          "value": "${{ github.sha }}",
+                          "inline": true
+                        },
+                        {
+                          "name": "Version",
+                          "value": "${{ steps.prep.outputs.version }}",
+                          "inline": true
+                        },
+                        {
+                          "name": "Repository",
+                          "value": "${{ github.repository }}",
+                          "inline": true
+                        }
+                      ]
+                    }
+                  ]
+                }' \
+            ${{ secrets.DISCORD_WEBHOOK }}
