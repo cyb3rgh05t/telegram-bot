@@ -1,27 +1,32 @@
 name: Release Telegram BOT
 
 on:
+  # Production releases
   release:
     types: [published]
+
+  # Dev branch automatic builds
+  push:
+    branches:
+      - dev
+      - nightly
+
+  # Manual builds
   workflow_dispatch:
     inputs:
       version:
         description: "Version to use for testing (e.g., test-1.0.0)"
         required: true
-        default: "test-1.0.0"
-      force_rebuild:
-        description: "Force rebuild without cache"
-        required: false
-        type: boolean
-        default: false
+        default: "test"
 
 jobs:
   release:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
-      packages: write # Needed to push to GHCR
+      packages: write
 
     steps:
       - name: Checkout repository
@@ -48,22 +53,33 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ env.REPO_NAME_LOWERCASE }} # Image name based on repo owner/name
+          images: ghcr.io/${{ env.REPO_NAME_LOWERCASE }}
+
           tags: |
+            # Release tags (only on GitHub release)
             type=semver,pattern={{version}},enable=${{ github.event_name == 'release' }}
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=ref,event=branch
+            type=semver,pattern={{major}}.{{minor}},enable=${{ github.event_name == 'release' }}
+            type=semver,pattern={{major}},enable=${{ github.event_name == 'release' }}
+            type=raw,value=latest,enable=${{ github.event_name == 'release' }}
+
+            # Dev tags (only on dev branch)
+            type=raw,value=dev,enable=${{ github.event_name == 'push' && github.ref_name == 'dev' }}
+            type=sha,prefix=dev-,enable=${{ github.event_name == 'push' && github.ref_name == 'dev' }}
+
+            # Nightly tags (only on nightly branch)
+            type=raw,value=nightly,enable=${{ github.event_name == 'push' && github.ref_name == 'nightly' }}
+            type=sha,prefix=nightly-,enable=${{ github.event_name == 'push' && github.ref_name == 'nightly' }}
+
+            # Manual test tag
             type=raw,value=${{ github.event.inputs.version }},enable=${{ github.event_name == 'workflow_dispatch' }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v5
         with:
           context: .
-          platforms: linux/amd64,linux/arm64 # Build for amd64 and arm64
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-args: |
-            COMMIT_TAG=${{ github.sha }}
