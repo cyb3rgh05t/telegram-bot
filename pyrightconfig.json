@@ -1,0 +1,11 @@
+{
+  "typeCheckingMode": "basic",
+  "reportOptionalMemberAccess": false,
+  "reportOptionalSubscript": false,
+  "reportOptionalCall": false,
+  "reportOptionalIterable": false,
+  "reportOptionalContextManager": false,
+  "reportOptionalOperand": false,
+  "reportGeneralTypeIssues": "warning",
+  "reportAttributeAccessIssue": "warning"
+}

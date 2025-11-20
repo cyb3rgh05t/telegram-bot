@@ -1,11 +1,7 @@
 python-telegram-bot==20.0
-nest_asyncio
 pytz
 python-telegram-bot [job-queue]
 requests
 aiohttp
 asyncio
-django
 pillow
-whitenoise
-gunicorn

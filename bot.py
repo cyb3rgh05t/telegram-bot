@@ -1,6 +1,4 @@
 import asyncio
-import subprocess
-import nest_asyncio
 import re
 import json
 import os
@@ -30,7 +28,6 @@ from telegram.ext import (
     ContextTypes,
 )
 import sys
-import threading
 
 # Configurations
 CONFIG_DIR = "config"
@@ -117,7 +114,7 @@ logging.basicConfig(
 # Create an asyncio lock for sequential logging
 log_lock = asyncio.Lock()
 
-# Global reference for Django process and bot application
+# Global reference for bot application
 application = None
 
 # Global reference for the group data
@@ -484,6 +481,7 @@ async def search_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
         # If only one result, continue with displaying details and confirmation
         media = media_data["results"][0]
+        context.user_data["selected_media"] = media
         await handle_media_selection(update, context, media)
 
     except aiohttp.ClientError as http_err:
@@ -700,7 +698,7 @@ async def add_series_to_sonarr(
                             )
                         else:
                             logger.error(
-                                f"Failed to start manual search for series '{series_name}'. Status code: {search_response.status_code}"
+                                f"Failed to start manual search for series '{series_name}'. Status code: {search_response.status}"
                             )
                             await status_message.edit_text(
                                 f"🛑 Suche für die Serie *{series_name}* gescheitert.",
@@ -719,7 +717,7 @@ async def add_series_to_sonarr(
                     f"Failed to add series '{series_name}' to Sonarr. Status code: {response.status}"
                 )
                 await status_message.edit_text(
-                    f"🛑 Anfragen der Serie *{series_name}* gescheitert.\nStatus code: *{response.status_code}*",
+                    f"🛑 Anfragen der Serie *{series_name}* gescheitert.\nStatus code: *{response.status}*",
                     parse_mode="Markdown",
                 )
 
@@ -848,7 +846,7 @@ async def add_movie_to_radarr(
                             )
                         else:
                             logger.error(
-                                f"Failed to start manual search for movie '{movie_name}'. Status code: {search_response.status_code}"
+                                f"Failed to start manual search for movie '{movie_name}'. Status code: {search_response.status}"
                             )
                             await status_message.edit_text(
                                 f"🛑 Suche für den Film *{movie_name}* gescheitert.",
@@ -867,20 +865,24 @@ async def add_movie_to_radarr(
                     f"Failed to add movie '{movie_name}' to Radarr. Status code: {response.status}"
                 )
                 await status_message.edit_text(
-                    f"🛑 Anfragen des Films *{movie_name}* gescheitert.\nStatus code: *{response.status_code}*",
+                    f"🛑 Anfragen des Films *{movie_name}* gescheitert.\nStatus code: *{response.status}*",
                     parse_mode="Markdown",
                 )
 
 
 # Handle the user's media selection and display media details before confirming
-async def handle_media_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.callback_query is None:
-        await update.message.reply_text("Ungültige Auswahl. Bitte versuche es erneut.")
-        logger.error("No callback query found in the update.")
-        return
-
-    # Proceed with the rest of your existing logic
-    media = context.user_data.get("selected_media")
+async def handle_media_selection(
+    update: Update, context: ContextTypes.DEFAULT_TYPE, media=None
+):
+    # If media is not passed directly, try to get from callback query
+    if media is None:
+        if update.callback_query is None:
+            await update.message.reply_text(
+                "Ungültige Auswahl. Bitte versuche es erneut."
+            )
+            logger.error("No callback query found in the update.")
+            return
+        media = context.user_data.get("selected_media")
     if not media:
         await update.callback_query.message.reply_text(
             "Ungültige Auswahl. Bitte versuche es erneut."
@@ -1105,22 +1107,16 @@ async def handle_add_media_callback(
 async def handle_text_message(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
-    await context.bot.send_chat_action(
-        chat_id=update.effective_chat.id, action=ChatAction.TYPING
-    )
-    await asyncio.sleep(0.5)  # Small delay to make sure the typing action is visible
-
+    # Only handle if user has pending media info (waiting for yes/no confirmation)
     if context.user_data.get("media_info"):
+        await context.bot.send_chat_action(
+            chat_id=update.effective_chat.id, action=ChatAction.TYPING
+        )
+        await asyncio.sleep(0.5)
         await handle_user_confirmation(update, context)
-    elif context.user_data.get("media_options"):
-        # Call handle_media_selection only if it's a callback query
-        if update.callback_query:
-            await handle_media_selection(update, context)
-        else:
-            await update.message.reply_text("Bitte wähle eine gültige Option.")
-    else:
-        if night_mode_active or await night_mode_checker(context):
-            await restrict_night_mode(update, context)
+    # Check night mode for regular messages
+    elif night_mode_active or await night_mode_checker(context):
+        await restrict_night_mode(update, context)
 
 
 # Handle user's confirmation (yes/no)
@@ -1235,6 +1231,11 @@ def admin_required(func):
 @admin_required
 async def enable_night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     global night_mode_active
+    if not GROUP_CHAT_ID:
+        await update.message.reply_text(
+            "⚠️ GROUP CHAT ID ist nicht konfiguriert. Bitte verwende /set_group_id"
+        )
+        return
     if not night_mode_active:
         night_mode_active = True
         user_id = update.message.from_user.id
@@ -1251,6 +1252,11 @@ async def disable_night_mode(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
     global night_mode_active
+    if not GROUP_CHAT_ID:
+        await update.message.reply_text(
+            "⚠️ GROUP CHAT ID ist nicht konfiguriert. Bitte verwende /set_group_id"
+        )
+        return
     if night_mode_active:
         night_mode_active = False
         user_id = update.message.from_user.id
@@ -1493,7 +1499,8 @@ async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         language_code = context.args[0]
         if len(language_code) == 2:
             LANGUAGE = language_code
-            save_group_data(GROUP_CHAT_ID, LANGUAGE)
+            group_name = get_group_name(GROUP_CHAT_ID)
+            save_group_data(GROUP_CHAT_ID, group_name, LANGUAGE)
             user_id = update.message.from_user.id
             username = update.message.from_user.username
             logger.info(

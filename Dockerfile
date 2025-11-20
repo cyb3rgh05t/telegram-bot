@@ -14,9 +14,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of your application code
 COPY . .
 
-# Expose the port for the Django panel 
-EXPOSE 8000
-
-# Command to run both the bot and the Django server
-# CMD ["sh", "-c", "python bot.py & gunicorn panel.wsgi:application --bind 0.0.0.0:8000 --workers 3"]
+# Run the bot
 CMD ["python", "bot.py"]
